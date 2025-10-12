@@ -1,56 +1,28 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-
-// shadcn/ui components (assumes you have shadcn set up)
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import FocusTrap from "focus-trap-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { LessonPlan } from "@/types/lesson";
 
-// Tailwind + shadcn ready. This file is meant to be used as a single-page dashboard
-// at `app/lesson-plans/page.tsx` in a Next.js 15 (app dir) project configured with
-// TypeScript, Tailwind and shadcn/ui.
-
-// INSTALL (run once):
-// npm install @supabase/supabase-js @radix-ui/react-dropdown-menu
-// plus shadcn/UI setup (see project README for shadcn install steps)
-
-// ENV (next.config / .env.local):
-// NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-// NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
-
-// Types
-type LessonPlan = {
-  id: string;
-  user_id: string;
-  class: string | null;
-  date_of_lesson: string | null; // ISO date
-  time_of_lesson: string | null; // HH:MM:SS
-  topic: string | null;
-  objectives: string | null;
-  outcomes: string | null;
-  resources: any; // jsonb
-  homework: string | null;
-  specialist_subject_knowledge_required: string | null;
-  knowledge_revisited: string | null;
-  subject_pedagogies: string | null;
-  literacy_opportunities: string | null;
-  numeracy_opportunities: string | null;
-  health_and_safety_considerations: string | null;
-  timing: string | null;
-  teaching: string | null;
-  learning: string | null;
-  assessing: string | null;
-  adapting: string | null;
-  evaluation: string | null;
-  created_at?: string;
-};
-
-const supabase = createClient()
+const supabase = createClient();
 
 export default function LessonPlansDashboard() {
   const [lessons, setLessons] = useState<LessonPlan[]>([]);
@@ -59,10 +31,29 @@ export default function LessonPlansDashboard() {
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<LessonPlan | null>(null);
 
   useEffect(() => {
     fetchLessonPlans();
   }, []);
+
+  // Lock scroll + Esc key handling
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedLesson(null);
+    };
+    if (selectedLesson) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleEsc);
+    } else {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEsc);
+    }
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [selectedLesson]);
 
   async function fetchLessonPlans() {
     setLoading(true);
@@ -72,7 +63,6 @@ export default function LessonPlansDashboard() {
         .from<LessonPlan>("lesson_plans")
         .select("*")
         .order("date_of_lesson", { ascending: true });
-
       if (error) throw error;
       setLessons(data ?? []);
     } catch (err: any) {
@@ -104,169 +94,345 @@ export default function LessonPlansDashboard() {
   }, [lessons, search, selectedClass, dateFilter]);
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this lesson plan? This action cannot be undone.")) return;
+    if (!confirm("Delete this lesson plan?")) return;
     const { error } = await supabase.from("lesson_plans").delete().eq("id", id);
-    if (error) {
-      alert("Failed to delete: " + error.message);
-      return;
-    }
+    if (error) return alert("Failed: " + error.message);
     setLessons((prev) => prev.filter((p) => p.id !== id));
   }
 
-  function prettyDate(d?: string | null) {
-    if (!d) return "—";
-    try {
-      const dt = new Date(d + "T00:00:00");
-      return dt.toLocaleDateString();
-    } catch {
-      return d;
-    }
-  }
+  const backgroundClass = selectedLesson
+    ? "scale-[0.987] blur-sm transition-all duration-300"
+    : "transition-all duration-300";
 
   return (
     <div className="min-h-screen p-6 bg-slate-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Lesson Plans</h1>
-            <p className="text-sm text-slate-600 mt-1">Manage and browse lesson plans from Supabase</p>
+      <div className="max-w-7xl mx-auto relative">
+        <div className={backgroundClass}>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold">Lesson Plans</h1>
+              <p className="text-sm text-slate-600 mt-1">
+                Manage and browse your lesson plans
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => fetchLessonPlans()}>Refresh</Button>
+              <Button asChild>
+                <a href="/lesson-plans/new">New Plan</a>
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => fetchLessonPlans()}>Refresh</Button>
-            <Button asChild>
-              <a href="/lesson-plans/new">New Plan</a>
-            </Button>
-          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <Label>Search</Label>
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="topic, class, objectives..."
+                  />
+                </div>
+
+                <div>
+                  <Label>Class</Label>
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                    className="w-full rounded-md border px-3 py-2"
+                  >
+                    <option value="">All</option>
+                    {classes.map((c) => (
+                      <option value={c} key={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label>Date</Label>
+                  <Input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex items-end justify-end">
+                  <Button
+                    onClick={() => {
+                      setSearch("");
+                      setSelectedClass("");
+                      setDateFilter("");
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Separator className="my-6" />
+
+          {/* Lessons */}
+          {loading ? (
+            <div className="text-center py-20">Loading…</div>
+          ) : error ? (
+            <div className="text-red-600">{error}</div>
+          ) : (
+            <motion.div
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            >
+              {filtered.map((lp) => (
+                <motion.div
+                  layoutId={lp.id}
+                  key={lp.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedLesson(lp)}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <LessonCard lesson={lp} onDelete={() => handleDelete(lp.id)} />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label>Search</Label>
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="topic, class, objectives..." />
-              </div>
-
-              <div>
-                <Label>Class</Label>
-                <select
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  className="w-full rounded-md border px-3 py-2"
-                >
-                  <option value="">All</option>
-                  {classes.map((c) => (
-                    <option value={c} key={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label>Date</Label>
-                <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
-              </div>
-
-              <div className="flex items-end justify-end">
-                <Button onClick={() => { setSearch(""); setSelectedClass(""); setDateFilter(""); }}>Clear</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Separator className="my-6" />
-
-        {loading ? (
-          <div className="text-center py-20">Loading…</div>
-        ) : error ? (
-          <div className="text-red-600">{error}</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((lp) => (
-              <LessonCard key={lp.id} lesson={lp} onDelete={() => handleDelete(lp.id)} />
-            ))}
-          </div>
-        )}
+        {/* Expanded modal */}
+        <AnimatePresence>
+          {selectedLesson && (
+            <MobileResponsiveModal
+              lesson={selectedLesson}
+              onClose={() => setSelectedLesson(null)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
-function LessonCard({ lesson, onDelete }: { lesson: LessonPlan; onDelete: () => void }) {
+/* Compact card */
+function LessonCard({
+  lesson,
+  onDelete,
+}: {
+  lesson: LessonPlan;
+  onDelete: () => void;
+}) {
   const resources = parseResources(lesson.resources);
-
   return (
-    <Card className="shadow">
+    <Card className="shadow hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-lg">{lesson.topic ?? "Untitled"}</CardTitle>
-            <p className="text-sm text-slate-500">{lesson.class ?? "Unknown class"}</p>
-            <p className="text-xs text-slate-400">{prettyDate(lesson.date_of_lesson)} {lesson.time_of_lesson ? ` • ${lesson.time_of_lesson}` : ""}</p>
+            <p className="text-sm text-slate-500">{lesson.class ?? "Unknown"}</p>
+            <p className="text-xs text-slate-400">
+              {prettyDate(lesson.date_of_lesson)}{" "}
+              {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
+            </p>
           </div>
-          <div className="text-right">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost">•••</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem asChild>
-                  <a href={`/lesson-plans/${lesson.id}/edit`}>Edit</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={onDelete}>Delete</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost">•••</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <a href={`/lesson-plans/${lesson.id}/edit`}>Edit</a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onDelete}>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
-
       <CardContent>
         <section className="mb-3">
           <h3 className="font-semibold text-sm">Objectives</h3>
           <p className="text-sm text-slate-700">{lesson.objectives ?? "—"}</p>
         </section>
-
-        <section className="mb-3">
-          <h3 className="font-semibold text-sm">Outcomes</h3>
-          <p className="text-sm text-slate-700">{lesson.outcomes ?? "—"}</p>
-        </section>
-
-        <section className="mb-3">
-          <h3 className="font-semibold text-sm">Resources</h3>
-          {resources.length ? (
-            <ul className="list-disc pl-5 text-sm">
-              {resources.map((r, i) => (
-                <li key={i}>
-                  {r.title ? (
-                    <a className="underline" href={r.url ?? "#"} target="_blank" rel="noreferrer">
-                      {r.title}
-                    </a>
-                  ) : (
-                    <span>{r.url ?? JSON.stringify(r)}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-slate-500">—</p>
-          )}
-        </section>
-
         <Separator />
-
         <div className="mt-3 flex justify-between text-sm text-slate-600">
           <div>Timing: {lesson.timing ?? "—"}</div>
-          <div>Assessment: {lesson.assessing ?? "—"}</div>
+          <div>Assessing: {lesson.assessing ?? "—"}</div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
+/* Fixed MobileResponsiveModal: backdrop handles clicks directly */
+function MobileResponsiveModal({
+  lesson,
+  onClose,
+}: {
+  lesson: LessonPlan;
+  onClose: () => void;
+}) {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ container: scrollRef });
+
+  // Animate progress bar color + fade
+  const progressColor = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ["#3b82f6", "#22c55e"]
+  );
+  const progressOpacity = useTransform(scrollYProgress, [0, 0.05, 1], [0, 1, 1]);
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        key={lesson.id}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        {/* BACKDROP: handle clicks here explicitly */}
+        <motion.div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          style={{ zIndex: 40 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose} // <- reliable click-away close
+        />
+
+        {/* Modal content (above backdrop) */}
+        <FocusTrap>
+          <motion.div
+            className={`bg-white rounded-2xl shadow-2xl w-full max-w-3xl ${
+              isMobile ? "mt-auto max-h-[90vh]" : "max-h-[90vh]"
+            } overflow-y-auto relative z-50`}
+            onClick={(e) => e.stopPropagation()} // prevent backdrop close when clicking inside
+            ref={scrollRef}
+            initial={{
+              y: isMobile ? "100%" : 0,
+              opacity: 0,
+              scale: isMobile ? 1 : 0.95,
+            }}
+            animate={{
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              transition: { type: "spring", stiffness: 220, damping: 25 },
+            }}
+            exit={{
+              y: isMobile ? "100%" : 0,
+              opacity: 0,
+              scale: isMobile ? 1 : 0.95,
+            }}
+          >
+            {/* Scroll progress bar */}
+            <motion.div
+              className="sticky top-0 left-0 right-0 h-1 origin-left z-20 rounded-t-2xl"
+              style={{
+                scaleX: scrollYProgress,
+                backgroundColor: progressColor,
+                opacity: progressOpacity,
+              }}
+            />
+
+            {/* Sticky close button */}
+            <motion.button
+              onClick={onClose}
+              className="sticky top-0 right-0 z-30 ml-auto mr-4 mt-4 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm"
+              whileHover={{ rotate: 90, scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Close"
+            >
+              ✕
+            </motion.button>
+
+            {/* Expanded content */}
+            <ExpandedLessonView lesson={lesson} />
+          </motion.div>
+        </FocusTrap>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+/* Expanded lesson view */
+function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
+  const resources = parseResources(lesson.resources);
+  return (
+    <div className="p-6 space-y-4">
+      <h2 className="text-2xl font-bold">{lesson.topic}</h2>
+      <p className="text-sm text-slate-500">
+        {lesson.class} — {lesson.date_of_lesson}{" "}
+        {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
+      </p>
+
+      <Separator />
+
+      {[
+        ["Objectives", lesson.objectives],
+        ["Outcomes", lesson.outcomes],
+        ["Homework", lesson.homework],
+        ["Specialist Knowledge", lesson.specialist_subject_knowledge_required],
+        ["Knowledge Revisited", lesson.knowledge_revisited],
+        ["Subject Pedagogies", lesson.subject_pedagogies],
+        ["Literacy Opportunities", lesson.literacy_opportunities],
+        ["Numeracy Opportunities", lesson.numeracy_opportunities],
+        ["Health & Safety", lesson.health_and_safety_considerations],
+        ["Timing", lesson.timing],
+        ["Teaching", lesson.teaching],
+        ["Learning", lesson.learning],
+        ["Assessing", lesson.assessing],
+        ["Adapting", lesson.adapting],
+        ["Evaluation", lesson.evaluation],
+      ].map(([label, value]) => (
+        <section key={label as string}>
+          <h3 className="font-semibold">{label}</h3>
+          <p className="text-slate-700 text-sm whitespace-pre-wrap">
+            {value || "—"}
+          </p>
+        </section>
+      ))}
+
+      <section>
+        <h3 className="font-semibold">Resources</h3>
+        {resources.length ? (
+          <ul className="list-disc pl-5 text-sm">
+            {resources.map((r, i) => (
+              <li key={i}>
+                {r.title ? (
+                  <a
+                    href={r.url ?? "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline text-blue-600 hover:text-blue-800"
+                  >
+                    {r.title}
+                  </a>
+                ) : (
+                  <span>{r.url ?? JSON.stringify(r)}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-slate-500 text-sm">—</p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+/* Helpers */
 function parseResources(resources: any) {
   if (!resources) return [];
   if (Array.isArray(resources)) return resources;
