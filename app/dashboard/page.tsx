@@ -119,7 +119,7 @@ export default function LessonPlansDashboard() {
             <div className="flex gap-2">
               <Button onClick={() => fetchLessonPlans()}>Refresh</Button>
               <Button asChild>
-                <a href="/lesson-plans/new">New Plan</a>
+                <a href="/dashboard/new">New Plan</a>
               </Button>
             </div>
           </div>
