@@ -365,19 +365,28 @@ function MobileResponsiveModal({
   );
 }
 
-/* Expanded lesson view */
+/* Expanded lesson view content */
 function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   const resources = parseResources(lesson.resources);
+
+  const lessonStructure = Array.isArray(lesson.lesson_structure)
+    ? lesson.lesson_structure
+    : [];
+
   return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-2xl font-bold">{lesson.topic}</h2>
-      <p className="text-sm text-slate-500">
-        {lesson.class} — {lesson.date_of_lesson}{" "}
-        {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
-      </p>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold">{lesson.topic}</h2>
+        <p className="text-sm text-slate-500">
+          {lesson.class} — {prettyDate(lesson.date_of_lesson)}{" "}
+          {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
+        </p>
+      </div>
 
       <Separator />
 
+      {/* Core Lesson Info */}
       {[
         ["Objectives", lesson.objectives],
         ["Outcomes", lesson.outcomes],
@@ -388,11 +397,6 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         ["Literacy Opportunities", lesson.literacy_opportunities],
         ["Numeracy Opportunities", lesson.numeracy_opportunities],
         ["Health & Safety", lesson.health_and_safety_considerations],
-        ["Timing", lesson.timing],
-        ["Teaching", lesson.teaching],
-        ["Learning", lesson.learning],
-        ["Assessing", lesson.assessing],
-        ["Adapting", lesson.adapting],
         ["Evaluation", lesson.evaluation],
       ].map(([label, value]) => (
         <section key={label as string}>
@@ -403,6 +407,58 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </section>
       ))}
 
+      {/* Lesson Structure Section */}
+      {lessonStructure.length > 0 && (
+        <section className="space-y-3">
+          <h3 className="font-semibold text-lg">Lesson Structure</h3>
+
+          <div className="overflow-x-auto border rounded-xl">
+            <table className="min-w-full text-sm border-collapse">
+              <thead className="bg-slate-100 sticky top-0 z-10">
+                <tr>
+                  <th className="text-left p-3 font-semibold border-r">Stage</th>
+                  <th className="text-left p-3 font-semibold border-r">Duration</th>
+                  <th className="text-left p-3 font-semibold border-r">Teaching</th>
+                  <th className="text-left p-3 font-semibold border-r">Learning</th>
+                  <th className="text-left p-3 font-semibold border-r">Assessing</th>
+                  <th className="text-left p-3 font-semibold">Adapting</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lessonStructure.map((stage: any, i: number) => (
+                  <tr
+                    key={i}
+                    className={`border-t ${
+                      i % 2 === 0 ? "bg-white" : "bg-slate-50"
+                    } align-top`}
+                  >
+                    <td className="p-3 font-medium border-r">
+                      {stage.stage || "—"}
+                    </td>
+                    <td className="p-3 border-r whitespace-nowrap">
+                      {stage.duration || "—"}
+                    </td>
+                    <td className="p-3 border-r whitespace-pre-wrap">
+                      {stage.teaching || "—"}
+                    </td>
+                    <td className="p-3 border-r whitespace-pre-wrap">
+                      {stage.learning || "—"}
+                    </td>
+                    <td className="p-3 border-r whitespace-pre-wrap">
+                      {stage.assessing || "—"}
+                    </td>
+                    <td className="p-3 whitespace-pre-wrap">
+                      {stage.adapting || "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* Resources Section */}
       <section>
         <h3 className="font-semibold">Resources</h3>
         {resources.length ? (

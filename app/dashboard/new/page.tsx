@@ -7,155 +7,306 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const supabase = createClient();
 
+interface LessonStage {
+  stage: string;
+  duration: string;
+  teaching: string;
+  learning: string;
+  assessing: string;
+  adapting: string;
+}
+
 export default function NewLessonPlanPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [form, setForm] = useState({
+    class: "",
+    date_of_lesson: "",
+    time_of_lesson: "",
+    topic: "",
+    objectives: "",
+    outcomes: "",
+    resources: "",
+    homework: "",
+    specialist_subject_knowledge_required: "",
+    knowledge_revisited: "",
+    subject_pedagogies: "",
+    literacy_opportunities: "",
+    numeracy_opportunities: "",
+    health_and_safety_considerations: "",
+    evaluation: "",
+  });
+
+  const [stages, setStages] = useState<LessonStage[]>([
+    {
+      stage: "Starter",
+      duration: "",
+      teaching: "",
+      learning: "",
+      assessing: "",
+      adapting: "",
+    },
+  ]);
+
+  function updateForm(field: string, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateStage(index: number, field: keyof LessonStage, value: string) {
+    const updated = [...stages];
+    updated[index][field] = value;
+    setStages(updated);
+  }
+
+  function addStage() {
+    setStages((prev) => [
+      ...prev,
+      {
+        stage: `Stage ${prev.length + 1}`,
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      },
+    ]);
+  }
+
+  function removeStage(index: number) {
+    setStages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSaving(true);
     setError(null);
-    setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    // ✅ Get current user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error("User not authenticated");
+      }
 
-    if (userError || !user) {
-      setError("You must be signed in to create a lesson plan.");
-      setLoading(false);
-      return;
+      const { error: insertError } = await supabase.from("lesson_plans").insert({
+        user_id: user.id,
+        ...form,
+        lesson_structure: stages,
+      });
+
+      if (insertError) throw insertError;
+
+      router.push("/lesson-plans");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setSaving(false);
     }
-
-    const lesson = {
-      user_id: user.id, // ✅ required for your table
-      class: formData.get("class") as string,
-      date_of_lesson: formData.get("date_of_lesson") as string,
-      time_of_lesson: formData.get("time_of_lesson") as string,
-      topic: formData.get("topic") as string,
-      objectives: formData.get("objectives") as string,
-      outcomes: formData.get("outcomes") as string,
-      resources: formData.get("resources") as string,
-      homework: formData.get("homework") as string,
-      specialist_subject_knowledge_required: formData.get("specialist_subject_knowledge_required") as string,
-      knowledge_revisited: formData.get("knowledge_revisited") as string,
-      subject_pedagogies: formData.get("subject_pedagogies") as string,
-      literacy_opportunities: formData.get("literacy_opportunities") as string,
-      numeracy_opportunities: formData.get("numeracy_opportunities") as string,
-      health_and_safety_considerations: formData.get("health_and_safety_considerations") as string,
-      timing: formData.get("timing") as string,
-      teaching: formData.get("teaching") as string,
-      learning: formData.get("learning") as string,
-      assessing: formData.get("assessing") as string,
-      adapting: formData.get("adapting") as string,
-      evaluation: formData.get("evaluation") as string,
-    };
-
-    const { error: insertError } = await supabase.from("lesson_plans").insert(lesson);
-
-    setLoading(false);
-
-    if (insertError) {
-      console.error(insertError);
-      setError(insertError.message);
-      return;
-    }
-
-    router.push("/lesson-plans");
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-slate-50 p-8">
+      <div className="max-w-5xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">New Lesson Plan</CardTitle>
+            <CardTitle>Create Lesson Plan</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="class">Class</Label>
-                  <Input id="class" name="class" required />
+                  <Label>Class</Label>
+                  <Input
+                    value={form.class}
+                    onChange={(e) => updateForm("class", e.target.value)}
+                    required
+                  />
                 </div>
-
                 <div>
-                  <Label htmlFor="topic">Topic</Label>
-                  <Input id="topic" name="topic" required />
+                  <Label>Date of Lesson</Label>
+                  <Input
+                    type="date"
+                    value={form.date_of_lesson}
+                    onChange={(e) => updateForm("date_of_lesson", e.target.value)}
+                    required
+                  />
                 </div>
-
                 <div>
-                  <Label htmlFor="date_of_lesson">Date</Label>
-                  <Input id="date_of_lesson" name="date_of_lesson" type="date" required />
+                  <Label>Time of Lesson</Label>
+                  <Input
+                    type="time"
+                    value={form.time_of_lesson}
+                    onChange={(e) => updateForm("time_of_lesson", e.target.value)}
+                    required
+                  />
                 </div>
-
                 <div>
-                  <Label htmlFor="time_of_lesson">Time</Label>
-                  <Input id="time_of_lesson" name="time_of_lesson" type="time" />
+                  <Label>Topic</Label>
+                  <Input
+                    value={form.topic}
+                    onChange={(e) => updateForm("topic", e.target.value)}
+                    required
+                  />
                 </div>
               </div>
 
-              {/* Main content fields */}
+              <Separator />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="objectives">Objectives</Label>
-                  <Textarea id="objectives" name="objectives" rows={3} />
+                  <Label>Objectives</Label>
+                  <Textarea
+                    value={form.objectives}
+                    onChange={(e) => updateForm("objectives", e.target.value)}
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="outcomes">Outcomes</Label>
-                  <Textarea id="outcomes" name="outcomes" rows={3} />
+                  <Label>Outcomes</Label>
+                  <Textarea
+                    value={form.outcomes}
+                    onChange={(e) => updateForm("outcomes", e.target.value)}
+                  />
                 </div>
+              </div>
+
+              <Separator />
+
+              {/* Lesson Structure Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">
+                  Lesson Structure (Timing, Teaching, Learning, Assessing, Adapting)
+                </h3>
+
+                <div className="space-y-4">
+                  {stages.map((stage, i) => (
+                    <div
+                      key={i}
+                      className="border rounded-lg p-4 bg-white shadow-sm relative"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-semibold text-slate-700">
+                          {stage.stage}
+                        </h4>
+                        {stages.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeStage(i)}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div>
+                          <Label>Duration</Label>
+                          <Input
+                            value={stage.duration}
+                            onChange={(e) =>
+                              updateStage(i, "duration", e.target.value)
+                            }
+                            placeholder="e.g. 10 min"
+                          />
+                        </div>
+                        <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-2">
+                          <div>
+                            <Label>Teaching</Label>
+                            <Textarea
+                              value={stage.teaching}
+                              onChange={(e) =>
+                                updateStage(i, "teaching", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label>Learning</Label>
+                            <Textarea
+                              value={stage.learning}
+                              onChange={(e) =>
+                                updateStage(i, "learning", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label>Assessing</Label>
+                            <Textarea
+                              value={stage.assessing}
+                              onChange={(e) =>
+                                updateStage(i, "assessing", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label>Adapting</Label>
+                            <Textarea
+                              value={stage.adapting}
+                              onChange={(e) =>
+                                updateStage(i, "adapting", e.target.value)
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button type="button" variant="secondary" onClick={addStage}>
+                    + Add Stage
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label>Resources (JSON or text)</Label>
+                <Textarea
+                  value={form.resources}
+                  onChange={(e) => updateForm("resources", e.target.value)}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="resources">Resources (JSON or comma-separated)</Label>
-                  <Textarea id="resources" name="resources" rows={2} placeholder='e.g. [{"title":"Worksheet","url":"https://..."}, ...]' />
+                  <Label>Homework</Label>
+                  <Textarea
+                    value={form.homework}
+                    onChange={(e) => updateForm("homework", e.target.value)}
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="homework">Homework</Label>
-                  <Textarea id="homework" name="homework" rows={2} />
+                  <Label>Evaluation</Label>
+                  <Textarea
+                    value={form.evaluation}
+                    onChange={(e) => updateForm("evaluation", e.target.value)}
+                  />
                 </div>
               </div>
 
-              {/* Extended fields */}
-              {[
-                ["specialist_subject_knowledge_required", "Specialist Subject Knowledge Required"],
-                ["knowledge_revisited", "Knowledge Revisited"],
-                ["subject_pedagogies", "Subject Pedagogies"],
-                ["literacy_opportunities", "Literacy Opportunities"],
-                ["numeracy_opportunities", "Numeracy Opportunities"],
-                ["health_and_safety_considerations", "Health and Safety Considerations"],
-                ["timing", "Timing"],
-                ["teaching", "Teaching"],
-                ["learning", "Learning"],
-                ["assessing", "Assessing"],
-                ["adapting", "Adapting"],
-                ["evaluation", "Evaluation"],
-              ].map(([id, label]) => (
-                <div key={id}>
-                  <Label htmlFor={id}>{label}</Label>
-                  <Textarea id={id} name={id} rows={2} />
-                </div>
-              ))}
+              {error && <p className="text-red-600">{error}</p>}
 
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => router.push("/dashboard")}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : "Save Lesson Plan"}
+              <div className="flex justify-end">
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving..." : "Save Lesson Plan"}
                 </Button>
               </div>
             </form>
