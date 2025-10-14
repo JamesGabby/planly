@@ -26,6 +26,7 @@ export interface LessonPlan {
   assessing: string | null;
   adapting: string | null;
   evaluation: string | null;
+  notes?: string | null;
   created_at?: string;
   updated_at?: string;
 }

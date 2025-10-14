@@ -8,29 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LessonPlan } from "@/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 
 const supabase = createClient();
 
-
 export default function EditLessonPlanPage() {
   const { id } = useParams();
   const router = useRouter();
 
   const [lesson, setLesson] = useState<LessonPlan | null>(null);
+  const [stages, setStages] = useState<LessonStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [stages, setStages] = useState<LessonStage[]>([]);
 
   useEffect(() => {
     if (id) fetchLesson();
@@ -108,11 +101,25 @@ export default function EditLessonPlanPage() {
     setError(null);
 
     try {
+      // ✅ Ensure resources are stored correctly as {title, url}
+      const formattedResources =
+        Array.isArray(lesson.resources) && lesson.resources.length > 0
+          ? lesson.resources.map((res: any) => {
+              const title = res.name || res.title || res.url;
+              return {
+                title,
+                url: res.url?.trim() || "",
+              };
+            })
+          : [];
+
       const { error: updateError } = await supabase
         .from("lesson_plans")
         .update({
           ...lesson,
+          resources: formattedResources,
           lesson_structure: stages,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", lesson.id);
 
@@ -127,20 +134,18 @@ export default function EditLessonPlanPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading lesson plan…</div>;
-  }
+  if (loading)
+    return <div className="p-8 text-center text-slate-600">Loading lesson plan…</div>;
 
-  if (error) {
+  if (error)
     return (
       <div className="p-8 text-center text-red-600">
         Error: {error}
-        <div>
+        <div className="mt-4">
           <Button onClick={() => router.back()}>Go Back</Button>
         </div>
       </div>
     );
-  }
 
   if (!lesson) return null;
 
@@ -153,6 +158,7 @@ export default function EditLessonPlanPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Class</Label>
@@ -165,7 +171,7 @@ export default function EditLessonPlanPage() {
                   <Label>Date of Lesson</Label>
                   <Input
                     type="date"
-                    value={lesson.date_of_lesson}
+                    value={lesson.date_of_lesson || ""}
                     onChange={(e) =>
                       updateField("date_of_lesson", e.target.value)
                     }
@@ -175,7 +181,7 @@ export default function EditLessonPlanPage() {
                   <Label>Time of Lesson</Label>
                   <Input
                     type="time"
-                    value={lesson.time_of_lesson}
+                    value={lesson.time_of_lesson || ""}
                     onChange={(e) =>
                       updateField("time_of_lesson", e.target.value)
                     }
@@ -184,7 +190,7 @@ export default function EditLessonPlanPage() {
                 <div>
                   <Label>Topic</Label>
                   <Input
-                    value={lesson.topic}
+                    value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
                   />
                 </div>
@@ -192,18 +198,19 @@ export default function EditLessonPlanPage() {
 
               <Separator />
 
+              {/* Objectives and Outcomes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Objectives</Label>
                   <Textarea
-                    value={lesson.objectives}
+                    value={lesson.objectives || ""}
                     onChange={(e) => updateField("objectives", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
-                    value={lesson.outcomes}
+                    value={lesson.outcomes || ""}
                     onChange={(e) => updateField("outcomes", e.target.value)}
                   />
                 </div>
@@ -251,42 +258,23 @@ export default function EditLessonPlanPage() {
                           />
                         </div>
                         <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          <div>
-                            <Label>Teaching</Label>
-                            <Textarea
-                              value={stage.teaching}
-                              onChange={(e) =>
-                                updateStage(i, "teaching", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Learning</Label>
-                            <Textarea
-                              value={stage.learning}
-                              onChange={(e) =>
-                                updateStage(i, "learning", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Assessing</Label>
-                            <Textarea
-                              value={stage.assessing}
-                              onChange={(e) =>
-                                updateStage(i, "assessing", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Adapting</Label>
-                            <Textarea
-                              value={stage.adapting}
-                              onChange={(e) =>
-                                updateStage(i, "adapting", e.target.value)
-                              }
-                            />
-                          </div>
+                          {["teaching", "learning", "assessing", "adapting"].map(
+                            (field) => (
+                              <div key={field}>
+                                <Label className="capitalize">{field}</Label>
+                                <Textarea
+                                  value={stage[field as keyof LessonStage] || ""}
+                                  onChange={(e) =>
+                                    updateStage(
+                                      i,
+                                      field as keyof LessonStage,
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
                     </div>
@@ -300,22 +288,21 @@ export default function EditLessonPlanPage() {
 
               <Separator />
 
-              {/* Resources Section */}
+              {/* Resources */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">Resources</h3>
                 <div className="space-y-3">
-                  {Array.isArray(lesson.resources) && lesson.resources.length > 0 ? (
-                    lesson.resources.map((res, i) => (
+                  {Array.isArray(lesson.resources) &&
+                  lesson.resources.length > 0 ? (
+                    lesson.resources.map((res: any, i: number) => (
                       <div key={i} className="flex gap-2 items-center">
                         <Input
-                          placeholder="Resource name"
-                          value={res.name ?? ""}
+                          placeholder="Resource title"
+                          value={res.title ?? ""}
                           onChange={(e) => {
-                            const updated = Array.isArray(lesson.resources)
-                              ? lesson.resources.map((r, idx) =>
-                                  idx === i ? { ...r, name: e.target.value } : r
-                                )
-                              : [];
+                            const updated = lesson.resources!.map((r, idx) =>
+                              idx === i ? { ...r, title: e.target.value } : r
+                            );
                             setLesson((prev) =>
                               prev ? { ...prev, resources: updated } : prev
                             );
@@ -325,11 +312,9 @@ export default function EditLessonPlanPage() {
                           placeholder="Resource URL"
                           value={res.url ?? ""}
                           onChange={(e) => {
-                            const updated = Array.isArray(lesson.resources)
-                              ? lesson.resources.map((r, idx) =>
-                                  idx === i ? { ...r, url: e.target.value } : r
-                                )
-                              : [];
+                            const updated = lesson.resources!.map((r, idx) =>
+                              idx === i ? { ...r, url: e.target.value } : r
+                            );
                             setLesson((prev) =>
                               prev ? { ...prev, resources: updated } : prev
                             );
@@ -340,9 +325,9 @@ export default function EditLessonPlanPage() {
                           variant="destructive"
                           size="sm"
                           onClick={() => {
-                            const updated = Array.isArray(lesson.resources)
-                              ? lesson.resources.filter((_, idx) => idx !== i)
-                              : [];
+                            const updated = lesson.resources!.filter(
+                              (_, idx) => idx !== i
+                            );
                             setLesson((prev) =>
                               prev ? { ...prev, resources: updated } : prev
                             );
@@ -353,7 +338,9 @@ export default function EditLessonPlanPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-slate-500 text-sm">No resources added yet.</p>
+                    <p className="text-slate-500 text-sm">
+                      No resources added yet.
+                    </p>
                   )}
 
                   <Button
@@ -365,8 +352,10 @@ export default function EditLessonPlanPage() {
                           ? {
                               ...prev,
                               resources: [
-                                ...(Array.isArray(prev.resources) ? prev.resources : []),
-                                { name: "", url: "" },
+                                ...(Array.isArray(prev.resources)
+                                  ? prev.resources
+                                  : []),
+                                { title: "", url: "" },
                               ],
                             }
                           : null
@@ -378,21 +367,36 @@ export default function EditLessonPlanPage() {
                 </div>
               </div>
 
+              <Separator />
+
+              {/* Homework / Evaluation */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Homework</Label>
                   <Textarea
-                    value={lesson.homework}
+                    value={lesson.homework || ""}
                     onChange={(e) => updateField("homework", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Evaluation</Label>
                   <Textarea
-                    value={lesson.evaluation}
+                    value={lesson.evaluation || ""}
                     onChange={(e) => updateField("evaluation", e.target.value)}
                   />
                 </div>
+              </div>
+
+              <Separator />
+
+              {/* Notes Section */}
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  placeholder="Any additional notes, reflections, or observations..."
+                  value={lesson.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                />
               </div>
 
               {error && <p className="text-red-600">{error}</p>}

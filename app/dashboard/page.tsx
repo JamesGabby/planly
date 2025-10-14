@@ -8,7 +8,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { FocusTrap } from "focus-trap-react";
+import FocusTrap from "focus-trap-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +37,6 @@ export default function LessonPlansDashboard() {
     fetchLessonPlans();
   }, []);
 
-  // Lock scroll + Esc key handling
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSelectedLesson(null);
@@ -182,7 +181,7 @@ export default function LessonPlansDashboard() {
 
           <Separator className="my-6" />
 
-          {/* Lessons */}
+          {/* Lesson Cards */}
           {loading ? (
             <div className="text-center py-20">Loading…</div>
           ) : error ? (
@@ -196,7 +195,7 @@ export default function LessonPlansDashboard() {
                 <motion.div
                   layoutId={lp.id}
                   key={lp.id}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-full"
                   onClick={() => setSelectedLesson(lp)}
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -222,6 +221,7 @@ export default function LessonPlansDashboard() {
   );
 }
 
+/* --- CARD --- */
 function LessonCard({
   lesson,
   onDelete,
@@ -233,43 +233,36 @@ function LessonCard({
     <Card className="shadow hover:shadow-lg transition-all h-full flex flex-col justify-between">
       <CardHeader className="flex-1">
         <div className="flex justify-between items-start">
-          {/* Lesson info */}
           <div>
             <CardTitle className="text-lg font-semibold line-clamp-2">
               {lesson.topic ?? "Untitled"}
             </CardTitle>
-            <p className="text-sm text-slate-500">
-              {lesson.class ?? "Unknown class"}
-            </p>
+            <p className="text-sm text-slate-500">{lesson.class ?? "Unknown"}</p>
             <p className="text-xs text-slate-400">
               {prettyDate(lesson.date_of_lesson)}{" "}
               {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
             </p>
           </div>
 
-          {/* Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 aria-label="More options"
-                onClick={(e) => e.stopPropagation()} // 👈 stop card click
+                onClick={(e) => e.stopPropagation()}
               >
                 ⋮
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              onClick={(e) => e.stopPropagation()} // 👈 prevent bubbling too
-            >
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem asChild>
                 <a href={`/dashboard/${lesson.id}/edit`}>Edit</a>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
-                  e.stopPropagation(); // 👈 stop modal opening
+                  e.stopPropagation();
                   onDelete();
                 }}
               >
@@ -281,13 +274,13 @@ function LessonCard({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="h-6" /> {/* keeps cards equal height */}
+        <div className="h-6" /> {/* Keeps equal height */}
       </CardContent>
     </Card>
   );
 }
 
-/* Stable MobileResponsiveModal (no scroll jitter) */
+/* --- MODAL --- */
 function MobileResponsiveModal({
   lesson,
   onClose,
@@ -300,7 +293,6 @@ function MobileResponsiveModal({
   const { scrollYProgress } = useScroll({ container: scrollRef });
 
   const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
-  const progressOpacity = useTransform(scrollYProgress, [0, 0.05, 1], [0, 1, 1]);
 
   return (
     <AnimatePresence>
@@ -311,16 +303,13 @@ function MobileResponsiveModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* BACKDROP (non-clickable) */}
         <motion.div
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          style={{ zIndex: 40 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         />
 
-        {/* MODAL CONTAINER (not scrollable itself) */}
         <FocusTrap>
           <motion.div
             className={`bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative z-50 flex flex-col ${
@@ -343,32 +332,25 @@ function MobileResponsiveModal({
               scale: isMobile ? 1 : 0.95,
             }}
           >
-            {/* Scroll progress bar */}
             <motion.div
               className="sticky top-0 left-0 right-0 h-1 origin-left z-20 rounded-t-2xl"
               style={{
                 scaleX: scrollYProgress,
                 backgroundColor: progressColor,
-                opacity: progressOpacity,
               }}
             />
 
-            {/* Close button */}
-            <motion.button
+            <button
               onClick={onClose}
               className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm"
-              whileHover={{ rotate: 90, scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              aria-label="Close"
             >
               ✕
-            </motion.button>
+            </button>
 
-            {/* Scrollable content wrapper */}
             <div
               ref={scrollRef}
               className="overflow-y-auto max-h-[85vh] p-6"
-              style={{ overscrollBehavior: "contain" }} // prevent bounce on iOS/Safari
+              style={{ overscrollBehavior: "contain" }}
             >
               <ExpandedLessonView lesson={lesson} />
             </div>
@@ -379,13 +361,38 @@ function MobileResponsiveModal({
   );
 }
 
-/* Expanded lesson view content */
+/* --- EXPANDED VIEW --- */
 function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
-  const resources = parseResources(lesson.resources);
+  const supabase = createClient();
+  const [notes, setNotes] = useState(lesson.notes ?? "");
+  const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
+  const resources = parseResources(lesson.resources);
   const lessonStructure = Array.isArray(lesson.lesson_structure)
     ? lesson.lesson_structure
     : [];
+
+  async function handleSave(field: "notes" | "evaluation", value: string) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const { error } = await supabase
+        .from("lesson_plans")
+        .update({ [field]: value })
+        .eq("id", lesson.id);
+
+      if (error) throw error;
+      setMessage("Saved!");
+      setTimeout(() => setMessage(null), 2000);
+    } catch (err: any) {
+      console.error(err);
+      setMessage("Error saving changes");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -402,44 +409,68 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
 
       {/* Core Lesson Info */}
       {[
-  ["Objectives", lesson.objectives],
-  ["Outcomes", lesson.outcomes],
-  ["Homework", lesson.homework],
-  ["Specialist Knowledge", lesson.specialist_subject_knowledge_required],
-  ["Knowledge Revisited", lesson.knowledge_revisited],
-  ["Subject Pedagogies", lesson.subject_pedagogies],
-  ["Literacy Opportunities", lesson.literacy_opportunities],
-  ["Numeracy Opportunities", lesson.numeracy_opportunities],
-  ["Health & Safety", lesson.health_and_safety_considerations],
-  ["Evaluation", lesson.evaluation],
-].map(([label, value]) => {
-  // split text into bullet points if there are multiple lines or markers
-  const bullets = (value ?? "")
-    .split(/\n|•|-|\*/g)
-    .map((b) => b.trim())
-    .filter(Boolean);
+        ["Objectives", lesson.objectives],
+        ["Outcomes", lesson.outcomes],
+        ["Homework", lesson.homework],
+        ["Specialist Knowledge", lesson.specialist_subject_knowledge_required],
+        ["Knowledge Revisited", lesson.knowledge_revisited],
+        ["Subject Pedagogies", lesson.subject_pedagogies],
+        ["Literacy Opportunities", lesson.literacy_opportunities],
+        ["Numeracy Opportunities", lesson.numeracy_opportunities],
+        ["Health & Safety", lesson.health_and_safety_considerations],
+      ].map(([label, value]) => {
+        const bullets = (value ?? "")
+          .split(/\n|•|-|\*/g)
+          .map((b) => b.trim())
+          .filter(Boolean);
 
-  return (
-    <section key={label as string}>
-      <h3 className="font-semibold mb-1">{label}</h3>
+        return (
+          <section key={label as string}>
+            <h3 className="font-semibold mb-1">{label}</h3>
+            {bullets.length > 1 ? (
+              <ul className="list-disc list-inside text-sm text-slate-700 space-y-0.5">
+                {bullets.map((point, i) => (
+                  <li key={i}>{point}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-slate-700 text-sm whitespace-pre-wrap">
+                {value || "—"}
+              </p>
+            )}
+          </section>
+        );
+      })}
 
-      {bullets.length > 1 ? (
-        <ul className="list-disc list-inside text-sm text-slate-700 space-y-0.5">
-          {bullets.map((point, i) => (
-            <li key={i}>{point}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-slate-700 text-sm whitespace-pre-wrap">
-          {value || "—"}
-        </p>
-      )}
-    </section>
-  );
-})}
+      {/* Editable Evaluation */}
+      <section>
+        <h3 className="font-semibold mb-1">Evaluation</h3>
+        <textarea
+          className="w-full border rounded-md p-2 text-sm text-slate-700"
+          value={evaluation}
+          onChange={(e) => setEvaluation(e.target.value)}
+          onBlur={() => handleSave("evaluation", evaluation)}
+          rows={4}
+          placeholder="Add your evaluation here..."
+        />
+      </section>
 
+      {/* Editable Notes */}
+      <section>
+        <h3 className="font-semibold mb-1">Notes</h3>
+        <textarea
+          className="w-full border rounded-md p-2 text-sm text-slate-700"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={() => handleSave("notes", notes)}
+          rows={4}
+          placeholder="Add your notes here..."
+        />
+        {saving && <p className="text-xs text-blue-500 mt-1">Saving...</p>}
+        {message && <p className="text-xs text-green-600 mt-1">{message}</p>}
+      </section>
 
-      {/* Lesson Structure Section */}
+      {/* Lesson Structure */}
       {lessonStructure.length > 0 && (
         <section className="space-y-3">
           <h3 className="font-semibold text-lg">Lesson Structure</h3>
@@ -464,12 +495,8 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
                       i % 2 === 0 ? "bg-white" : "bg-slate-50"
                     } align-top`}
                   >
-                    <td className="p-3 font-medium border-r">
-                      {stage.stage || "—"}
-                    </td>
-                    <td className="p-3 border-r whitespace-nowrap">
-                      {stage.duration || "—"}
-                    </td>
+                    <td className="p-3 font-medium border-r">{stage.stage || "—"}</td>
+                    <td className="p-3 border-r">{stage.duration || "—"}</td>
                     <td className="p-3 border-r whitespace-pre-wrap">
                       {stage.teaching || "—"}
                     </td>
@@ -490,7 +517,7 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </section>
       )}
 
-      {/* Resources Section */}
+      {/* Resources */}
       <section>
         <h3 className="font-semibold">Resources</h3>
         {resources.length ? (
@@ -520,16 +547,16 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   );
 }
 
-/* Helpers */
+/* --- HELPERS --- */
 function parseResources(resources: any) {
-  if (!resources) return [];
-  if (Array.isArray(resources)) return resources;
   try {
+    if (!resources) return [];
+    if (Array.isArray(resources)) return resources;
     if (typeof resources === "string") return JSON.parse(resources);
   } catch {
     return [];
   }
-  return resources;
+  return [];
 }
 
 function prettyDate(d?: string | null) {
