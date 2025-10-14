@@ -8,7 +8,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -222,7 +222,6 @@ export default function LessonPlansDashboard() {
   );
 }
 
-/* Compact card */
 function LessonCard({
   lesson,
   onDelete,
@@ -230,48 +229,65 @@ function LessonCard({
   lesson: LessonPlan;
   onDelete: () => void;
 }) {
-  const resources = parseResources(lesson.resources);
   return (
-    <Card className="shadow hover:shadow-lg transition-shadow">
-      <CardHeader>
+    <Card className="shadow hover:shadow-lg transition-all h-full flex flex-col justify-between">
+      <CardHeader className="flex-1">
         <div className="flex justify-between items-start">
+          {/* Lesson info */}
           <div>
-            <CardTitle className="text-lg">{lesson.topic ?? "Untitled"}</CardTitle>
-            <p className="text-sm text-slate-500">{lesson.class ?? "Unknown"}</p>
+            <CardTitle className="text-lg font-semibold line-clamp-2">
+              {lesson.topic ?? "Untitled"}
+            </CardTitle>
+            <p className="text-sm text-slate-500">
+              {lesson.class ?? "Unknown class"}
+            </p>
             <p className="text-xs text-slate-400">
               {prettyDate(lesson.date_of_lesson)}{" "}
               {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
             </p>
           </div>
+
+          {/* Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost">•••</Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="More options"
+                onClick={(e) => e.stopPropagation()} // 👈 stop card click
+              >
+                ⋮
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent
+              align="end"
+              onClick={(e) => e.stopPropagation()} // 👈 prevent bubbling too
+            >
               <DropdownMenuItem asChild>
-                <a href={`/lesson-plans/${lesson.id}/edit`}>Edit</a>
+                <a href={`/dashboard/${lesson.id}/edit`}>Edit</a>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={onDelete}>Delete</DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation(); // 👈 stop modal opening
+                  onDelete();
+                }}
+              >
+                Delete
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent>
-        <section className="mb-3">
-          <h3 className="font-semibold text-sm">Objectives</h3>
-          <p className="text-sm text-slate-700">{lesson.objectives ?? "—"}</p>
-        </section>
-        <Separator />
-        <div className="mt-3 flex justify-between text-sm text-slate-600">
-          <div>Timing: {lesson.timing ?? "—"}</div>
-          <div>Assessing: {lesson.assessing ?? "—"}</div>
-        </div>
+
+      <CardContent className="pt-0">
+        <div className="h-6" /> {/* keeps cards equal height */}
       </CardContent>
     </Card>
   );
 }
 
-/* Fixed MobileResponsiveModal: backdrop handles clicks directly */
+/* Stable MobileResponsiveModal (no scroll jitter) */
 function MobileResponsiveModal({
   lesson,
   onClose,
@@ -283,12 +299,7 @@ function MobileResponsiveModal({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
 
-  // Animate progress bar color + fade
-  const progressColor = useTransform(
-    scrollYProgress,
-    [0, 1],
-    ["#3b82f6", "#22c55e"]
-  );
+  const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
   const progressOpacity = useTransform(scrollYProgress, [0, 0.05, 1], [0, 1, 1]);
 
   return (
@@ -300,24 +311,21 @@ function MobileResponsiveModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* BACKDROP: handle clicks here explicitly */}
+        {/* BACKDROP (non-clickable) */}
         <motion.div
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           style={{ zIndex: 40 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose} // <- reliable click-away close
         />
 
-        {/* Modal content (above backdrop) */}
+        {/* MODAL CONTAINER (not scrollable itself) */}
         <FocusTrap>
           <motion.div
-            className={`bg-white rounded-2xl shadow-2xl w-full max-w-3xl ${
-              isMobile ? "mt-auto max-h-[90vh]" : "max-h-[90vh]"
-            } overflow-y-auto relative z-50`}
-            onClick={(e) => e.stopPropagation()} // prevent backdrop close when clicking inside
-            ref={scrollRef}
+            className={`bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative z-50 flex flex-col ${
+              isMobile ? "mt-auto" : ""
+            }`}
             initial={{
               y: isMobile ? "100%" : 0,
               opacity: 0,
@@ -345,10 +353,10 @@ function MobileResponsiveModal({
               }}
             />
 
-            {/* Sticky close button */}
+            {/* Close button */}
             <motion.button
               onClick={onClose}
-              className="sticky top-0 right-0 z-30 ml-auto mr-4 mt-4 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm"
+              className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm"
               whileHover={{ rotate: 90, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               aria-label="Close"
@@ -356,8 +364,14 @@ function MobileResponsiveModal({
               ✕
             </motion.button>
 
-            {/* Expanded content */}
-            <ExpandedLessonView lesson={lesson} />
+            {/* Scrollable content wrapper */}
+            <div
+              ref={scrollRef}
+              className="overflow-y-auto max-h-[85vh] p-6"
+              style={{ overscrollBehavior: "contain" }} // prevent bounce on iOS/Safari
+            >
+              <ExpandedLessonView lesson={lesson} />
+            </div>
           </motion.div>
         </FocusTrap>
       </motion.div>
@@ -388,24 +402,42 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
 
       {/* Core Lesson Info */}
       {[
-        ["Objectives", lesson.objectives],
-        ["Outcomes", lesson.outcomes],
-        ["Homework", lesson.homework],
-        ["Specialist Knowledge", lesson.specialist_subject_knowledge_required],
-        ["Knowledge Revisited", lesson.knowledge_revisited],
-        ["Subject Pedagogies", lesson.subject_pedagogies],
-        ["Literacy Opportunities", lesson.literacy_opportunities],
-        ["Numeracy Opportunities", lesson.numeracy_opportunities],
-        ["Health & Safety", lesson.health_and_safety_considerations],
-        ["Evaluation", lesson.evaluation],
-      ].map(([label, value]) => (
-        <section key={label as string}>
-          <h3 className="font-semibold">{label}</h3>
-          <p className="text-slate-700 text-sm whitespace-pre-wrap">
-            {value || "—"}
-          </p>
-        </section>
-      ))}
+  ["Objectives", lesson.objectives],
+  ["Outcomes", lesson.outcomes],
+  ["Homework", lesson.homework],
+  ["Specialist Knowledge", lesson.specialist_subject_knowledge_required],
+  ["Knowledge Revisited", lesson.knowledge_revisited],
+  ["Subject Pedagogies", lesson.subject_pedagogies],
+  ["Literacy Opportunities", lesson.literacy_opportunities],
+  ["Numeracy Opportunities", lesson.numeracy_opportunities],
+  ["Health & Safety", lesson.health_and_safety_considerations],
+  ["Evaluation", lesson.evaluation],
+].map(([label, value]) => {
+  // split text into bullet points if there are multiple lines or markers
+  const bullets = (value ?? "")
+    .split(/\n|•|-|\*/g)
+    .map((b) => b.trim())
+    .filter(Boolean);
+
+  return (
+    <section key={label as string}>
+      <h3 className="font-semibold mb-1">{label}</h3>
+
+      {bullets.length > 1 ? (
+        <ul className="list-disc list-inside text-sm text-slate-700 space-y-0.5">
+          {bullets.map((point, i) => (
+            <li key={i}>{point}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-slate-700 text-sm whitespace-pre-wrap">
+          {value || "—"}
+        </p>
+      )}
+    </section>
+  );
+})}
+
 
       {/* Lesson Structure Section */}
       {lessonStructure.length > 0 && (

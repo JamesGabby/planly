@@ -1,14 +1,18 @@
-// Types
-export type LessonPlan = {
+export interface LessonResource {
+  name?: string;
+  url?: string;
+}
+
+export interface LessonPlan {
   id: string;
   user_id: string;
   class: string | null;
-  date_of_lesson: string | null; // ISO date
-  time_of_lesson: string | null; // HH:MM:SS
+  date_of_lesson: string | null;
+  time_of_lesson: string | null;
   topic: string | null;
   objectives: string | null;
   outcomes: string | null;
-  resources: any; // jsonb
+  resources: LessonResource[] | string | null;
   homework: string | null;
   specialist_subject_knowledge_required: string | null;
   knowledge_revisited: string | null;
@@ -23,4 +27,5 @@ export type LessonPlan = {
   adapting: string | null;
   evaluation: string | null;
   created_at?: string;
-};
+  updated_at?: string;
+}
