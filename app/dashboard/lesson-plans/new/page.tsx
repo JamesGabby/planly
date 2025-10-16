@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
@@ -10,64 +10,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "@/types/lesson";
+import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 
 const supabase = createClient();
 
-export default function EditLessonPlanPage() {
-  const { id } = useParams();
+export default function NewLessonPlanPage() {
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<LessonPlan | null>(null);
-  const [stages, setStages] = useState<LessonStage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [lesson, setLesson] = useState<Partial<LessonPlan>>({
+    class: "",
+    date_of_lesson: "",
+    time_of_lesson: "",
+    topic: "",
+    objectives: "",
+    outcomes: "",
+    resources: [],
+    homework: "",
+    evaluation: "",
+    notes: "",
+  });
+
+  const [stages, setStages] = useState<LessonStage[]>([
+    {
+      stage: "Starter",
+      duration: "",
+      teaching: "",
+      learning: "",
+      assessing: "",
+      adapting: "",
+    },
+  ]);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (id) fetchLesson();
-  }, [id]);
-
-  async function fetchLesson() {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from("lesson_plans")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-      if (!data) throw new Error("Lesson plan not found");
-
-      setLesson(data);
-      setStages(
-        Array.isArray(data.lesson_structure)
-          ? data.lesson_structure
-          : [
-              {
-                stage: "Starter",
-                duration: "",
-                teaching: "",
-                learning: "",
-                assessing: "",
-                adapting: "",
-              },
-            ]
-      );
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function updateField(field: keyof LessonPlan, value: string) {
-    if (!lesson) return;
-    setLesson((prev) => prev && { ...prev, [field]: value });
+    setLesson((prev) => ({ ...prev, [field]: value }));
   }
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
@@ -96,36 +75,46 @@ export default function EditLessonPlanPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!lesson) return;
     setSaving(true);
     setError(null);
 
     try {
-      // ✅ Ensure resources are stored correctly as {title, url}
+      // ✅ Get logged-in user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error("You must be logged in to create a lesson plan.");
+
       const formattedResources =
         Array.isArray(lesson.resources) && lesson.resources.length > 0
-          ? lesson.resources.map((res: any) => {
-              const title = res.name || res.title || res.url;
-              return {
-                title,
-                url: res.url?.trim() || "",
-              };
-            })
+          ? lesson.resources.map((res: any) => ({
+              title: res.title || res.url || "",
+              url: res.url?.trim() || "",
+            }))
           : [];
 
-      const { error: updateError } = await supabase
+      // ✅ Insert with user_id
+      const { data, error: insertError } = await supabase
         .from("lesson_plans")
-        .update({
-          ...lesson,
-          resources: formattedResources,
-          lesson_structure: stages,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", lesson.id);
+        .insert([
+          {
+            ...lesson,
+            user_id: user.id, // ✅ include this
+            resources: formattedResources,
+            lesson_structure: stages,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
 
-      if (updateError) throw updateError;
+      if (insertError) throw insertError;
 
-      router.push("/dashboard");
+      router.push(`/dashboard/lesson-plans`);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -134,27 +123,12 @@ export default function EditLessonPlanPage() {
     }
   }
 
-  if (loading)
-    return <div className="p-8 text-center text-slate-600">Loading lesson plan…</div>;
-
-  if (error)
-    return (
-      <div className="p-8 text-center text-red-600">
-        Error: {error}
-        <div className="mt-4">
-          <Button onClick={() => router.back()}>Go Back</Button>
-        </div>
-      </div>
-    );
-
-  if (!lesson) return null;
-
   return (
     <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-5xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Edit Lesson Plan</CardTitle>
+            <CardTitle>New Lesson Plan</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -163,7 +137,7 @@ export default function EditLessonPlanPage() {
                 <div>
                   <Label>Class</Label>
                   <Input
-                    value={lesson.class}
+                    value={lesson.class || ""}
                     onChange={(e) => updateField("class", e.target.value)}
                   />
                 </div>
@@ -228,7 +202,7 @@ export default function EditLessonPlanPage() {
                   {stages.map((stage, i) => (
                     <div
                       key={i}
-                      className="border rounded-lg p-4 bg-white shadow-sm relative"
+                      className="border rounded-lg p-4 bg-white shadow-sm"
                     >
                       <div className="flex justify-between items-center mb-2">
                         <h4 className="font-semibold text-slate-700">
@@ -303,9 +277,10 @@ export default function EditLessonPlanPage() {
                             const updated = lesson.resources!.map((r, idx) =>
                               idx === i ? { ...r, title: e.target.value } : r
                             );
-                            setLesson((prev) =>
-                              prev ? { ...prev, resources: updated } : prev
-                            );
+                            setLesson((prev) => ({
+                              ...prev,
+                              resources: updated,
+                            }));
                           }}
                         />
                         <Input
@@ -315,9 +290,10 @@ export default function EditLessonPlanPage() {
                             const updated = lesson.resources!.map((r, idx) =>
                               idx === i ? { ...r, url: e.target.value } : r
                             );
-                            setLesson((prev) =>
-                              prev ? { ...prev, resources: updated } : prev
-                            );
+                            setLesson((prev) => ({
+                              ...prev,
+                              resources: updated,
+                            }));
                           }}
                         />
                         <Button
@@ -328,9 +304,10 @@ export default function EditLessonPlanPage() {
                             const updated = lesson.resources!.filter(
                               (_, idx) => idx !== i
                             );
-                            setLesson((prev) =>
-                              prev ? { ...prev, resources: updated } : prev
-                            );
+                            setLesson((prev) => ({
+                              ...prev,
+                              resources: updated,
+                            }));
                           }}
                         >
                           Remove
@@ -347,19 +324,15 @@ export default function EditLessonPlanPage() {
                     type="button"
                     variant="secondary"
                     onClick={() =>
-                      setLesson((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              resources: [
-                                ...(Array.isArray(prev.resources)
-                                  ? prev.resources
-                                  : []),
-                                { title: "", url: "" },
-                              ],
-                            }
-                          : null
-                      )
+                      setLesson((prev) => ({
+                        ...prev,
+                        resources: [
+                          ...(Array.isArray(prev.resources)
+                            ? prev.resources
+                            : []),
+                          { title: "", url: "" },
+                        ],
+                      }))
                     }
                   >
                     + Add Resource
@@ -389,7 +362,7 @@ export default function EditLessonPlanPage() {
 
               <Separator />
 
-              {/* Notes Section */}
+              {/* Notes */}
               <div>
                 <Label>Notes</Label>
                 <Textarea
@@ -403,7 +376,7 @@ export default function EditLessonPlanPage() {
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? "Saving..." : "Create Lesson Plan"}
                 </Button>
               </div>
             </form>
