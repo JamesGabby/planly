@@ -15,11 +15,7 @@ export function MobileResponsiveModal({
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
-  const progressColor = useTransform(
-    scrollYProgress,
-    [0, 1],
-    ["#3b82f6", "#22c55e"]
-  );
+  const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
 
   return (
     <AnimatePresence>
@@ -30,13 +26,16 @@ export function MobileResponsiveModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
+        {/* --- BACKDROP --- */}
         <motion.div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
           onClick={onClose}
         />
+
         <FocusTrap>
+          {/* --- MAIN MODAL --- */}
           <motion.div
-            className={`bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative z-50 flex flex-col ${
+            className={`bg-card text-card-foreground rounded-2xl shadow-2xl border border-border w-full max-w-3xl relative z-50 flex flex-col ${
               isMobile ? "mt-auto" : ""
             }`}
             initial={{
@@ -56,16 +55,27 @@ export function MobileResponsiveModal({
               scale: isMobile ? 1 : 0.95,
             }}
           >
+            {/* --- PROGRESS BAR --- */}
             <motion.div
               className="sticky top-0 left-0 right-0 h-1 origin-left z-20 rounded-t-2xl"
               style={{ scaleX: scrollYProgress, backgroundColor: progressColor }}
             />
+
+            {/* --- CLOSE BUTTON --- */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm"
+              className="absolute top-4 right-4 z-30 
+                         bg-secondary/70 dark:bg-muted/70 
+                         text-secondary-foreground dark:text-muted-foreground
+                         border border-border 
+                         rounded-full w-8 h-8 flex items-center justify-center 
+                         hover:bg-accent hover:text-accent-foreground 
+                         transition-colors duration-200 shadow-sm backdrop-blur-sm"
             >
               ✕
             </button>
+
+            {/* --- CONTENT --- */}
             <div
               ref={scrollRef}
               className="overflow-y-auto max-h-[85vh] p-6"

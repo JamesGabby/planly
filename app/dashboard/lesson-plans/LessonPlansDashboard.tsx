@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  motion,
-  AnimatePresence,
-} from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,12 +67,9 @@ export default function LessonPlansDashboard() {
     });
   }, [lessons, search, selectedClass, dateFilter]);
 
-  // 🧠 Split lessons into Today, Upcoming, and Previous
   const today = new Date().toISOString().split("T")[0];
   const { todayLessons, upcoming, previous } = useMemo(() => {
-    const todayLessons = filtered.filter(
-      (l) => l.date_of_lesson === today
-    );
+    const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
     const upcoming = filtered
       .filter((l) => l.date_of_lesson && l.date_of_lesson > today)
       .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
@@ -105,19 +99,23 @@ export default function LessonPlansDashboard() {
       : "transition-all duration-300";
 
   return (
-    <div className="min-h-screen p-6 bg-slate-50">
+    <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold">Lesson Plans</h1>
-              <p className="text-sm text-slate-600 mt-1">
+              <h1 className="text-3xl font-bold tracking-tight">
+                Lesson Plans
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
                 Manage and browse your lesson plans
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => fetchLessonPlans()}>Refresh</Button>
+              <Button variant="outline" onClick={() => fetchLessonPlans()}>
+                Refresh
+              </Button>
               <Button asChild>
                 <a href="/dashboard/lesson-plans/new">New Plan</a>
               </Button>
@@ -125,7 +123,7 @@ export default function LessonPlansDashboard() {
           </div>
 
           {/* Filters */}
-          <Card>
+          <Card className="bg-card text-card-foreground border border-border shadow-sm">
             <CardHeader>
               <CardTitle>Filters</CardTitle>
             </CardHeader>
@@ -137,6 +135,7 @@ export default function LessonPlansDashboard() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="topic, class, objectives..."
+                    className="bg-background"
                   />
                 </div>
 
@@ -145,7 +144,7 @@ export default function LessonPlansDashboard() {
                   <select
                     value={selectedClass}
                     onChange={(e) => setSelectedClass(e.target.value)}
-                    className="w-full rounded-md border px-3 py-2"
+                    className="w-full rounded-md border border-border bg-background text-foreground px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="">All</option>
                     {classes.map((c) => (
@@ -162,11 +161,13 @@ export default function LessonPlansDashboard() {
                     type="date"
                     value={dateFilter}
                     onChange={(e) => setDateFilter(e.target.value)}
+                    className="bg-background"
                   />
                 </div>
 
                 <div className="flex items-end justify-end">
                   <Button
+                    variant="secondary"
                     onClick={() => {
                       setSearch("");
                       setSelectedClass("");
@@ -182,17 +183,19 @@ export default function LessonPlansDashboard() {
 
           <Separator className="my-6" />
 
-          {/* Lesson Sections */}
+          {/* Lessons */}
           {loading ? (
-            <div className="text-center py-20">Loading…</div>
+            <div className="text-center py-20 text-muted-foreground">
+              Loading…
+            </div>
           ) : error ? (
-            <div className="text-red-600">{error}</div>
+            <div className="text-destructive">{error}</div>
           ) : (
             <>
               {/* Today */}
               {todayLessons.length > 0 && (
                 <>
-                  <h2 className="text-2xl font-semibold mb-3 text-blue-700">
+                  <h2 className="text-2xl font-semibold mb-3">
                     Today’s Lessons
                   </h2>
                   <motion.div
@@ -225,7 +228,7 @@ export default function LessonPlansDashboard() {
               {/* Upcoming */}
               {upcoming.length > 0 && (
                 <>
-                  <h2 className="text-2xl font-semibold mb-3 text-green-700">
+                  <h2 className="text-2xl font-semibold mb-3">
                     Upcoming Lessons
                   </h2>
                   <motion.div
@@ -257,11 +260,11 @@ export default function LessonPlansDashboard() {
 
               {/* Previous */}
               <Separator className="my-8" />
-              <h2 className="text-2xl font-semibold mb-3 text-slate-700">
-                Previous Lessons
-              </h2>
+              <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
               {previous.length === 0 ? (
-                <p className="text-slate-500 text-sm">No previous lessons yet.</p>
+                <p className="text-muted-foreground text-sm">
+                  No previous lessons yet.
+                </p>
               ) : (
                 <motion.div
                   layout

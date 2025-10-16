@@ -36,62 +36,79 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-foreground">
+      {/* --- HEADER --- */}
       <header>
-        <h2 className="text-2xl font-bold">{lesson.topic ?? "Untitled"}</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-2xl font-bold text-foreground">
+          {lesson.topic ?? "Untitled"}
+        </h2>
+        <p className="text-sm text-muted-foreground">
           {lesson.class} • {prettyDate(lesson.date_of_lesson)}{" "}
           {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
         </p>
       </header>
 
+      {/* --- OBJECTIVES --- */}
       {lesson.objectives && (
         <section>
-          <h3 className="font-semibold mb-1">Objectives</h3>
-          <p className="text-sm text-slate-700 whitespace-pre-wrap">
+          <h3 className="font-semibold mb-1 text-foreground">Objectives</h3>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {lesson.objectives}
           </p>
         </section>
       )}
 
+      {/* --- LESSON STRUCTURE --- */}
       {lessonStructure.length > 0 && (
         <section>
-          <h3 className="font-semibold mb-2">Lesson Structure</h3>
-          <div className="overflow-x-auto rounded-lg border">
+          <h3 className="font-semibold mb-2 text-foreground">
+            Lesson Structure
+          </h3>
+          <div className="overflow-x-auto rounded-lg border border-border bg-card">
             <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-slate-100 text-slate-700">
-                  <th className="text-left p-3 font-semibold border-r">Stage</th>
-                  <th className="text-left p-3 font-semibold border-r">
+              <thead className="bg-muted text-muted-foreground">
+                <tr>
+                  <th className="text-left p-3 font-semibold border-r border-border">
+                    Stage
+                  </th>
+                  <th className="text-left p-3 font-semibold border-r border-border">
                     Duration
                   </th>
-                  <th className="text-left p-3 font-semibold border-r">
+                  <th className="text-left p-3 font-semibold border-r border-border">
                     Teaching
                   </th>
-                  <th className="text-left p-3 font-semibold border-r">
+                  <th className="text-left p-3 font-semibold border-r border-border">
                     Learning
                   </th>
-                  <th className="text-left p-3 font-semibold border-r">
+                  <th className="text-left p-3 font-semibold border-r border-border">
                     Assessing
                   </th>
-                  <th className="text-left p-3 font-semibold">
-                    Adapting
-                  </th>
+                  <th className="text-left p-3 font-semibold">Adapting</th>
                 </tr>
               </thead>
               <tbody>
                 {lessonStructure.map((stage, i) => (
                   <tr
                     key={i}
-                    className={`border-t ${
-                      i % 2 ? "bg-slate-50" : "bg-white"
-                    } hover:bg-slate-100`}
+                    className={`border-t border-border transition-colors ${
+                      i % 2 ? "bg-muted/50" : "bg-background"
+                    } hover:bg-accent`}
                   >
-                    <td className="p-3 font-medium border-r">{stage.stage}</td>
-                    <td className="p-3 border-r">{stage.duration}</td>
-                    <td className="p-3 border-r">{stage.teaching}</td>
-                    <td className="p-3 border-r">{stage.learning}</td>
-                    <td className="p-3 border-r">{stage.assessing}</td>
+                    <td className="p-3 font-medium border-r border-border">
+                      {stage.stage}
+                    </td>
+                    <td className="p-3 border-r border-border">
+                      {stage.duration}
+                    </td>
+                    <td className="p-3 border-r border-border">
+                      {stage.teaching}
+                    </td>
+                    <td className="p-3 border-r border-border">
+                      {stage.learning}
+                    </td>
+                    <td className="p-3 border-r border-border">
+                      {stage.assessing}
+                    </td>
                     <td className="p-3">{stage.adapting}</td>
                   </tr>
                 ))}
@@ -101,17 +118,18 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </section>
       )}
 
+      {/* --- RESOURCES --- */}
       {resources.length > 0 && (
         <section>
-          <h3 className="font-semibold mb-2">Resources</h3>
-          <ul className="list-disc list-inside text-sm text-blue-600">
+          <h3 className="font-semibold mb-2 text-foreground">Resources</h3>
+          <ul className="list-disc list-inside text-sm space-y-1">
             {resources.map((r, i) => (
               <li key={i}>
                 <a
                   href={r.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline"
+                  className="text-primary hover:underline"
                 >
                   {r.title || r.url}
                 </a>
@@ -120,6 +138,41 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           </ul>
         </section>
       )}
+
+      {/* --- NOTES & EVALUATION --- */}
+      <section className="space-y-4">
+        <div>
+          <h3 className="font-semibold mb-1 text-foreground">Notes</h3>
+          <textarea
+            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={() => handleSave("notes", notes)}
+          />
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-1 text-foreground">Evaluation</h3>
+          <textarea
+            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
+            value={evaluation}
+            onChange={(e) => setEvaluation(e.target.value)}
+            onBlur={() => handleSave("evaluation", evaluation)}
+          />
+        </div>
+
+        {message && (
+          <p
+            className={`text-sm ${
+              message === "Saved!"
+                ? "text-green-600 dark:text-green-400"
+                : "text-destructive"
+            }`}
+          >
+            {message}
+          </p>
+        )}
+      </section>
     </div>
   );
 }
