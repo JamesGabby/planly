@@ -79,7 +79,6 @@ export default function NewLessonPlanPage() {
     setError(null);
 
     try {
-      // ✅ Get logged-in user
       const {
         data: { user },
         error: userError,
@@ -96,21 +95,18 @@ export default function NewLessonPlanPage() {
             }))
           : [];
 
-      // ✅ Insert with user_id
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from("lesson_plans")
         .insert([
           {
             ...lesson,
-            user_id: user.id, // ✅ include this
+            user_id: user.id,
             resources: formattedResources,
             lesson_structure: stages,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
-        ])
-        .select()
-        .single();
+        ]);
 
       if (insertError) throw insertError;
 
@@ -124,14 +120,22 @@ export default function NewLessonPlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>New Lesson Plan</CardTitle>
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
+          <p className="text-muted-foreground text-sm">
+            Create a structured and detailed lesson plan.
+          </p>
+        </div>
+
+        <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
+          <CardHeader className="border-b border-border/60 pb-4">
+            <CardTitle className="text-xl font-semibold">Lesson Details</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+
+          <CardContent className="pt-6 space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -139,6 +143,7 @@ export default function NewLessonPlanPage() {
                   <Input
                     value={lesson.class || ""}
                     onChange={(e) => updateField("class", e.target.value)}
+                    placeholder="e.g. Grade 5A"
                   />
                 </div>
                 <div>
@@ -146,9 +151,7 @@ export default function NewLessonPlanPage() {
                   <Input
                     type="date"
                     value={lesson.date_of_lesson || ""}
-                    onChange={(e) =>
-                      updateField("date_of_lesson", e.target.value)
-                    }
+                    onChange={(e) => updateField("date_of_lesson", e.target.value)}
                   />
                 </div>
                 <div>
@@ -156,9 +159,7 @@ export default function NewLessonPlanPage() {
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
-                    onChange={(e) =>
-                      updateField("time_of_lesson", e.target.value)
-                    }
+                    onChange={(e) => updateField("time_of_lesson", e.target.value)}
                   />
                 </div>
                 <div>
@@ -166,19 +167,21 @@ export default function NewLessonPlanPage() {
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
+                    placeholder="Lesson topic..."
                   />
                 </div>
               </div>
 
               <Separator />
 
-              {/* Objectives and Outcomes */}
+              {/* Objectives & Outcomes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Objectives</Label>
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => updateField("objectives", e.target.value)}
+                    placeholder="Learning goals for this lesson..."
                   />
                 </div>
                 <div>
@@ -186,6 +189,7 @@ export default function NewLessonPlanPage() {
                   <Textarea
                     value={lesson.outcomes || ""}
                     onChange={(e) => updateField("outcomes", e.target.value)}
+                    placeholder="Expected student outcomes..."
                   />
                 </div>
               </div>
@@ -194,25 +198,27 @@ export default function NewLessonPlanPage() {
 
               {/* Lesson Structure */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Lesson Structure (Timing, Teaching, Learning, Assessing, Adapting)
+                <h3 className="text-lg font-semibold mb-3">
+                  Lesson Structure
                 </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Define each stage of your lesson, including timing and learning strategies.
+                </p>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {stages.map((stage, i) => (
                     <div
                       key={i}
-                      className="border rounded-lg p-4 bg-white shadow-sm"
+                      className="border border-border/60 rounded-xl bg-background/70 shadow-sm p-4 md:p-5 transition-all hover:shadow-md"
                     >
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold text-slate-700">
-                          {stage.stage}
-                        </h4>
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">{stage.stage}</h4>
                         {stages.length > 1 && (
                           <Button
                             type="button"
-                            variant="destructive"
+                            variant="ghost"
                             size="sm"
+                            className="text-destructive hover:bg-destructive/10"
                             onClick={() => removeStage(i)}
                           >
                             Remove
@@ -225,9 +231,7 @@ export default function NewLessonPlanPage() {
                           <Label>Duration</Label>
                           <Input
                             value={stage.duration}
-                            onChange={(e) =>
-                              updateStage(i, "duration", e.target.value)
-                            }
+                            onChange={(e) => updateStage(i, "duration", e.target.value)}
                             placeholder="e.g. 10 min"
                           />
                         </div>
@@ -245,6 +249,7 @@ export default function NewLessonPlanPage() {
                                       e.target.value
                                     )
                                   }
+                                  placeholder={`${field} details...`}
                                 />
                               </div>
                             )
@@ -266,10 +271,12 @@ export default function NewLessonPlanPage() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Resources</h3>
                 <div className="space-y-3">
-                  {Array.isArray(lesson.resources) &&
-                  lesson.resources.length > 0 ? (
+                  {Array.isArray(lesson.resources) && lesson.resources.length > 0 ? (
                     lesson.resources.map((res: any, i: number) => (
-                      <div key={i} className="flex gap-2 items-center">
+                      <div
+                        key={i}
+                        className="flex flex-col md:flex-row gap-2 md:items-center"
+                      >
                         <Input
                           placeholder="Resource title"
                           value={res.title ?? ""}
@@ -277,10 +284,7 @@ export default function NewLessonPlanPage() {
                             const updated = lesson.resources!.map((r, idx) =>
                               idx === i ? { ...r, title: e.target.value } : r
                             );
-                            setLesson((prev) => ({
-                              ...prev,
-                              resources: updated,
-                            }));
+                            setLesson((prev) => ({ ...prev, resources: updated }));
                           }}
                         />
                         <Input
@@ -290,24 +294,19 @@ export default function NewLessonPlanPage() {
                             const updated = lesson.resources!.map((r, idx) =>
                               idx === i ? { ...r, url: e.target.value } : r
                             );
-                            setLesson((prev) => ({
-                              ...prev,
-                              resources: updated,
-                            }));
+                            setLesson((prev) => ({ ...prev, resources: updated }));
                           }}
                         />
                         <Button
                           type="button"
-                          variant="destructive"
+                          variant="ghost"
                           size="sm"
+                          className="text-destructive hover:bg-destructive/10"
                           onClick={() => {
                             const updated = lesson.resources!.filter(
                               (_, idx) => idx !== i
                             );
-                            setLesson((prev) => ({
-                              ...prev,
-                              resources: updated,
-                            }));
+                            setLesson((prev) => ({ ...prev, resources: updated }));
                           }}
                         >
                           Remove
@@ -315,7 +314,7 @@ export default function NewLessonPlanPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-slate-500 text-sm">
+                    <p className="text-sm text-muted-foreground">
                       No resources added yet.
                     </p>
                   )}
@@ -342,13 +341,14 @@ export default function NewLessonPlanPage() {
 
               <Separator />
 
-              {/* Homework / Evaluation */}
+              {/* Homework & Evaluation */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Homework</Label>
                   <Textarea
                     value={lesson.homework || ""}
                     onChange={(e) => updateField("homework", e.target.value)}
+                    placeholder="Homework tasks..."
                   />
                 </div>
                 <div>
@@ -356,6 +356,7 @@ export default function NewLessonPlanPage() {
                   <Textarea
                     value={lesson.evaluation || ""}
                     onChange={(e) => updateField("evaluation", e.target.value)}
+                    placeholder="Evaluation criteria..."
                   />
                 </div>
               </div>
@@ -366,13 +367,15 @@ export default function NewLessonPlanPage() {
               <div>
                 <Label>Notes</Label>
                 <Textarea
-                  placeholder="Any additional notes, reflections, or observations..."
+                  placeholder="Any additional notes or reflections..."
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                 />
               </div>
 
-              {error && <p className="text-red-600">{error}</p>}
+              {error && (
+                <p className="text-destructive text-sm font-medium">{error}</p>
+              )}
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={saving}>

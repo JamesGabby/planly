@@ -9,6 +9,9 @@ import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
 import { prettyDate, prettyTime } from "../utils/helpers";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { MoreVertical, Edit3, Trash2 } from "lucide-react";
 
 /* --- CARD --- */
 export function LessonCard({
@@ -40,48 +43,67 @@ export function LessonCard({
 
           {/* --- Dropdown Menu --- */}
           <DropdownMenu.Root open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenu.Trigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="More options"
-                onClick={(e) => e.stopPropagation()}
-                className="hover:bg-accent hover:text-accent-foreground"
-              >
-                ⋮
-              </Button>
-            </DropdownMenu.Trigger>
+          <DropdownMenu.Trigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="More options"
+              className="hover:bg-accent hover:text-accent-foreground transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenu.Trigger>
 
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                align="end"
-                sideOffset={6}
-                className="z-50 min-w-[150px] rounded-md border border-border bg-popover text-popover-foreground shadow-md p-1 animate-in fade-in-0 zoom-in-95"
-                onClick={(e) => e.stopPropagation()}
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              align="end"
+              sideOffset={6}
+              asChild
+              className="z-50 min-w-[160px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.12 }}
+                className="p-1"
               >
-                <DropdownMenu.Item
-                  asChild
-                  className="cursor-pointer px-3 py-2 text-sm rounded-md outline-none hover:bg-accent hover:text-accent-foreground"
-                >
-                  <a href={`/dashboard/lesson-plans/${lesson.id}/edit`}>
+                {/* --- Edit --- */}
+                <DropdownMenu.Item asChild>
+                  <a
+                    href={`/dashboard/lesson-plans/${lesson.id}/edit`}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      "hover:bg-accent hover:text-accent-foreground focus:outline-none focus:bg-accent focus:text-accent-foreground"
+                    )}
+                  >
+                    <Edit3 className="w-4 h-4" />
                     Edit
                   </a>
                 </DropdownMenu.Item>
 
+                {/* --- Delete --- */}
                 <DropdownMenu.Item
                   onSelect={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setMenuOpen(false);
-                    setTimeout(() => onDelete(), 100);
+                    setTimeout(() => onDelete(), 120);
                   }}
-                  className="cursor-pointer px-3 py-2 text-sm text-destructive rounded-md outline-none hover:bg-destructive/10 hover:text-destructive"
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-destructive transition-colors",
+                    "hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
+                  )}
                 >
+                  <Trash2 className="w-4 h-4" />
                   Delete
                 </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
+              </motion.div>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
         </div>
       </CardHeader>
 
