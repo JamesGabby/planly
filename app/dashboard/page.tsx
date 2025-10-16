@@ -240,7 +240,7 @@ function LessonCard({
             <p className="text-sm text-slate-500">{lesson.class ?? "Unknown"}</p>
             <p className="text-xs text-slate-400">
               {prettyDate(lesson.date_of_lesson)}{" "}
-              {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
+              {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
             </p>
           </div>
 
@@ -401,7 +401,7 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         <h2 className="text-2xl font-bold">{lesson.topic}</h2>
         <p className="text-sm text-slate-500">
           {lesson.class} — {prettyDate(lesson.date_of_lesson)}{" "}
-          {lesson.time_of_lesson && `• ${lesson.time_of_lesson}`}
+          {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
         </p>
       </div>
 
@@ -562,9 +562,28 @@ function parseResources(resources: any) {
 function prettyDate(d?: string | null) {
   if (!d) return "—";
   try {
-    const dt = new Date(d + "T00:00:00");
-    return dt.toLocaleDateString();
+    const dt = new Date(d);
+    // Display date in UK format (DD/MM/YYYY)
+    return dt.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   } catch {
     return d;
+  }
+}
+
+function prettyTime(t?: string | null) {
+  if (!t) return "—";
+  try {
+    const dt = new Date(`1970-01-01T${t}`);
+    return dt.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  } catch {
+    return t;
   }
 }
