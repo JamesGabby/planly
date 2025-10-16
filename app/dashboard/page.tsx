@@ -32,27 +32,11 @@ export default function LessonPlansDashboard() {
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonPlan | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<LessonPlan | null>(null);
 
   useEffect(() => {
     fetchLessonPlans();
   }, []);
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedLesson(null);
-    };
-    if (selectedLesson) {
-      document.body.style.overflow = "hidden";
-      window.addEventListener("keydown", handleEsc);
-    } else {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleEsc);
-    }
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleEsc);
-    };
-  }, [selectedLesson]);
 
   async function fetchLessonPlans() {
     setLoading(true);
@@ -92,16 +76,24 @@ export default function LessonPlansDashboard() {
     });
   }, [lessons, search, selectedClass, dateFilter]);
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this lesson plan?")) return;
-    const { error } = await supabase.from("lesson_plans").delete().eq("id", id);
-    if (error) return alert("Failed: " + error.message);
-    setLessons((prev) => prev.filter((p) => p.id !== id));
+  async function handleDeleteConfirm() {
+    if (!confirmDelete) return;
+    const { error } = await supabase
+      .from("lesson_plans")
+      .delete()
+      .eq("id", confirmDelete.id);
+    if (error) {
+      alert("Failed: " + error.message);
+    } else {
+      setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
+    }
+    setConfirmDelete(null);
   }
 
-  const backgroundClass = selectedLesson
-    ? "scale-[0.987] blur-sm transition-all duration-300"
-    : "transition-all duration-300";
+  const backgroundClass =
+    selectedLesson || confirmDelete
+      ? "scale-[0.987] blur-sm transition-all duration-300"
+      : "transition-all duration-300";
 
   return (
     <div className="min-h-screen p-6 bg-slate-50">
@@ -200,7 +192,10 @@ export default function LessonPlansDashboard() {
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <LessonCard lesson={lp} onDelete={() => handleDelete(lp.id)} />
+                  <LessonCard
+                    lesson={lp}
+                    onDelete={() => setConfirmDelete(lp)}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -213,6 +208,17 @@ export default function LessonPlansDashboard() {
             <MobileResponsiveModal
               lesson={selectedLesson}
               onClose={() => setSelectedLesson(null)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {confirmDelete && (
+            <DeleteConfirmModal
+              onCancel={() => setConfirmDelete(null)}
+              onConfirm={handleDeleteConfirm}
+              lesson={confirmDelete}
             />
           )}
         </AnimatePresence>
@@ -229,6 +235,8 @@ function LessonCard({
   lesson: LessonPlan;
   onDelete: () => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <Card className="shadow hover:shadow-lg transition-all h-full flex flex-col justify-between">
       <CardHeader className="flex-1">
@@ -244,7 +252,7 @@ function LessonCard({
             </p>
           </div>
 
-          <DropdownMenu>
+          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -255,7 +263,10 @@ function LessonCard({
                 ⋮
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuContent
+              align="end"
+              onClick={(e) => e.stopPropagation()}
+            >
               <DropdownMenuItem asChild>
                 <a href={`/dashboard/${lesson.id}/edit`}>Edit</a>
               </DropdownMenuItem>
@@ -263,7 +274,8 @@ function LessonCard({
                 onSelect={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onDelete();
+                  setMenuOpen(false); // ✅ close dropdown first
+                  setTimeout(() => onDelete(), 100); // small delay for smooth UX
                 }}
               >
                 Delete
@@ -280,6 +292,72 @@ function LessonCard({
   );
 }
 
+/* --- DELETE CONFIRM MODAL --- */
+function DeleteConfirmModal({
+  onCancel,
+  onConfirm,
+  lesson,
+}: {
+  onCancel: () => void;
+  onConfirm: () => void;
+  lesson: LessonPlan;
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // ✅ Automatically focus "Cancel" for keyboard users
+    cancelRef.current?.focus();
+  }, []);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+      <FocusTrap>
+        <motion.div
+          className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full relative z-50 text-center"
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: "spring", stiffness: 200, damping: 25 }}
+        >
+          <h2 className="text-xl font-semibold mb-2">
+            Delete this lesson plan?
+          </h2>
+          <p className="text-slate-600 mb-6 text-sm">
+            Are you sure you want to delete{" "}
+            <b>{lesson.topic || "Untitled"}</b>? This action cannot be undone.
+          </p>
+          <div className="flex justify-center gap-3">
+            <Button
+              variant="outline"
+              ref={cancelRef}
+              onClick={onCancel}
+              className="focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={onConfirm}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Delete
+            </Button>
+          </div>
+        </motion.div>
+      </FocusTrap>
+    </motion.div>
+  );
+}
+
 /* --- MODAL --- */
 function MobileResponsiveModal({
   lesson,
@@ -291,7 +369,6 @@ function MobileResponsiveModal({
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
-
   const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
 
   return (
@@ -308,6 +385,7 @@ function MobileResponsiveModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         />
 
         <FocusTrap>
@@ -334,19 +412,14 @@ function MobileResponsiveModal({
           >
             <motion.div
               className="sticky top-0 left-0 right-0 h-1 origin-left z-20 rounded-t-2xl"
-              style={{
-                scaleX: scrollYProgress,
-                backgroundColor: progressColor,
-              }}
+              style={{ scaleX: scrollYProgress, backgroundColor: progressColor }}
             />
-
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm"
             >
               ✕
             </button>
-
             <div
               ref={scrollRef}
               className="overflow-y-auto max-h-[85vh] p-6"
@@ -382,7 +455,6 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         .from("lesson_plans")
         .update({ [field]: value })
         .eq("id", lesson.id);
-
       if (error) throw error;
       setMessage("Saved!");
       setTimeout(() => setMessage(null), 2000);
@@ -396,7 +468,6 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div>
         <h2 className="text-2xl font-bold">{lesson.topic}</h2>
         <p className="text-sm text-slate-500">
@@ -404,10 +475,7 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
         </p>
       </div>
-
       <Separator />
-
-      {/* Core Lesson Info */}
       {[
         ["Objectives", lesson.objectives],
         ["Outcomes", lesson.outcomes],
@@ -423,7 +491,6 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           .split(/\n|•|-|\*/g)
           .map((b) => b.trim())
           .filter(Boolean);
-
         return (
           <section key={label as string}>
             <h3 className="font-semibold mb-1">{label}</h3>
@@ -442,7 +509,6 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         );
       })}
 
-      {/* Editable Evaluation */}
       <section>
         <h3 className="font-semibold mb-1">Evaluation</h3>
         <textarea
@@ -455,7 +521,6 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         />
       </section>
 
-      {/* Editable Notes */}
       <section>
         <h3 className="font-semibold mb-1">Notes</h3>
         <textarea
@@ -470,45 +535,43 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         {message && <p className="text-xs text-green-600 mt-1">{message}</p>}
       </section>
 
-      {/* Lesson Structure */}
       {lessonStructure.length > 0 && (
         <section className="space-y-3">
           <h3 className="font-semibold text-lg">Lesson Structure</h3>
-
           <div className="overflow-x-auto border rounded-xl">
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-slate-100 sticky top-0 z-10">
                 <tr>
                   <th className="text-left p-3 font-semibold border-r">Stage</th>
-                  <th className="text-left p-3 font-semibold border-r">Duration</th>
-                  <th className="text-left p-3 font-semibold border-r">Teaching</th>
-                  <th className="text-left p-3 font-semibold border-r">Learning</th>
-                  <th className="text-left p-3 font-semibold border-r">Assessing</th>
+                  <th className="text-left p-3 font-semibold border-r">
+                    Duration
+                  </th>
+                  <th className="text-left p-3 font-semibold border-r">
+                    Teaching
+                  </th>
+                  <th className="text-left p-3 font-semibold border-r">
+                    Learning
+                  </th>
+                  <th className="text-left p-3 font-semibold border-r">
+                    Assessing
+                  </th>
                   <th className="text-left p-3 font-semibold">Adapting</th>
                 </tr>
               </thead>
               <tbody>
-                {lessonStructure.map((stage: any, i: number) => (
+                {lessonStructure.map((stage, i) => (
                   <tr
                     key={i}
                     className={`border-t ${
-                      i % 2 === 0 ? "bg-white" : "bg-slate-50"
-                    } align-top`}
+                      i % 2 ? "bg-slate-50" : "bg-white"
+                    } hover:bg-slate-100`}
                   >
-                    <td className="p-3 font-medium border-r">{stage.stage || "—"}</td>
-                    <td className="p-3 border-r">{stage.duration || "—"}</td>
-                    <td className="p-3 border-r whitespace-pre-wrap">
-                      {stage.teaching || "—"}
-                    </td>
-                    <td className="p-3 border-r whitespace-pre-wrap">
-                      {stage.learning || "—"}
-                    </td>
-                    <td className="p-3 border-r whitespace-pre-wrap">
-                      {stage.assessing || "—"}
-                    </td>
-                    <td className="p-3 whitespace-pre-wrap">
-                      {stage.adapting || "—"}
-                    </td>
+                    <td className="p-3 font-medium border-r">{stage.stage}</td>
+                    <td className="p-3 border-r">{stage.duration}</td>
+                    <td className="p-3 border-r">{stage.teaching}</td>
+                    <td className="p-3 border-r">{stage.learning}</td>
+                    <td className="p-3 border-r">{stage.assessing}</td>
+                    <td className="p-3">{stage.adapting}</td>
                   </tr>
                 ))}
               </tbody>
@@ -517,53 +580,34 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </section>
       )}
 
-      {/* Resources */}
-      <section>
-        <h3 className="font-semibold">Resources</h3>
-        {resources.length ? (
-          <ul className="list-disc pl-5 text-sm">
+      {resources.length > 0 && (
+        <section>
+          <h3 className="font-semibold mb-2">Resources</h3>
+          <ul className="list-disc list-inside text-sm text-blue-600">
             {resources.map((r, i) => (
               <li key={i}>
-                {r.title ? (
-                  <a
-                    href={r.url ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline text-blue-600 hover:text-blue-800"
-                  >
-                    {r.title}
-                  </a>
-                ) : (
-                  <span>{r.url ?? JSON.stringify(r)}</span>
-                )}
+                <a
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {r.title || r.url}
+                </a>
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="text-slate-500 text-sm">—</p>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }
 
 /* --- HELPERS --- */
-function parseResources(resources: any) {
-  try {
-    if (!resources) return [];
-    if (Array.isArray(resources)) return resources;
-    if (typeof resources === "string") return JSON.parse(resources);
-  } catch {
-    return [];
-  }
-  return [];
-}
-
 function prettyDate(d?: string | null) {
   if (!d) return "—";
   try {
     const dt = new Date(d);
-    // Display date in UK format (DD/MM/YYYY)
     return dt.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "2-digit",
@@ -578,12 +622,24 @@ function prettyTime(t?: string | null) {
   if (!t) return "—";
   try {
     const dt = new Date(`1970-01-01T${t}`);
-    return dt.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    return dt
+      .toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        second: undefined,
+      })
+      .replace(/:\d{2}\b/, "");
   } catch {
     return t;
   }
+}
+
+function parseResources(res: any): { title: string; url: string }[] {
+  if (!res) return [];
+  try {
+    if (Array.isArray(res)) return res;
+    if (typeof res === "string") return JSON.parse(res);
+  } catch {}
+  return [];
 }
