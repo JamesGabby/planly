@@ -8,46 +8,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { LessonPlan } from "@/types/lesson";
+import { LessonStage } from "@/components/lesson-structure-editor";
 
 const supabase = createClient();
 
-interface LessonStage {
-  stage: string;
-  duration: string;
-  teaching: string;
-  learning: string;
-  assessing: string;
-  adapting: string;
-}
-
 export default function NewLessonPlanPage() {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
+  const [lesson, setLesson] = useState<Partial<LessonPlan>>({
     class: "",
     date_of_lesson: "",
     time_of_lesson: "",
     topic: "",
     objectives: "",
     outcomes: "",
-    resources: "",
+    resources: [],
     homework: "",
-    specialist_subject_knowledge_required: "",
-    knowledge_revisited: "",
-    subject_pedagogies: "",
-    literacy_opportunities: "",
-    numeracy_opportunities: "",
-    health_and_safety_considerations: "",
     evaluation: "",
+    notes: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -61,8 +42,11 @@ export default function NewLessonPlanPage() {
     },
   ]);
 
-  function updateForm(field: string, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function updateField(field: keyof LessonPlan, value: string) {
+    setLesson((prev) => ({ ...prev, [field]: value }));
   }
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
@@ -95,24 +79,42 @@ export default function NewLessonPlanPage() {
     setError(null);
 
     try {
+      // ✅ Get logged-in user
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError || !user) {
-        throw new Error("User not authenticated");
-      }
+      if (userError) throw userError;
+      if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
-      const { error: insertError } = await supabase.from("lesson_plans").insert({
-        user_id: user.id,
-        ...form,
-        lesson_structure: stages,
-      });
+      const formattedResources =
+        Array.isArray(lesson.resources) && lesson.resources.length > 0
+          ? lesson.resources.map((res: any) => ({
+              title: res.title || res.url || "",
+              url: res.url?.trim() || "",
+            }))
+          : [];
+
+      // ✅ Insert with user_id
+      const { data, error: insertError } = await supabase
+        .from("lesson_plans")
+        .insert([
+          {
+            ...lesson,
+            user_id: user.id, // ✅ include this
+            resources: formattedResources,
+            lesson_structure: stages,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
-      router.push("/dashboard");
+      router.push(`/dashboard`);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -126,69 +128,71 @@ export default function NewLessonPlanPage() {
       <div className="max-w-5xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Create Lesson Plan</CardTitle>
+            <CardTitle>New Lesson Plan</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Class</Label>
                   <Input
-                    value={form.class}
-                    onChange={(e) => updateForm("class", e.target.value)}
-                    required
+                    value={lesson.class || ""}
+                    onChange={(e) => updateField("class", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Date of Lesson</Label>
                   <Input
                     type="date"
-                    value={form.date_of_lesson}
-                    onChange={(e) => updateForm("date_of_lesson", e.target.value)}
-                    required
+                    value={lesson.date_of_lesson || ""}
+                    onChange={(e) =>
+                      updateField("date_of_lesson", e.target.value)
+                    }
                   />
                 </div>
                 <div>
                   <Label>Time of Lesson</Label>
                   <Input
                     type="time"
-                    value={form.time_of_lesson}
-                    onChange={(e) => updateForm("time_of_lesson", e.target.value)}
-                    required
+                    value={lesson.time_of_lesson || ""}
+                    onChange={(e) =>
+                      updateField("time_of_lesson", e.target.value)
+                    }
                   />
                 </div>
                 <div>
                   <Label>Topic</Label>
                   <Input
-                    value={form.topic}
-                    onChange={(e) => updateForm("topic", e.target.value)}
-                    required
+                    value={lesson.topic || ""}
+                    onChange={(e) => updateField("topic", e.target.value)}
                   />
                 </div>
               </div>
 
               <Separator />
 
+              {/* Objectives and Outcomes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Objectives</Label>
                   <Textarea
-                    value={form.objectives}
-                    onChange={(e) => updateForm("objectives", e.target.value)}
+                    value={lesson.objectives || ""}
+                    onChange={(e) => updateField("objectives", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
-                    value={form.outcomes}
-                    onChange={(e) => updateForm("outcomes", e.target.value)}
+                    value={lesson.outcomes || ""}
+                    onChange={(e) => updateField("outcomes", e.target.value)}
                   />
                 </div>
               </div>
 
               <Separator />
 
-              {/* Lesson Structure Section */}
+              {/* Lesson Structure */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">
                   Lesson Structure (Timing, Teaching, Learning, Assessing, Adapting)
@@ -198,7 +202,7 @@ export default function NewLessonPlanPage() {
                   {stages.map((stage, i) => (
                     <div
                       key={i}
-                      className="border rounded-lg p-4 bg-white shadow-sm relative"
+                      className="border rounded-lg p-4 bg-white shadow-sm"
                     >
                       <div className="flex justify-between items-center mb-2">
                         <h4 className="font-semibold text-slate-700">
@@ -228,42 +232,23 @@ export default function NewLessonPlanPage() {
                           />
                         </div>
                         <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          <div>
-                            <Label>Teaching</Label>
-                            <Textarea
-                              value={stage.teaching}
-                              onChange={(e) =>
-                                updateStage(i, "teaching", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Learning</Label>
-                            <Textarea
-                              value={stage.learning}
-                              onChange={(e) =>
-                                updateStage(i, "learning", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Assessing</Label>
-                            <Textarea
-                              value={stage.assessing}
-                              onChange={(e) =>
-                                updateStage(i, "assessing", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Adapting</Label>
-                            <Textarea
-                              value={stage.adapting}
-                              onChange={(e) =>
-                                updateStage(i, "adapting", e.target.value)
-                              }
-                            />
-                          </div>
+                          {["teaching", "learning", "assessing", "adapting"].map(
+                            (field) => (
+                              <div key={field}>
+                                <Label className="capitalize">{field}</Label>
+                                <Textarea
+                                  value={stage[field as keyof LessonStage] || ""}
+                                  onChange={(e) =>
+                                    updateStage(
+                                      i,
+                                      field as keyof LessonStage,
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
                     </div>
@@ -277,36 +262,121 @@ export default function NewLessonPlanPage() {
 
               <Separator />
 
+              {/* Resources */}
               <div>
-                <Label>Resources (JSON or text)</Label>
-                <Textarea
-                  value={form.resources}
-                  onChange={(e) => updateForm("resources", e.target.value)}
-                />
+                <h3 className="text-lg font-semibold mb-2">Resources</h3>
+                <div className="space-y-3">
+                  {Array.isArray(lesson.resources) &&
+                  lesson.resources.length > 0 ? (
+                    lesson.resources.map((res: any, i: number) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <Input
+                          placeholder="Resource title"
+                          value={res.title ?? ""}
+                          onChange={(e) => {
+                            const updated = lesson.resources!.map((r, idx) =>
+                              idx === i ? { ...r, title: e.target.value } : r
+                            );
+                            setLesson((prev) => ({
+                              ...prev,
+                              resources: updated,
+                            }));
+                          }}
+                        />
+                        <Input
+                          placeholder="Resource URL"
+                          value={res.url ?? ""}
+                          onChange={(e) => {
+                            const updated = lesson.resources!.map((r, idx) =>
+                              idx === i ? { ...r, url: e.target.value } : r
+                            );
+                            setLesson((prev) => ({
+                              ...prev,
+                              resources: updated,
+                            }));
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const updated = lesson.resources!.filter(
+                              (_, idx) => idx !== i
+                            );
+                            setLesson((prev) => ({
+                              ...prev,
+                              resources: updated,
+                            }));
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-slate-500 text-sm">
+                      No resources added yet.
+                    </p>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() =>
+                      setLesson((prev) => ({
+                        ...prev,
+                        resources: [
+                          ...(Array.isArray(prev.resources)
+                            ? prev.resources
+                            : []),
+                          { title: "", url: "" },
+                        ],
+                      }))
+                    }
+                  >
+                    + Add Resource
+                  </Button>
+                </div>
               </div>
 
+              <Separator />
+
+              {/* Homework / Evaluation */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Homework</Label>
                   <Textarea
-                    value={form.homework}
-                    onChange={(e) => updateForm("homework", e.target.value)}
+                    value={lesson.homework || ""}
+                    onChange={(e) => updateField("homework", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Evaluation</Label>
                   <Textarea
-                    value={form.evaluation}
-                    onChange={(e) => updateForm("evaluation", e.target.value)}
+                    value={lesson.evaluation || ""}
+                    onChange={(e) => updateField("evaluation", e.target.value)}
                   />
                 </div>
+              </div>
+
+              <Separator />
+
+              {/* Notes */}
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  placeholder="Any additional notes, reflections, or observations..."
+                  value={lesson.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                />
               </div>
 
               {error && <p className="text-red-600">{error}</p>}
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save Lesson Plan"}
+                  {saving ? "Saving..." : "Create Lesson Plan"}
                 </Button>
               </div>
             </form>
