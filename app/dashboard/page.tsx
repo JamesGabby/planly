@@ -8,7 +8,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { FocusTrap } from "focus-trap-react";
+import FocusTrap from "focus-trap-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +75,21 @@ export default function LessonPlansDashboard() {
       );
     });
   }, [lessons, search, selectedClass, dateFilter]);
+
+  // 🧠 Split lessons into Today, Upcoming, and Previous
+  const today = new Date().toISOString().split("T")[0];
+  const { todayLessons, upcoming, previous } = useMemo(() => {
+    const todayLessons = filtered.filter(
+      (l) => l.date_of_lesson === today
+    );
+    const upcoming = filtered
+      .filter((l) => l.date_of_lesson && l.date_of_lesson > today)
+      .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
+    const previous = filtered
+      .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
+      .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
+    return { todayLessons, upcoming, previous };
+  }, [filtered]);
 
   async function handleDeleteConfirm() {
     if (!confirmDelete) return;
@@ -173,32 +188,113 @@ export default function LessonPlansDashboard() {
 
           <Separator className="my-6" />
 
-          {/* Lesson Cards */}
+          {/* Lesson Sections */}
           {loading ? (
             <div className="text-center py-20">Loading…</div>
           ) : error ? (
             <div className="text-red-600">{error}</div>
           ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            >
-              {filtered.map((lp) => (
+            <>
+              {/* Today */}
+              {todayLessons.length > 0 && (
+                <>
+                  <h2 className="text-2xl font-semibold mb-3 text-blue-700">
+                    Today’s Lessons
+                  </h2>
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                  >
+                    {todayLessons.map((lp) => (
+                      <motion.div
+                        layoutId={lp.id}
+                        key={lp.id}
+                        className="cursor-pointer h-full"
+                        onClick={() => setSelectedLesson(lp)}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                      >
+                        <LessonCard
+                          lesson={lp}
+                          onDelete={() => setConfirmDelete(lp)}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+
+              {/* Upcoming */}
+              {upcoming.length > 0 && (
+                <>
+                  <h2 className="text-2xl font-semibold mb-3 text-green-700">
+                    Upcoming Lessons
+                  </h2>
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                  >
+                    {upcoming.map((lp) => (
+                      <motion.div
+                        layoutId={lp.id}
+                        key={lp.id}
+                        className="cursor-pointer h-full"
+                        onClick={() => setSelectedLesson(lp)}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                      >
+                        <LessonCard
+                          lesson={lp}
+                          onDelete={() => setConfirmDelete(lp)}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+
+              {/* Previous */}
+              <Separator className="my-8" />
+              <h2 className="text-2xl font-semibold mb-3 text-slate-700">
+                Previous Lessons
+              </h2>
+              {previous.length === 0 ? (
+                <p className="text-slate-500 text-sm">No previous lessons yet.</p>
+              ) : (
                 <motion.div
-                  layoutId={lp.id}
-                  key={lp.id}
-                  className="cursor-pointer h-full"
-                  onClick={() => setSelectedLesson(lp)}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  layout
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
                 >
-                  <LessonCard
-                    lesson={lp}
-                    onDelete={() => setConfirmDelete(lp)}
-                  />
+                  {previous.map((lp) => (
+                    <motion.div
+                      layoutId={lp.id}
+                      key={lp.id}
+                      className="cursor-pointer h-full"
+                      onClick={() => setSelectedLesson(lp)}
+                      whileHover={{ scale: 1.02 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                    >
+                      <LessonCard
+                        lesson={lp}
+                        onDelete={() => setConfirmDelete(lp)}
+                      />
+                    </motion.div>
+                  ))}
                 </motion.div>
-              ))}
-            </motion.div>
+              )}
+            </>
           )}
         </div>
 
@@ -263,10 +359,7 @@ function LessonCard({
                 ⋮
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem asChild>
                 <a href={`/dashboard/${lesson.id}/edit`}>Edit</a>
               </DropdownMenuItem>
@@ -274,8 +367,8 @@ function LessonCard({
                 onSelect={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setMenuOpen(false); // ✅ close dropdown first
-                  setTimeout(() => onDelete(), 100); // small delay for smooth UX
+                  setMenuOpen(false);
+                  setTimeout(() => onDelete(), 100);
                 }}
               >
                 Delete
@@ -286,7 +379,7 @@ function LessonCard({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="h-6" /> {/* Keeps equal height */}
+        <div className="h-6" />
       </CardContent>
     </Card>
   );
@@ -303,11 +396,7 @@ function DeleteConfirmModal({
   lesson: LessonPlan;
 }) {
   const cancelRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    // ✅ Automatically focus "Cancel" for keyboard users
-    cancelRef.current?.focus();
-  }, []);
+  useEffect(() => cancelRef.current?.focus(), []);
 
   return (
     <motion.div
@@ -336,19 +425,10 @@ function DeleteConfirmModal({
             <b>{lesson.topic || "Untitled"}</b>? This action cannot be undone.
           </p>
           <div className="flex justify-center gap-3">
-            <Button
-              variant="outline"
-              ref={cancelRef}
-              onClick={onCancel}
-              className="focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
+            <Button variant="outline" ref={cancelRef} onClick={onCancel}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={onConfirm}
-              className="bg-red-600 hover:bg-red-700 text-white focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            >
+            <Button variant="destructive" onClick={onConfirm}>
               Delete
             </Button>
           </div>
@@ -358,7 +438,7 @@ function DeleteConfirmModal({
   );
 }
 
-/* --- MODAL --- */
+/* --- MOBILE MODAL --- */
 function MobileResponsiveModal({
   lesson,
   onClose,
@@ -369,7 +449,11 @@ function MobileResponsiveModal({
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
-  const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
+  const progressColor = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ["#3b82f6", "#22c55e"]
+  );
 
   return (
     <AnimatePresence>
@@ -382,12 +466,8 @@ function MobileResponsiveModal({
       >
         <motion.div
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           onClick={onClose}
         />
-
         <FocusTrap>
           <motion.div
             className={`bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative z-50 flex flex-col ${
@@ -434,7 +514,7 @@ function MobileResponsiveModal({
   );
 }
 
-/* --- EXPANDED VIEW --- */
+/* --- EXPANDED LESSON VIEW --- */
 function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
@@ -467,81 +547,31 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">{lesson.topic}</h2>
-        <p className="text-sm text-slate-500">
-          {lesson.class} — {prettyDate(lesson.date_of_lesson)}{" "}
+    <div className="space-y-6">
+      <header>
+        <h2 className="text-2xl font-bold">{lesson.topic ?? "Untitled"}</h2>
+        <p className="text-sm text-slate-600">
+          {lesson.class} • {prettyDate(lesson.date_of_lesson)}{" "}
           {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
         </p>
-      </div>
-      <Separator />
-      {[
-        ["Objectives", lesson.objectives],
-        ["Outcomes", lesson.outcomes],
-        ["Homework", lesson.homework],
-        ["Specialist Knowledge", lesson.specialist_subject_knowledge_required],
-        ["Knowledge Revisited", lesson.knowledge_revisited],
-        ["Subject Pedagogies", lesson.subject_pedagogies],
-        ["Literacy Opportunities", lesson.literacy_opportunities],
-        ["Numeracy Opportunities", lesson.numeracy_opportunities],
-        ["Health & Safety", lesson.health_and_safety_considerations],
-      ].map(([label, value]) => {
-        const bullets = (value ?? "")
-          .split(/\n|•|-|\*/g)
-          .map((b) => b.trim())
-          .filter(Boolean);
-        return (
-          <section key={label as string}>
-            <h3 className="font-semibold mb-1">{label}</h3>
-            {bullets.length > 1 ? (
-              <ul className="list-disc list-inside text-sm text-slate-700 space-y-0.5">
-                {bullets.map((point, i) => (
-                  <li key={i}>{point}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-slate-700 text-sm whitespace-pre-wrap">
-                {value || "—"}
-              </p>
-            )}
-          </section>
-        );
-      })}
+      </header>
 
-      <section>
-        <h3 className="font-semibold mb-1">Evaluation</h3>
-        <textarea
-          className="w-full border rounded-md p-2 text-sm text-slate-700"
-          value={evaluation}
-          onChange={(e) => setEvaluation(e.target.value)}
-          onBlur={() => handleSave("evaluation", evaluation)}
-          rows={4}
-          placeholder="Add your evaluation here..."
-        />
-      </section>
-
-      <section>
-        <h3 className="font-semibold mb-1">Notes</h3>
-        <textarea
-          className="w-full border rounded-md p-2 text-sm text-slate-700"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          onBlur={() => handleSave("notes", notes)}
-          rows={4}
-          placeholder="Add your notes here..."
-        />
-        {saving && <p className="text-xs text-blue-500 mt-1">Saving...</p>}
-        {message && <p className="text-xs text-green-600 mt-1">{message}</p>}
-      </section>
+      {lesson.objectives && (
+        <section>
+          <h3 className="font-semibold mb-1">Objectives</h3>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap">
+            {lesson.objectives}
+          </p>
+        </section>
+      )}
 
       {lessonStructure.length > 0 && (
-        <section className="space-y-3">
-          <h3 className="font-semibold text-lg">Lesson Structure</h3>
-          <div className="overflow-x-auto border rounded-xl">
-            <table className="min-w-full text-sm border-collapse">
-              <thead className="bg-slate-100 sticky top-0 z-10">
-                <tr>
+        <section>
+          <h3 className="font-semibold mb-2">Lesson Structure</h3>
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700">
                   <th className="text-left p-3 font-semibold border-r">Stage</th>
                   <th className="text-left p-3 font-semibold border-r">
                     Duration
@@ -555,7 +585,9 @@ function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
                   <th className="text-left p-3 font-semibold border-r">
                     Assessing
                   </th>
-                  <th className="text-left p-3 font-semibold">Adapting</th>
+                  <th className="text-left p-3 font-semibold">
+                    Adapting
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -627,8 +659,8 @@ function prettyTime(t?: string | null) {
       minute: "2-digit",
       hour12: true,
     });
-    // Remove leading zero from hour (e.g. "09:30 AM" → "9:30 AM")
-    formatted = formatted.replace(/^0/, "");
+    formatted = formatted.replace(/^0/, ""); // remove leading zero
+    formatted = formatted.replace(/\bAM\b/, "am").replace(/\bPM\b/, "pm"); // lowercase am/pm
     return formatted;
   } catch {
     return t;
