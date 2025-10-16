@@ -8,7 +8,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -622,14 +622,14 @@ function prettyTime(t?: string | null) {
   if (!t) return "—";
   try {
     const dt = new Date(`1970-01-01T${t}`);
-    return dt
-      .toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-        second: undefined,
-      })
-      .replace(/:\d{2}\b/, "");
+    let formatted = dt.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+    // Remove leading zero from hour (e.g. "09:30 AM" → "9:30 AM")
+    formatted = formatted.replace(/^0/, "");
+    return formatted;
   } catch {
     return t;
   }
