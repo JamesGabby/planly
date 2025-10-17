@@ -40,6 +40,14 @@ export default function NewLessonPlanPage() {
       assessing: "",
       adapting: "",
     },
+    {
+      stage: "Plenary",
+      duration: "",
+      teaching: "",
+      learning: "",
+      assessing: "",
+      adapting: "",
+    },
   ]);
 
   const [saving, setSaving] = useState(false);
@@ -56,17 +64,21 @@ export default function NewLessonPlanPage() {
   }
 
   function addStage() {
-    setStages((prev) => [
-      ...prev,
-      {
-        stage: `Stage ${prev.length + 1}`,
+    setStages((prev) => {
+      const newStage = {
+        stage: `Stage ${prev.length - 1}`,
         duration: "",
         teaching: "",
         learning: "",
         assessing: "",
         adapting: "",
-      },
-    ]);
+      };
+
+      // Insert the new stage before the last (Plenary)
+      const updated = [...prev];
+      updated.splice(prev.length - 1, 0, newStage);
+      return updated;
+    });
   }
 
   function removeStage(index: number) {
@@ -222,7 +234,7 @@ export default function NewLessonPlanPage() {
                     >
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="font-medium">{stage.stage}</h4>
-                        {stages.length > 1 && (
+                        {!["Starter", "Plenary"].includes(stage.stage) && (
                           <Button
                             type="button"
                             variant="ghost"
