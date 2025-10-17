@@ -42,27 +42,48 @@ export default function EditLessonPlanPage() {
       if (error) throw error;
       if (!data) throw new Error("Lesson plan not found");
 
+      let structure: LessonStage[] = Array.isArray(data.lesson_structure)
+        ? data.lesson_structure
+        : [];
+
+      const hasStarter = structure.some((s) => s.stage === "Starter");
+      const hasPlenary = structure.some((s) => s.stage === "Plenary");
+
+      if (!hasStarter) {
+        structure.unshift(blankStage("Starter"));
+      }
+      if (!hasPlenary) {
+        structure.push(blankStage("Plenary"));
+      }
+
+      // Ensure Starter is first and Plenary last
+      structure = [
+        structure.find((s) => s.stage === "Starter")!,
+        ...structure.filter(
+          (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+        ),
+        structure.find((s) => s.stage === "Plenary")!,
+      ];
+
       setLesson(data);
-      setStages(
-        Array.isArray(data.lesson_structure)
-          ? data.lesson_structure
-          : [
-              {
-                stage: "Starter",
-                duration: "",
-                teaching: "",
-                learning: "",
-                assessing: "",
-                adapting: "",
-              },
-            ]
-      );
+      setStages(structure);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  function blankStage(name: string): LessonStage {
+    return {
+      stage: name,
+      duration: "",
+      teaching: "",
+      learning: "",
+      assessing: "",
+      adapting: "",
+    };
   }
 
   function updateField(field: keyof LessonPlan, value: string) {
@@ -76,22 +97,30 @@ export default function EditLessonPlanPage() {
     setStages(updated);
   }
 
-  function addStage() {
-    setStages((prev) => [
-      ...prev,
-      {
-        stage: `Stage ${prev.length + 1}`,
-        duration: "",
-        teaching: "",
-        learning: "",
-        assessing: "",
-        adapting: "",
-      },
-    ]);
+  function clearStage(index: number) {
+    const updated = [...stages];
+    const stageName = updated[index].stage;
+    updated[index] = blankStage(stageName);
+    setStages(updated);
   }
 
+  // Add new stage before Plenary
+  function addStage() {
+    setStages((prev) => {
+      const newStage = blankStage(`Stage ${prev.length - 1}`);
+      const updated = [...prev];
+      updated.splice(prev.length - 1, 0, newStage);
+      return updated;
+    });
+  }
+
+  // Prevent deleting Starter/Plenary
   function removeStage(index: number) {
-    setStages((prev) => prev.filter((_, i) => i !== index));
+    setStages((prev) =>
+      prev.filter(
+        (_, i) => i !== index && !["Starter", "Plenary"].includes(prev[i].stage)
+      )
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -150,11 +179,11 @@ export default function EditLessonPlanPage() {
   if (!lesson) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 dark:from-background dark:to-muted/10 p-6 md:p-10 transition-colors">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-6 md:p-10">
       <div className="max-w-5xl mx-auto">
-        <Card className="border border-border/60 shadow-md rounded-2xl bg-card/90 backdrop-blur-sm">
+        <Card className="border shadow-md rounded-2xl bg-card/90 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-2xl font-semibold tracking-tight text-primary">
+            <CardTitle className="text-2xl font-semibold text-primary">
               Edit Lesson Plan
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
@@ -189,6 +218,13 @@ export default function EditLessonPlanPage() {
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
+                    onFocus={() => {
+                      if (!lesson.time_of_lesson) {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, "0");
+                        updateField("time_of_lesson", `${hours}:00`);
+                      }
+                    }}
                     onChange={(e) =>
                       updateField("time_of_lesson", e.target.value)
                     }
@@ -200,28 +236,6 @@ export default function EditLessonPlanPage() {
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="e.g. Introduction to Fractions"
-                  />
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Objectives and Outcomes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label>Objectives</Label>
-                  <Textarea
-                    value={lesson.objectives || ""}
-                    onChange={(e) => updateField("objectives", e.target.value)}
-                    placeholder="List what students should learn..."
-                  />
-                </div>
-                <div>
-                  <Label>Outcomes</Label>
-                  <Textarea
-                    value={lesson.outcomes || ""}
-                    onChange={(e) => updateField("outcomes", e.target.value)}
-                    placeholder="Describe expected learning outcomes..."
                   />
                 </div>
               </div>
@@ -248,7 +262,16 @@ export default function EditLessonPlanPage() {
                         <h4 className="font-semibold text-foreground">
                           {stage.stage}
                         </h4>
-                        {stages.length > 1 && (
+                        {["Starter", "Plenary"].includes(stage.stage) ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => clearStage(i)}
+                          >
+                            Clear
+                          </Button>
+                        ) : (
                           <Button
                             type="button"
                             variant="ghost"
@@ -306,131 +329,6 @@ export default function EditLessonPlanPage() {
                     + Add Stage
                   </Button>
                 </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Resources */}
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-primary">
-                  Resources
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Add links or titles for supporting materials.
-                </p>
-
-                <div className="space-y-3">
-                  {Array.isArray(lesson.resources) &&
-                  lesson.resources.length > 0 ? (
-                    lesson.resources.map((res: any, i: number) => (
-                      <div
-                        key={i}
-                        className="flex flex-col md:flex-row gap-3 items-start md:items-center"
-                      >
-                        <Input
-                          placeholder="Resource title"
-                          value={res.title ?? ""}
-                          onChange={(e) => {
-                            const updated = lesson.resources!.map((r, idx) =>
-                              idx === i ? { ...r, title: e.target.value } : r
-                            );
-                            setLesson((prev) =>
-                              prev ? { ...prev, resources: updated } : prev
-                            );
-                          }}
-                        />
-                        <Input
-                          placeholder="Resource URL"
-                          value={res.url ?? ""}
-                          onChange={(e) => {
-                            const updated = lesson.resources!.map((r, idx) =>
-                              idx === i ? { ...r, url: e.target.value } : r
-                            );
-                            setLesson((prev) =>
-                              prev ? { ...prev, resources: updated } : prev
-                            );
-                          }}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => {
-                            const updated = lesson.resources!.filter(
-                              (_, idx) => idx !== i
-                            );
-                            setLesson((prev) =>
-                              prev ? { ...prev, resources: updated } : prev
-                            );
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-muted-foreground text-sm">
-                      No resources added yet.
-                    </p>
-                  )}
-
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() =>
-                      setLesson((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              resources: [
-                                ...(Array.isArray(prev.resources)
-                                  ? prev.resources
-                                  : []),
-                                { title: "", url: "" },
-                              ],
-                            }
-                          : null
-                      )
-                    }
-                  >
-                    + Add Resource
-                  </Button>
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Homework / Evaluation */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label>Homework</Label>
-                  <Textarea
-                    value={lesson.homework || ""}
-                    onChange={(e) => updateField("homework", e.target.value)}
-                    placeholder="Assignments or follow-up tasks..."
-                  />
-                </div>
-                <div>
-                  <Label>Evaluation</Label>
-                  <Textarea
-                    value={lesson.evaluation || ""}
-                    onChange={(e) => updateField("evaluation", e.target.value)}
-                    placeholder="Self or student evaluation notes..."
-                  />
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Notes */}
-              <div>
-                <Label>Notes</Label>
-                <Textarea
-                  placeholder="Any additional notes, reflections, or observations..."
-                  value={lesson.notes || ""}
-                  onChange={(e) => updateField("notes", e.target.value)}
-                />
               </div>
 
               {error && (
