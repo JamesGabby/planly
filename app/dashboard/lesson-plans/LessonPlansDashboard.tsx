@@ -12,6 +12,7 @@ import { LessonPlan } from "./types/lesson";
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
 import { LessonCard } from "./components/LessonCard";
 import { MobileResponsiveModal } from "./components/MobileResponsiveModal";
+import { FiltersCard } from "./components/FiltersCard";
 
 const supabase = createClient();
 
@@ -123,64 +124,15 @@ export default function LessonPlansDashboard() {
           </div>
 
           {/* Filters */}
-          <Card className="bg-card text-card-foreground border border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>Filters</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <Label>Search</Label>
-                  <Input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="topic, class, objectives..."
-                    className="bg-background"
-                  />
-                </div>
-
-                <div>
-                  <Label>Class</Label>
-                  <select
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    className="w-full rounded-md border border-border bg-background text-foreground px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="">All</option>
-                    {classes.map((c) => (
-                      <option value={c} key={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <Label>Date</Label>
-                  <Input
-                    type="date"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className="bg-background"
-                  />
-                </div>
-
-                <div className="flex items-end justify-end">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSearch("");
-                      setSelectedClass("");
-                      setDateFilter("");
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+          <FiltersCard
+            search={search}
+            setSearch={setSearch}
+            selectedClass={selectedClass}
+            setSelectedClass={setSelectedClass}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            classes={classes}
+          />
           <Separator className="my-6" />
 
           {/* Lessons */}
