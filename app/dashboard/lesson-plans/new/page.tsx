@@ -159,6 +159,15 @@ export default function NewLessonPlanPage() {
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
+                    onFocus={() => {
+                      // Only set the default if no time is already selected
+                      if (!lesson.time_of_lesson) {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, "0");
+                        const defaultTime = `${hours}:00`;
+                        updateField("time_of_lesson", defaultTime);
+                      }
+                    }}
                     onChange={(e) => updateField("time_of_lesson", e.target.value)}
                   />
                 </div>
