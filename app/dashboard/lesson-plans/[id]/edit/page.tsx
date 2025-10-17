@@ -49,14 +49,9 @@ export default function EditLessonPlanPage() {
       const hasStarter = structure.some((s) => s.stage === "Starter");
       const hasPlenary = structure.some((s) => s.stage === "Plenary");
 
-      if (!hasStarter) {
-        structure.unshift(blankStage("Starter"));
-      }
-      if (!hasPlenary) {
-        structure.push(blankStage("Plenary"));
-      }
+      if (!hasStarter) structure.unshift(blankStage("Starter"));
+      if (!hasPlenary) structure.push(blankStage("Plenary"));
 
-      // Ensure Starter is first and Plenary last
       structure = [
         structure.find((s) => s.stage === "Starter")!,
         ...structure.filter(
@@ -104,7 +99,6 @@ export default function EditLessonPlanPage() {
     setStages(updated);
   }
 
-  // Add new stage before Plenary
   function addStage() {
     setStages((prev) => {
       const newStage = blankStage(`Stage ${prev.length - 1}`);
@@ -114,7 +108,6 @@ export default function EditLessonPlanPage() {
     });
   }
 
-  // Prevent deleting Starter/Plenary
   function removeStage(index: number) {
     setStages((prev) =>
       prev.filter(
@@ -236,6 +229,103 @@ export default function EditLessonPlanPage() {
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="e.g. Introduction to Fractions"
+                  />
+                </div>
+              </div>
+
+              <Separator className="my-8" />
+
+              {/* ✅ Objectives & Outcomes with bullet points */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Objectives */}
+                <div>
+                  <Label>Objectives</Label>
+                  <Textarea
+                    value={lesson.objectives || ""}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("objectives", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd =
+                            selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) ===
+                          "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                      }
+                    }}
+                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                  />
+                </div>
+
+                {/* Outcomes */}
+                <div>
+                  <Label>Outcomes</Label>
+                  <Textarea
+                    value={lesson.outcomes || ""}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("outcomes", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd =
+                            selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) ===
+                          "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                      }
+                    }}
+                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
                   />
                 </div>
               </div>

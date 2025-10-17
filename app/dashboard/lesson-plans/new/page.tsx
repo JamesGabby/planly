@@ -210,22 +210,97 @@ export default function NewLessonPlanPage() {
 
               <Separator />
 
-              {/* Objectives & Outcomes */}
+              {/* Objectives & Outcomes with bullet points */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Objectives */}
                 <div>
                   <Label>Objectives</Label>
                   <Textarea
                     value={lesson.objectives || ""}
-                    onChange={(e) => updateField("objectives", e.target.value)}
-                    placeholder="Learning goals for this lesson..."
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Ensure first bullet is always present
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("objectives", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      // Enter → new bullet
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                        // Restore cursor position after React state update
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      // Backspace → remove bullet cleanly
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                      }
+                    }}
+                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
                   />
                 </div>
+
+                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
                     value={lesson.outcomes || ""}
-                    onChange={(e) => updateField("outcomes", e.target.value)}
-                    placeholder="Expected student outcomes..."
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("outcomes", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                      }
+                    }}
+                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
                   />
                 </div>
               </div>
