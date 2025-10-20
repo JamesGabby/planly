@@ -13,6 +13,7 @@ import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
 import { LessonCard } from "./components/LessonCard";
 import { MobileResponsiveModal } from "./components/MobileResponsiveModal";
 import { FiltersCard } from "./components/FiltersCard";
+import { LessonCardSkeleton } from "./LessonCardSkeleton";
 
 const supabase = createClient();
 
@@ -105,23 +106,22 @@ export default function LessonPlansDashboard() {
         <div className={backgroundClass}>
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-  <div>
-    <h1 className="text-3xl font-bold tracking-tight">Lesson Plans</h1>
-    <p className="text-sm text-muted-foreground mt-1">
-      Manage and browse your lesson plans
-    </p>
-  </div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Lesson Plans</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage and browse your lesson plans
+              </p>
+            </div>
 
-  <div className="flex gap-2 shrink-0">
-    <Button variant="outline" onClick={() => fetchLessonPlans()}>
-      Refresh
-    </Button>
-    <Button asChild>
-      <a href="/dashboard/lesson-plans/new">New Plan</a>
-    </Button>
-  </div>
-</div>
-
+            <div className="flex gap-2 shrink-0">
+              <Button variant="outline" onClick={() => fetchLessonPlans()}>
+                Refresh
+              </Button>
+              <Button asChild>
+                <a href="/dashboard/lesson-plans/new">New Plan</a>
+              </Button>
+            </div>
+          </div>
 
           {/* Filters */}
           <FiltersCard
@@ -136,112 +136,118 @@ export default function LessonPlansDashboard() {
           <Separator className="my-6" />
 
           {/* Lessons */}
-          {loading ? (
-            <div className="text-center py-20 text-muted-foreground">
-              Loading…
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="text-destructive">{error}</div>
           ) : (
             <>
-              {/* Today */}
-              {todayLessons.length > 0 && (
-                <>
-                  <h2 className="text-2xl font-semibold mb-3">
-                    Today’s Lessons
-                  </h2>
-                  <motion.div
-                    layout
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-                  >
-                    {todayLessons.map((lp) => (
-                      <motion.div
-                        layoutId={lp.id}
-                        key={lp.id}
-                        className="cursor-pointer h-full"
-                        onClick={() => setSelectedLesson(lp)}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                      >
-                        <LessonCard
-                          lesson={lp}
-                          onDelete={() => setConfirmDelete(lp)}
-                        />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-
-              {/* Upcoming */}
-              {upcoming.length > 0 && (
-                <>
-                  <h2 className="text-2xl font-semibold mb-3">
-                    Upcoming Lessons
-                  </h2>
-                  <motion.div
-                    layout
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-                  >
-                    {upcoming.map((lp) => (
-                      <motion.div
-                        layoutId={lp.id}
-                        key={lp.id}
-                        className="cursor-pointer h-full"
-                        onClick={() => setSelectedLesson(lp)}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                      >
-                        <LessonCard
-                          lesson={lp}
-                          onDelete={() => setConfirmDelete(lp)}
-                        />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-
-              {/* Previous */}
-              <Separator className="my-8" />
-              <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
-              {previous.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No previous lessons yet.
-                </p>
-              ) : (
+              {/* Show skeletons while loading */}
+              {loading ? (
                 <motion.div
                   layout
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
                 >
-                  {previous.map((lp) => (
-                    <motion.div
-                      layoutId={lp.id}
-                      key={lp.id}
-                      className="cursor-pointer h-full"
-                      onClick={() => setSelectedLesson(lp)}
-                      whileHover={{ scale: 1.02 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 20,
-                      }}
-                    >
-                      <LessonCard
-                        lesson={lp}
-                        onDelete={() => setConfirmDelete(lp)}
-                      />
-                    </motion.div>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <LessonCardSkeleton key={`skeleton-${i}`} />
                   ))}
                 </motion.div>
+              ) : (
+                <>
+                  {/* Today */}
+                  {todayLessons.length > 0 && (
+                    <>
+                      <h2 className="text-2xl font-semibold mb-3">Today’s Lessons</h2>
+                      <motion.div
+                        layout
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                      >
+                        {todayLessons.map((lp) => (
+                          <motion.div
+                            layoutId={lp.id}
+                            key={lp.id}
+                            className="cursor-pointer h-full"
+                            onClick={() => setSelectedLesson(lp)}
+                            whileHover={{ scale: 1.02 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 20,
+                            }}
+                          >
+                            <LessonCard
+                              lesson={lp}
+                              onDelete={() => setConfirmDelete(lp)}
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </>
+                  )}
+
+                  {/* Upcoming */}
+                  {upcoming.length > 0 && (
+                    <>
+                      <h2 className="text-2xl font-semibold mb-3">Upcoming Lessons</h2>
+                      <motion.div
+                        layout
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                      >
+                        {upcoming.map((lp) => (
+                          <motion.div
+                            layoutId={lp.id}
+                            key={lp.id}
+                            className="cursor-pointer h-full"
+                            onClick={() => setSelectedLesson(lp)}
+                            whileHover={{ scale: 1.02 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 20,
+                            }}
+                          >
+                            <LessonCard
+                              lesson={lp}
+                              onDelete={() => setConfirmDelete(lp)}
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </>
+                  )}
+
+                  {/* Previous */}
+                  <Separator className="my-8" />
+                  <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
+                  {previous.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">
+                      No previous lessons yet.
+                    </p>
+                  ) : (
+                    <motion.div
+                      layout
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    >
+                      {previous.map((lp) => (
+                        <motion.div
+                          layoutId={lp.id}
+                          key={lp.id}
+                          className="cursor-pointer h-full"
+                          onClick={() => setSelectedLesson(lp)}
+                          whileHover={{ scale: 1.02 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20,
+                          }}
+                        >
+                          <LessonCard
+                            lesson={lp}
+                            onDelete={() => setConfirmDelete(lp)}
+                          />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </>
               )}
             </>
           )}
