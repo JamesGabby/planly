@@ -87,62 +87,6 @@ export function LessonCard({
                 </span>
               )}
             </div>
-
-            {/* --- Dropdown Menu --- */}
-            <div className="self-end sm:self-start">
-              <DropdownMenu.Root open={menuOpen} onOpenChange={setMenuOpen}>
-                <DropdownMenu.Trigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="More options"
-                    className="hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenu.Trigger>
-
-                <DropdownMenu.Portal>
-                  <DropdownMenu.Content
-                    align="end"
-                    sideOffset={6}
-                    className="z-50 min-w-[160px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl backdrop-blur-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 4 }}
-                      transition={{ duration: 0.12 }}
-                      className="p-1"
-                    >
-                      <DropdownMenu.Item asChild>
-                        <a
-                          href={`/dashboard/lesson-plans/${lesson.id}/edit`}
-                          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                          Edit
-                        </a>
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        onSelect={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setMenuOpen(false);
-                          setTimeout(() => onDelete(), 120);
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </DropdownMenu.Item>
-                    </motion.div>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Portal>
-              </DropdownMenu.Root>
-            </div>
           </div>
         </CardHeader>
 
