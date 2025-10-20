@@ -78,22 +78,6 @@ export function FiltersCard({
               className="bg-background focus:ring-2 focus:ring-ring"
             />
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col justify-end gap-2">
-            <Button
-              variant="secondary"
-              className="w-full md:w-auto"
-              onClick={() => {
-                setSearch("")
-                setSelectedClass("")
-                setDateFilter("")
-              }}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Clear Filters
-            </Button>
-          </div>
         </div>
       </CardContent>
     </Card>
