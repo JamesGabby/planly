@@ -243,11 +243,22 @@ export default function EditLessonPlanPage() {
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => {
-                      let value = e.target.value;
+                      const target = e.target;
+                      const start = target.selectionStart;
+                      const end = target.selectionEnd;
+                      let value = target.value;
+
                       if (!value.startsWith("• ")) {
                         value = "• " + value.replace(/^\s+/, "");
                       }
+
                       updateField("objectives", value);
+
+                      // Restore cursor after re-render
+                      requestAnimationFrame(() => {
+                        target.selectionStart = start;
+                        target.selectionEnd = end;
+                      });
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                       const target = e.target as HTMLTextAreaElement;
@@ -260,23 +271,26 @@ export default function EditLessonPlanPage() {
                           "\n• " +
                           value.substring(selectionEnd);
                         updateField("objectives", newValue);
-                        setTimeout(() => {
-                          target.selectionStart = target.selectionEnd =
-                            selectionStart + 3;
-                        }, 0);
+
+                        requestAnimationFrame(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        });
                       }
 
                       if (
                         e.key === "Backspace" &&
                         selectionStart >= 2 &&
-                        value.substring(selectionStart - 2, selectionStart) ===
-                          "• "
+                        value.substring(selectionStart - 2, selectionStart) === "• "
                       ) {
                         e.preventDefault();
                         const newValue =
                           value.substring(0, selectionStart - 2) +
                           value.substring(selectionEnd);
                         updateField("objectives", newValue);
+
+                        requestAnimationFrame(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart - 2;
+                        });
                       }
                     }}
                     placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
