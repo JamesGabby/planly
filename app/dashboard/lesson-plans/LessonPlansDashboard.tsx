@@ -104,24 +104,24 @@ export default function LessonPlansDashboard() {
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Lesson Plans
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Manage and browse your lesson plans
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => fetchLessonPlans()}>
-                Refresh
-              </Button>
-              <Button asChild>
-                <a href="/dashboard/lesson-plans/new">New Plan</a>
-              </Button>
-            </div>
-          </div>
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight">Lesson Plans</h1>
+    <p className="text-sm text-muted-foreground mt-1">
+      Manage and browse your lesson plans
+    </p>
+  </div>
+
+  <div className="flex gap-2 shrink-0">
+    <Button variant="outline" onClick={() => fetchLessonPlans()}>
+      Refresh
+    </Button>
+    <Button asChild>
+      <a href="/dashboard/lesson-plans/new">New Plan</a>
+    </Button>
+  </div>
+</div>
+
 
           {/* Filters */}
           <FiltersCard
