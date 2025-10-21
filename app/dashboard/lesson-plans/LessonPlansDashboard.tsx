@@ -14,6 +14,9 @@ import { LessonCard } from "./components/LessonCard";
 import { MobileResponsiveModal } from "./components/MobileResponsiveModal";
 import { FiltersCard } from "./components/FiltersCard";
 import { LessonCardSkeleton } from "./LessonCardSkeleton";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { useUserMode } from "@/components/UserModeContext";
+import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
 
 const supabase = createClient();
 
@@ -100,6 +103,25 @@ export default function LessonPlansDashboard() {
       ? "scale-[0.987] blur-sm transition-all duration-300"
       : "transition-all duration-300";
 
+
+  const { mode } = useUserMode();
+
+const renderLessonCard = (lp: LessonPlan) => {
+  switch (mode) {
+    // case "tutor":
+    //   return <LessonCardTutor lesson={lp} />;
+    // case "student":
+    //   return <LessonCardStudent lesson={lp} />;
+    case "advanced":
+      return <LessonCardAdvanced lesson={lp} onDelete={() => setConfirmDelete(lp)} />;
+    default:
+      return <LessonCard
+                lesson={lp}
+                onDelete={() => setConfirmDelete(lp)}
+              />;
+  }
+};
+
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
@@ -134,7 +156,8 @@ export default function LessonPlansDashboard() {
             classes={classes}
           />
           <Separator className="my-6" />
-
+          <ModeSwitcher />
+          <Separator className="my-6" />
           {/* Lessons */}
           {error ? (
             <div className="text-destructive">{error}</div>
@@ -173,10 +196,7 @@ export default function LessonPlansDashboard() {
                               damping: 20,
                             }}
                           >
-                            <LessonCard
-                              lesson={lp}
-                              onDelete={() => setConfirmDelete(lp)}
-                            />
+                            {renderLessonCard(lp)}
                           </motion.div>
                         ))}
                       </motion.div>
