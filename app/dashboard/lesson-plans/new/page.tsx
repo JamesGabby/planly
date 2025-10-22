@@ -6,9 +6,8 @@ import NewLessonFormAdvanced from "../forms/NewLessonFormAdvanced";
 
 export default function NewLessonPage() {
   const { mode } = useUserMode();
-  console.log(mode);
+
   switch (mode) {
-    
     case "advanced":
       return <NewLessonFormAdvanced />;
     // case "tutor":

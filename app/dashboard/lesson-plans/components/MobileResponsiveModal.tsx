@@ -1,8 +1,10 @@
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { useScroll, useTransform, AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
 import { LessonPlan } from "../types/lesson";
 import { ExpandedLessonView } from "./ExpandedLessonView";
+import { useUserMode } from "@/components/UserModeContext";
+import { AdvancedExpandedLessonView } from "./AdvancedExpandedLessonView";
 
 /* --- MOBILE MODAL --- */
 export function MobileResponsiveModal({
@@ -16,6 +18,21 @@ export function MobileResponsiveModal({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
   const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
+
+  function renderExpandedLessonView(lesson: LessonPlan) {
+    const { mode } = useUserMode();
+
+    switch (mode) {
+        case "advanced":
+          return <AdvancedExpandedLessonView lesson={lesson} />;
+        // case "tutor":
+        //   return <NewLessonFormTutor />;
+        // case "student":
+        //   return <NewLessonFormStudent />;
+        default:
+          return <ExpandedLessonView lesson={lesson} />;
+      }
+  }
 
   return (
     <AnimatePresence>
@@ -81,7 +98,7 @@ export function MobileResponsiveModal({
               className="overflow-y-auto max-h-[85vh] p-6"
               style={{ overscrollBehavior: "contain" }}
             >
-              <ExpandedLessonView lesson={lesson} />
+              {renderExpandedLessonView(lesson)}
             </div>
           </motion.div>
         </FocusTrap>
