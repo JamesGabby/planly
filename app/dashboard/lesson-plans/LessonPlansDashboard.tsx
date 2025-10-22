@@ -4,10 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
 import { LessonPlan } from "./types/lesson";
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
 import { LessonCard } from "./components/LessonCard";
@@ -106,21 +103,18 @@ export default function LessonPlansDashboard() {
 
   const { mode } = useUserMode();
 
-const renderLessonCard = (lp: LessonPlan) => {
-  switch (mode) {
-    // case "tutor":
-    //   return <LessonCardTutor lesson={lp} />;
-    // case "student":
-    //   return <LessonCardStudent lesson={lp} />;
-    case "advanced":
-      return <LessonCardAdvanced lesson={lp} onDelete={() => setConfirmDelete(lp)} />;
-    default:
-      return <LessonCard
-                lesson={lp}
-                onDelete={() => setConfirmDelete(lp)}
-              />;
-  }
-};
+  const renderLessonCard = (lp: LessonPlan) => {
+    switch (mode) {
+      // case "tutor":
+      //   return <LessonCardTutor lesson={lp} />;
+      // case "student":
+      //   return <LessonCardStudent lesson={lp} />;
+      case "advanced":
+        return <LessonCardAdvanced lesson={lp} onDelete={() => setConfirmDelete(lp)} />;
+      default:
+        return <LessonCard lesson={lp} onDelete={() => setConfirmDelete(lp)} />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
@@ -224,10 +218,7 @@ const renderLessonCard = (lp: LessonPlan) => {
                               damping: 20,
                             }}
                           >
-                            <LessonCard
-                              lesson={lp}
-                              onDelete={() => setConfirmDelete(lp)}
-                            />
+                            {renderLessonCard(lp)}
                           </motion.div>
                         ))}
                       </motion.div>
@@ -259,10 +250,7 @@ const renderLessonCard = (lp: LessonPlan) => {
                             damping: 20,
                           }}
                         >
-                          <LessonCard
-                            lesson={lp}
-                            onDelete={() => setConfirmDelete(lp)}
-                          />
+                          {renderLessonCard(lp)}
                         </motion.div>
                       ))}
                     </motion.div>

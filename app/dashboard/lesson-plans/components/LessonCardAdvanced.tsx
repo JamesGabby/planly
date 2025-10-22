@@ -73,20 +73,6 @@ export function LessonCardAdvanced({
               </div>
 
               <div className="flex flex-wrap gap-2 mt-1">
-                {/* Existing status badge */}
-                {lesson.status && (
-                  <span
-                    className={cn(
-                      "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium",
-                      lesson.status === "published"
-                        ? "bg-green-100 text-green-700 dark:bg-green-800/20 dark:text-green-400"
-                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-800/20 dark:text-yellow-400"
-                    )}
-                  >
-                    {lesson.status}
-                  </span>
-                )}
-
                 {/* NEW “Advanced” label */}
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-800/20 dark:text-blue-400">
                   Advanced
