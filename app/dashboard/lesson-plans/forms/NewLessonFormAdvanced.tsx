@@ -356,23 +356,7 @@ export default function NewLessonFormAdvanced() {
                   </Button>
                 </div>
               </div>
-
-              <Separator />
-
-              {/* Timing, Teaching, Learning, Assessing, Adapting (summary fields) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {["timing", "teaching", "learning", "assessing", "adapting"].map((field) => (
-                  <div key={field}>
-                    <Label className="capitalize">{field}</Label>
-                    <Textarea
-                      value={lesson[field as keyof LessonPlan] || ""}
-                      onChange={(e) => updateField(field as keyof LessonPlan, e.target.value)}
-                      placeholder={`General ${field} overview...`}
-                    />
-                  </div>
-                ))}
-              </div>
-
+              
               <Separator />
 
               {/* Homework, Evaluation, Notes */}
