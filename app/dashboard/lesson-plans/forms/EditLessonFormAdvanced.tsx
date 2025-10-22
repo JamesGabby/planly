@@ -188,7 +188,7 @@ export default function EditLessonFormAdvanced() {
         <Card className="border shadow-md rounded-2xl bg-card/90 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-2xl font-semibold text-primary">
-              Edit Lesson Plan (Advanced)
+              Edit Lesson Plan
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Update every detail of your lesson plan, including structure and
@@ -442,7 +442,7 @@ export default function EditLessonFormAdvanced() {
 
               <div className="flex justify-end pt-4">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save Advanced Lesson"}
+                  {saving ? "Saving..." : "Save Lesson"}
                 </Button>
               </div>
             </form>

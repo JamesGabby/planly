@@ -159,9 +159,9 @@ export default function NewLessonFormAdvanced() {
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan (Advanced)</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
           <p className="text-muted-foreground text-sm">
-            Create a detailed, advanced lesson plan including pedagogical, safety, and adaptation details.
+            Create a detailed, extended lesson plan including pedagogical, safety, and adaptation details.
           </p>
         </div>
 
@@ -409,7 +409,7 @@ export default function NewLessonFormAdvanced() {
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Create Advanced Lesson Plan"}
+                  {saving ? "Saving..." : "Create Lesson Plan"}
                 </Button>
               </div>
             </form>
