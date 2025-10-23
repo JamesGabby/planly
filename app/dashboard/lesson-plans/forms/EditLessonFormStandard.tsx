@@ -109,11 +109,13 @@ export default function EditLessonPlanPage() {
   }
 
   function removeStage(index: number) {
-    setStages((prev) =>
-      prev.filter(
-        (_, i) => i !== index && !["Starter", "Plenary"].includes(prev[i].stage)
-      )
-    );
+    setStages((prev) => {
+      const updated = [...prev];
+      // Prevent removing Starter or Plenary
+      if (["Starter", "Plenary"].includes(updated[index].stage)) return prev;
+      updated.splice(index, 1);
+      return updated;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
