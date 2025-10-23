@@ -49,6 +49,10 @@ export default function LessonPlansDashboard() {
     }
   }
 
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
   const classes = useMemo(() => {
     const set = new Set<string>();
     lessons.forEach((l) => l.class && set.add(l.class));
@@ -70,16 +74,21 @@ export default function LessonPlansDashboard() {
   }, [lessons, search, selectedClass, dateFilter]);
 
   const today = new Date().toISOString().split("T")[0];
-  const { todayLessons, upcoming, previous } = useMemo(() => {
-    const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
-    const upcoming = filtered
-      .filter((l) => l.date_of_lesson && l.date_of_lesson > today)
-      .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
-    const previous = filtered
-      .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
-      .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
-    return { todayLessons, upcoming, previous };
-  }, [filtered]);
+  const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {
+  const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
+  const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
+  const upcoming = filtered
+    .filter(
+      (l) =>
+        l.date_of_lesson &&
+        l.date_of_lesson > tomorrowStr
+    )
+    .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
+  const previous = filtered
+    .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
+    .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
+  return { todayLessons, tomorrowLessons, upcoming, previous };
+}, [filtered]);
 
   async function handleDeleteConfirm() {
     if (!confirmDelete) return;
@@ -178,6 +187,34 @@ export default function LessonPlansDashboard() {
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
                       >
                         {todayLessons.map((lp) => (
+                          <motion.div
+                            layoutId={lp.id}
+                            key={lp.id}
+                            className="cursor-pointer h-full"
+                            onClick={() => setSelectedLesson(lp)}
+                            whileHover={{ scale: 1.02 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 20,
+                            }}
+                          >
+                            {renderLessonCard(lp)}
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </>
+                  )}
+
+                  {/* Tomorrow */}
+                  {tomorrowLessons.length > 0 && (
+                    <>
+                      <h2 className="text-2xl font-semibold mb-3">Tomorrow’s Lessons</h2>
+                      <motion.div
+                        layout
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                      >
+                        {tomorrowLessons.map((lp) => (
                           <motion.div
                             layoutId={lp.id}
                             key={lp.id}
