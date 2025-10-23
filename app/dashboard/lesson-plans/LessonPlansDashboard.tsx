@@ -10,7 +10,7 @@ import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
 import { LessonCard } from "./components/LessonCard";
 import { MobileResponsiveModal } from "./components/MobileResponsiveModal";
 import { FiltersCard } from "./components/FiltersCard";
-import { LessonCardSkeleton } from "./LessonCardSkeleton";
+import { LessonCardSkeleton } from "./skeletons/LessonCardSkeleton";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { useUserMode } from "@/components/UserModeContext";
 import { LessonCardAdvanced } from "./components/LessonCardAdvanced";

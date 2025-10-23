@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
+import { FormSkeleton } from "../skeletons/FormSkeleton";
 
 const supabase = createClient();
 
@@ -165,12 +166,7 @@ export default function EditLessonFormAdvanced() {
     }
   }
 
-  if (loading)
-    return (
-      <div className="p-10 text-center text-muted-foreground animate-pulse">
-        Loading advanced lesson plan…
-      </div>
-    );
+  if (loading) return <FormSkeleton />;
 
   if (error)
     return (
