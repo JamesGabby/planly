@@ -8,6 +8,7 @@ import {
   Calendar,
   Clock,
   GraduationCap,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import {
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { prettyDate, prettyTime } from "../utils/helpers";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 /* ------------------------------------ */
 /* ADVANCED LESSON CARD COMPONENT       */
@@ -26,9 +28,11 @@ import { cn } from "@/lib/utils";
 export function LessonCardAdvanced({
   lesson,
   onDelete,
+  onDuplicate,
 }: {
   lesson: LessonPlan;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -90,52 +94,110 @@ export function LessonCardAdvanced({
 
           {/* --- Mobile Quick Actions --- */}
           <div className="flex sm:hidden justify-start gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
-              }}
-            >
-              <Edit3 className="w-4 h-4 mr-1" />
-              Edit
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Delete
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDuplicate();
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Duplicate</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
+                    }}
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete();
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* --- Desktop Hover Quick Actions --- */}
           <div className="hidden sm:flex absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity gap-2">
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
-              }}
-            >
-              <Edit3 className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDuplicate();
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Duplicate</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
+                    }}
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete();
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </CardContent>
       </Card>

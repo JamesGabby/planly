@@ -109,6 +109,36 @@ export default function LessonPlansDashboard() {
     setConfirmDelete(null);
   }
 
+  async function handleDuplicateLesson(lesson: LessonPlan) {
+    try {
+      // Remove fields Supabase auto-generates
+      const { id, created_at, updated_at, ...copy } = lesson;
+
+      const newLesson = {
+        ...copy,
+        topic: `${lesson.topic} (Copy)`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        // Optional: set new date or leave as original
+        date_of_lesson: lesson.date_of_lesson,
+      };
+
+      const { data, error } = await supabase
+        .from("lesson_plans")
+        .insert([newLesson])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setLessons((prev) => [data, ...prev]);
+      alert("Lesson duplicated successfully!");
+    } catch (err: any) {
+      console.error("Duplicate error:", err);
+      alert("Failed to duplicate lesson: " + (err.message || "Unknown error"));
+    }
+  }
+
   const paginatedUpcoming = useMemo(() => {
     const start = (upcomingPage - 1) * ITEMS_PER_PAGE;
     return upcoming.slice(start, start + ITEMS_PER_PAGE);
@@ -127,15 +157,16 @@ export default function LessonPlansDashboard() {
   const { mode } = useUserMode();
 
   const renderLessonCard = (lp: LessonPlan) => {
+    const commonProps = {
+      onDelete: () => setConfirmDelete(lp),
+      onDuplicate: () => handleDuplicateLesson(lp),
+    };
+
     switch (mode) {
-      // case "tutor":
-      //   return <LessonCardTutor lesson={lp} />;
-      // case "student":
-      //   return <LessonCardStudent lesson={lp} />;
       case "advanced":
-        return <LessonCardAdvanced lesson={lp} onDelete={() => setConfirmDelete(lp)} />;
+        return <LessonCardAdvanced lesson={lp} {...commonProps} />;
       default:
-        return <LessonCard lesson={lp} onDelete={() => setConfirmDelete(lp)} />;
+        return <LessonCard lesson={lp} {...commonProps} />;
     }
   };
 
