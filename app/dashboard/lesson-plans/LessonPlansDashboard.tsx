@@ -14,6 +14,7 @@ import { LessonCardSkeleton } from "./skeletons/LessonCardSkeleton";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { useUserMode } from "@/components/UserModeContext";
 import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
+import { Pagination } from "@/components/pagination";
 
 const supabase = createClient();
 
@@ -26,6 +27,10 @@ export default function LessonPlansDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonPlan | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LessonPlan | null>(null);
+
+  const ITEMS_PER_PAGE = 6;
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const [previousPage, setPreviousPage] = useState(1);
 
   useEffect(() => {
     fetchLessonPlans();
@@ -104,11 +109,20 @@ export default function LessonPlansDashboard() {
     setConfirmDelete(null);
   }
 
+  const paginatedUpcoming = useMemo(() => {
+    const start = (upcomingPage - 1) * ITEMS_PER_PAGE;
+    return upcoming.slice(start, start + ITEMS_PER_PAGE);
+  }, [upcoming, upcomingPage]);
+
+  const paginatedPrevious = useMemo(() => {
+    const start = (previousPage - 1) * ITEMS_PER_PAGE;
+    return previous.slice(start, start + ITEMS_PER_PAGE);
+  }, [previous, previousPage]);
+
   const backgroundClass =
     selectedLesson || confirmDelete
       ? "scale-[0.987] blur-sm transition-all duration-300"
       : "transition-all duration-300";
-
 
   const { mode } = useUserMode();
 
@@ -242,7 +256,7 @@ export default function LessonPlansDashboard() {
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
                       >
-                        {upcoming.map((lp) => (
+                        {paginatedUpcoming.map((lp) => (
                           <motion.div
                             layoutId={lp.id}
                             key={lp.id}
@@ -259,6 +273,11 @@ export default function LessonPlansDashboard() {
                           </motion.div>
                         ))}
                       </motion.div>
+                      <Pagination
+                        totalItems={upcoming.length}
+                        currentPage={upcomingPage}
+                        onPageChange={setUpcomingPage}
+                      />
                     </>
                   )}
 
@@ -266,31 +285,36 @@ export default function LessonPlansDashboard() {
                   <Separator className="my-8" />
                   <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
                   {previous.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">
-                      No previous lessons yet.
-                    </p>
+                    <p className="text-muted-foreground text-sm">No previous lessons yet.</p>
                   ) : (
-                    <motion.div
-                      layout
-                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                    >
-                      {previous.map((lp) => (
-                        <motion.div
-                          layoutId={lp.id}
-                          key={lp.id}
-                          className="cursor-pointer h-full"
-                          onClick={() => setSelectedLesson(lp)}
-                          whileHover={{ scale: 1.02 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 20,
-                          }}
-                        >
-                          {renderLessonCard(lp)}
-                        </motion.div>
-                      ))}
-                    </motion.div>
+                    <>
+                      <motion.div
+                        layout
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                      >
+                        {paginatedPrevious.map((lp) => (
+                          <motion.div
+                            layoutId={lp.id}
+                            key={lp.id}
+                            className="cursor-pointer h-full"
+                            onClick={() => setSelectedLesson(lp)}
+                            whileHover={{ scale: 1.02 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 20,
+                            }}
+                          >
+                            {renderLessonCard(lp)}
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                      <Pagination
+                        totalItems={previous.length}
+                        currentPage={previousPage}
+                        onPageChange={setPreviousPage}
+                      />
+                    </>
                   )}
                 </>
               )}
