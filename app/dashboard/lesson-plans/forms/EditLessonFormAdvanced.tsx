@@ -190,7 +190,7 @@ export default function EditLessonFormAdvanced() {
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Update every detail of your lesson plan, including structure and
-              advanced pedagogy fields.
+              extended pedagogy fields.
             </p>
           </CardHeader>
 
@@ -256,7 +256,7 @@ export default function EditLessonFormAdvanced() {
 
               <Separator className="my-8" />
 
-              {/* --- Advanced Fields --- */}
+              {/* --- Extended Fields --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Specialist Subject Knowledge Required</Label>

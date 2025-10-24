@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type UserMode = "standard" | "advanced" | "tutor" | "student";
+type UserMode = "standard" | "extended" | "tutor" | "student";
 
 interface UserModeContextType {
   mode: UserMode;

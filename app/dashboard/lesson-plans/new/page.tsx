@@ -8,7 +8,7 @@ export default function NewLessonPage() {
   const { mode } = useUserMode();
 
   switch (mode) {
-    case "advanced":
+    case "extended":
       return <NewLessonFormAdvanced />;
     // case "tutor":
     //   return <NewLessonFormTutor />;

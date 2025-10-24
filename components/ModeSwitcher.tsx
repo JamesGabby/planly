@@ -10,7 +10,7 @@ export function ModeSwitcher() {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="standard">Standard</SelectItem>
-        <SelectItem value="advanced">Advanced</SelectItem>
+        <SelectItem value="extended">Extended</SelectItem>
         <SelectItem value="tutor">Tutor</SelectItem>
         <SelectItem value="student">Student</SelectItem>
       </SelectContent>

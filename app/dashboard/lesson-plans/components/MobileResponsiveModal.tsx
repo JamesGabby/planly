@@ -23,7 +23,7 @@ export function MobileResponsiveModal({
     const { mode } = useUserMode();
 
     switch (mode) {
-        case "advanced":
+        case "extended":
           return <AdvancedExpandedLessonView lesson={lesson} />;
         // case "tutor":
         //   return <NewLessonFormTutor />;

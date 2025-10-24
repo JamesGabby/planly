@@ -163,7 +163,7 @@ export default function LessonPlansDashboard() {
     };
 
     switch (mode) {
-      case "advanced":
+      case "extended":
         return <LessonCardAdvanced lesson={lp} {...commonProps} />;
       default:
         return <LessonCard lesson={lp} {...commonProps} />;
