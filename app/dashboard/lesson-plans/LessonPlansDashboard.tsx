@@ -15,7 +15,7 @@ import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { useUserMode } from "@/components/UserModeContext";
 import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
 import { Pagination } from "@/components/pagination";
-import { toast, ToastContainer, Slide } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const supabase = createClient();
@@ -98,27 +98,27 @@ export default function LessonPlansDashboard() {
 }, [filtered]);
 
   async function handleDeleteConfirm() {
-  if (!confirmDelete) return;
+    if (!confirmDelete) return;
 
-  try {
-    const { error } = await supabase
-      .from("lesson_plans")
-      .delete()
-      .eq("id", confirmDelete.id);
+    try {
+      const { error } = await supabase
+        .from("lesson_plans")
+        .delete()
+        .eq("id", confirmDelete.id);
 
-    if (error) {
-      toast.error(`Failed to delete: ${error.message}`);
-    } else {
-      setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
-      toast.success("Lesson deleted successfully!");
+      if (error) {
+        toast.error(`Failed to delete: ${error.message}`);
+      } else {
+        setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
+        toast.success("Lesson deleted successfully!");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Unexpected error occurred during deletion.");
+    } finally {
+      setConfirmDelete(null);
     }
-  } catch (err: any) {
-    console.error(err);
-    toast.error("Unexpected error occurred during deletion.");
-  } finally {
-    setConfirmDelete(null);
   }
-}
 
   async function handleDuplicateLesson(lesson: LessonPlan) {
     try {
@@ -143,10 +143,10 @@ export default function LessonPlansDashboard() {
       if (error) throw error;
 
       setLessons((prev) => [data, ...prev]);
-      alert("Lesson duplicated successfully!");
+      toast.success("Lesson duplicated successfully!");
     } catch (err: any) {
       console.error("Duplicate error:", err);
-      alert("Failed to duplicate lesson: " + (err.message || "Unknown error"));
+      toast.error("Failed to duplicate lesson: " + (err.message || "Unknown error"));
     }
   }
 

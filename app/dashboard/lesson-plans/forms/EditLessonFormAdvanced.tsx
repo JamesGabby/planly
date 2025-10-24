@@ -13,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { FormSkeleton } from "../skeletons/FormSkeleton";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const supabase = createClient();
 
@@ -205,9 +207,11 @@ export default function EditLessonFormAdvanced() {
       if (updateError) throw updateError;
 
       router.push("/dashboard/lesson-plans");
+      toast.success("Lesson plan edited successfully!")
     } catch (err: any) {
       console.error(err);
       setError(err.message);
+      toast.error("Lesson plan edited unsuccessfully.")
     } finally {
       setSaving(false);
     }

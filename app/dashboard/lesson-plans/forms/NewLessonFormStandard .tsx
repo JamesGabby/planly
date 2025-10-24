@@ -12,6 +12,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const supabase = createClient();
 
@@ -139,9 +141,11 @@ export default function NewLessonPlanPage() {
       if (insertError) throw insertError;
 
       router.push(`/dashboard/lesson-plans`);
+      toast.success("Lesson plan created successfully!")
     } catch (err: any) {
       console.error(err);
       setError(err.message);
+      toast.error("Lesson plan created unsuccessfully.")
     } finally {
       setSaving(false);
     }

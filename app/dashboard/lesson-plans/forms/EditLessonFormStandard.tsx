@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -172,9 +175,11 @@ export default function EditLessonPlanPage() {
       if (updateError) throw updateError;
 
       router.push("/dashboard/lesson-plans");
+      toast.success("Lesson plan edited successfully!")
     } catch (err: any) {
       console.error(err);
       setError(err.message);
+      toast.error("Lesson plan edited unsuccessfully.")
     } finally {
       setSaving(false);
     }
