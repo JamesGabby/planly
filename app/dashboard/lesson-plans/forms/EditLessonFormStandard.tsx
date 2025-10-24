@@ -102,9 +102,18 @@ export default function EditLessonPlanPage() {
 
   function addStage() {
     setStages((prev) => {
-      const newStage = blankStage(`Stage ${prev.length - 1}`);
-      const updated = [...prev];
-      updated.splice(prev.length - 1, 0, newStage);
+      const middleStages = prev.filter(
+        (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+      );
+      const nextNumber = middleStages.length + 1;
+      const newStage = blankStage(`Stage ${nextNumber}`);
+
+      const updated = [
+        prev.find((s) => s.stage === "Starter")!,
+        ...middleStages,
+        newStage,
+        prev.find((s) => s.stage === "Plenary")!,
+      ];
       return updated;
     });
   }
@@ -112,10 +121,26 @@ export default function EditLessonPlanPage() {
   function removeStage(index: number) {
     setStages((prev) => {
       const updated = [...prev];
+      const target = updated[index];
+
       // Prevent removing Starter or Plenary
-      if (["Starter", "Plenary"].includes(updated[index].stage)) return prev;
+      if (["Starter", "Plenary"].includes(target.stage)) return prev;
+
       updated.splice(index, 1);
-      return updated;
+
+      // Renumber middle stages
+      const middleStages = updated.filter(
+        (s) => !["Starter", "Plenary"].includes(s.stage)
+      );
+      middleStages.forEach((s, i) => {
+        s.stage = `Stage ${i + 1}`;
+      });
+
+      return [
+        updated.find((s) => s.stage === "Starter") || blankStage("Starter"),
+        ...middleStages,
+        updated.find((s) => s.stage === "Plenary") || blankStage("Plenary"),
+      ];
     });
   }
 
@@ -361,9 +386,15 @@ export default function EditLessonPlanPage() {
                       className="border border-border/50 rounded-xl bg-card/50 p-5 shadow-sm hover:shadow transition-all"
                     >
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-semibold text-foreground">
-                          {stage.stage}
-                        </h4>
+                        {["Starter", "Plenary"].includes(stage.stage) ? (
+                          <h4 className="font-semibold text-foreground">{stage.stage}</h4>
+                        ) : (
+                          <Input
+                            value={stage.stage}
+                            onChange={(e) => updateStage(i, "stage", e.target.value)}
+                            className="font-semibold w-40"
+                          />
+                        )}
                         {["Starter", "Plenary"].includes(stage.stage) ? (
                           <Button
                             type="button"

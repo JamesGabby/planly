@@ -87,6 +87,10 @@ export default function EditLessonFormAdvanced() {
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
+    if (field === "stage" && !["Starter", "Plenary"].includes(updated[index].stage)) {
+      // Normalize stage name (keep "Stage X" format)
+      value = value.replace(/^stage\s*/i, "Stage ");
+    }
     updated[index][field] = value;
     setStages(updated);
   }
@@ -107,26 +111,69 @@ export default function EditLessonFormAdvanced() {
   }
 
   function addStage() {
-    const newStage = {
-      stage: `Stage ${stages.length - 1}`,
-      duration: "",
-      teaching: "",
-      learning: "",
-      assessing: "",
-      adapting: "",
-    };
-    const updated = [...stages];
-    updated.splice(stages.length - 1, 0, newStage);
-    setStages(updated);
+    setStages((prev) => {
+      // Filter out the "middle" stages between Starter and Plenary
+      const middleStages = prev.filter(
+        (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+      );
+      const nextNumber = middleStages.length + 1;
+      const newStage = {
+        stage: `Stage ${nextNumber}`,
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      };
+
+      const updated = [
+        prev.find((s) => s.stage === "Starter")!,
+        ...middleStages,
+        newStage,
+        prev.find((s) => s.stage === "Plenary")!,
+      ];
+      return updated;
+    });
   }
 
   function removeStage(index: number) {
     setStages((prev) => {
       const updated = [...prev];
+      const target = updated[index];
+
       // Prevent removing Starter or Plenary
-      if (["Starter", "Plenary"].includes(updated[index].stage)) return prev;
+      if (["Starter", "Plenary"].includes(target.stage)) return prev;
+
+      // Remove the stage
       updated.splice(index, 1);
-      return updated;
+
+      // Re-number middle stages
+      const middleStages = updated.filter(
+        (s) => !["Starter", "Plenary"].includes(s.stage)
+      );
+      middleStages.forEach((s, i) => {
+        s.stage = `Stage ${i + 1}`;
+      });
+
+      return [
+        updated.find((s) => s.stage === "Starter") || {
+          stage: "Starter",
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        },
+        ...middleStages,
+        updated.find((s) => s.stage === "Plenary") || {
+          stage: "Plenary",
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        },
+      ];
     });
   }
 
@@ -334,9 +381,15 @@ export default function EditLessonFormAdvanced() {
                       className="border border-border/50 rounded-xl bg-card/50 p-5 shadow-sm hover:shadow transition-all"
                     >
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-semibold text-foreground">
-                          {stage.stage}
-                        </h4>
+                        {["Starter", "Plenary"].includes(stage.stage) ? (
+                          <h4 className="font-semibold text-foreground">{stage.stage}</h4>
+                        ) : (
+                          <Input
+                            value={stage.stage}
+                            onChange={(e) => updateStage(i, "stage", e.target.value)}
+                            className="font-semibold w-40"
+                          />
+                        )}
                         {["Starter", "Plenary"].includes(stage.stage) ? (
                           <Button
                             type="button"
