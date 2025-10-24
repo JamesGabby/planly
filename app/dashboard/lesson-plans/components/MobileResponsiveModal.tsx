@@ -81,15 +81,23 @@ export function MobileResponsiveModal({
             {/* --- CLOSE BUTTON --- */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-30 
-                         bg-secondary/70 dark:bg-muted/70 
-                         text-secondary-foreground dark:text-muted-foreground
-                         border border-border 
-                         rounded-full w-8 h-8 flex items-center justify-center 
-                         hover:bg-accent hover:text-accent-foreground 
-                         transition-colors duration-200 shadow-sm backdrop-blur-sm"
+              aria-label="Close"
+              className="
+                absolute top-3 right-5 z-30
+                flex items-center justify-center
+                w-10 h-10
+                rounded-full
+                border border-border/60
+                bg-secondary/80 dark:bg-muted/80
+                text-secondary-foreground dark:text-muted-foreground
+                shadow-md backdrop-blur-sm
+                hover:bg-accent hover:text-accent-foreground hover:scale-105
+                active:scale-95 active:shadow-sm
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+                transition-all duration-200 ease-out
+              "
             >
-              ✕
+              <span className="text-lg leading-none">✕</span>
             </button>
 
             {/* --- CONTENT --- */}
