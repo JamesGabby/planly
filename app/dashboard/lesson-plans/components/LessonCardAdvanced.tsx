@@ -103,6 +103,7 @@ export function LessonCardAdvanced({
                     className="hover:bg-primary/10"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.currentTarget.blur(); // removes focus immediately
                       onDuplicate();
                     }}
                   >

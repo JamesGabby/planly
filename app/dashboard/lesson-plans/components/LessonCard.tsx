@@ -152,6 +152,7 @@ export function LessonCard({
                     className="hover:bg-primary/10"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.currentTarget.blur(); // removes focus immediately
                       onDuplicate();
                     }}
                   >
