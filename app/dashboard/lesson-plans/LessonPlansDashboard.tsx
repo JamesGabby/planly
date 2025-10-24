@@ -15,6 +15,8 @@ import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { useUserMode } from "@/components/UserModeContext";
 import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
 import { Pagination } from "@/components/pagination";
+import { toast, ToastContainer, Slide } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const supabase = createClient();
 
@@ -96,18 +98,27 @@ export default function LessonPlansDashboard() {
 }, [filtered]);
 
   async function handleDeleteConfirm() {
-    if (!confirmDelete) return;
+  if (!confirmDelete) return;
+
+  try {
     const { error } = await supabase
       .from("lesson_plans")
       .delete()
       .eq("id", confirmDelete.id);
+
     if (error) {
-      alert("Failed: " + error.message);
+      toast.error(`Failed to delete: ${error.message}`);
     } else {
       setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
+      toast.success("Lesson deleted successfully!");
     }
+  } catch (err: any) {
+    console.error(err);
+    toast.error("Unexpected error occurred during deletion.");
+  } finally {
     setConfirmDelete(null);
   }
+}
 
   async function handleDuplicateLesson(lesson: LessonPlan) {
     try {
