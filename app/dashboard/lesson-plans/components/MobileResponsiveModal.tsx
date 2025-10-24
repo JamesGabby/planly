@@ -103,8 +103,14 @@ export function MobileResponsiveModal({
             {/* --- CONTENT --- */}
             <div
               ref={scrollRef}
-              className="overflow-y-auto max-h-[85vh] p-6"
-              style={{ overscrollBehavior: "contain" }}
+              className="
+                overflow-y-auto max-h-[85vh] p-6
+                scrollbar-thin scrollbar-thumb-rounded-full
+                scroll-smooth
+              "
+              style={{
+                overscrollBehavior: "contain",
+              }}
             >
               {renderExpandedLessonView(lesson)}
             </div>
