@@ -17,6 +17,7 @@ import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { LessonCardStudent } from "./components/LessonCardStudent";
 
 const supabase = createClient();
 
@@ -176,6 +177,8 @@ export default function LessonPlansDashboard() {
     switch (mode) {
       case "extended":
         return <LessonCardAdvanced lesson={lp} {...commonProps} />;
+      case "student":
+        return <LessonCardStudent lesson={lp} {...commonProps} />;
       default:
         return <LessonCard lesson={lp} {...commonProps} />;
     }

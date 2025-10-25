@@ -23,15 +23,15 @@ export function MobileResponsiveModal({
     const { mode } = useUserMode();
 
     switch (mode) {
-        case "extended":
-          return <AdvancedExpandedLessonView lesson={lesson} />;
-        // case "tutor":
-        //   return <NewLessonFormTutor />;
-        // case "student":
-        //   return <NewLessonFormStudent />;
-        default:
-          return <ExpandedLessonView lesson={lesson} />;
-      }
+      case "extended":
+        return <AdvancedExpandedLessonView lesson={lesson} />;
+      // case "tutor":
+      //   return <NewLessonFormTutor />;
+      case "student":
+        return <AdvancedExpandedLessonView lesson={lesson} />;
+      default:
+        return <ExpandedLessonView lesson={lesson} />;
+    }
   }
 
   return (

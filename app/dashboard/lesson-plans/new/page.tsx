@@ -3,6 +3,7 @@
 import { useUserMode } from "@/components/UserModeContext";
 import NewLessonFormStandard from "../forms/NewLessonFormStandard ";
 import NewLessonFormAdvanced from "../forms/NewLessonFormAdvanced";
+import NewLessonFormStudent from "../forms/NewLessonFormStudent";
 
 export default function NewLessonPage() {
   const { mode } = useUserMode();
@@ -12,8 +13,8 @@ export default function NewLessonPage() {
       return <NewLessonFormAdvanced />;
     // case "tutor":
     //   return <NewLessonFormTutor />;
-    // case "student":
-    //   return <NewLessonFormStudent />;
+    case "student":
+      return <NewLessonFormStudent />;
     default:
       return <NewLessonFormStandard />;
   }
