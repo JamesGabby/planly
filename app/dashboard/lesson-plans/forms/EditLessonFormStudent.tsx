@@ -16,9 +16,17 @@ import { FormSkeleton } from "../skeletons/FormSkeleton";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+
 const supabase = createClient();
 
-export default function EditLessonFormAdvanced() {
+export default function EditLessonFormStudent() {
   const { id } = useParams();
   const router = useRouter();
 
@@ -89,8 +97,10 @@ export default function EditLessonFormAdvanced() {
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
-    if (field === "stage" && !["Starter", "Plenary"].includes(updated[index].stage)) {
-      // Normalize stage name (keep "Stage X" format)
+    if (
+      field === "stage" &&
+      !["Starter", "Plenary"].includes(updated[index].stage)
+    ) {
       value = value.replace(/^stage\s*/i, "Stage ");
     }
     updated[index][field] = value;
@@ -114,7 +124,6 @@ export default function EditLessonFormAdvanced() {
 
   function addStage() {
     setStages((prev) => {
-      // Filter out the "middle" stages between Starter and Plenary
       const middleStages = prev.filter(
         (s) => s.stage !== "Starter" && s.stage !== "Plenary"
       );
@@ -142,14 +151,9 @@ export default function EditLessonFormAdvanced() {
     setStages((prev) => {
       const updated = [...prev];
       const target = updated[index];
-
-      // Prevent removing Starter or Plenary
       if (["Starter", "Plenary"].includes(target.stage)) return prev;
-
-      // Remove the stage
       updated.splice(index, 1);
 
-      // Re-number middle stages
       const middleStages = updated.filter(
         (s) => !["Starter", "Plenary"].includes(s.stage)
       );
@@ -207,11 +211,11 @@ export default function EditLessonFormAdvanced() {
       if (updateError) throw updateError;
 
       router.push("/dashboard/lesson-plans");
-      toast.success("Lesson plan edited successfully!")
+      toast.success("Lesson plan edited successfully!");
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan edited unsuccessfully.")
+      toast.error("Lesson plan edited unsuccessfully.");
     } finally {
       setSaving(false);
     }
@@ -247,7 +251,7 @@ export default function EditLessonFormAdvanced() {
 
           <CardContent className="mt-4">
             <form onSubmit={handleSubmit} className="space-y-8">
-              {/* --- Basic Info --- */}
+              {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <Label>Class</Label>
@@ -287,7 +291,7 @@ export default function EditLessonFormAdvanced() {
 
               <Separator className="my-8" />
 
-              {/* --- Objectives & Outcomes --- */}
+              {/* Objectives */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Objectives</Label>
@@ -307,7 +311,7 @@ export default function EditLessonFormAdvanced() {
 
               <Separator className="my-8" />
 
-              {/* --- Extended Fields --- */}
+              {/* Extended Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Specialist Subject Knowledge Required</Label>
@@ -373,7 +377,7 @@ export default function EditLessonFormAdvanced() {
 
               <Separator className="my-8" />
 
-              {/* --- Lesson Structure --- */}
+              {/* Lesson Structure */}
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-3">
                   Lesson Structure
@@ -386,11 +390,15 @@ export default function EditLessonFormAdvanced() {
                     >
                       <div className="flex justify-between items-center mb-3">
                         {["Starter", "Plenary"].includes(stage.stage) ? (
-                          <h4 className="font-semibold text-foreground">{stage.stage}</h4>
+                          <h4 className="font-semibold text-foreground">
+                            {stage.stage}
+                          </h4>
                         ) : (
                           <Input
                             value={stage.stage}
-                            onChange={(e) => updateStage(i, "stage", e.target.value)}
+                            onChange={(e) =>
+                              updateStage(i, "stage", e.target.value)
+                            }
                             className="font-semibold w-40"
                           />
                         )}
@@ -417,8 +425,22 @@ export default function EditLessonFormAdvanced() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        {/* Duration with tooltip */}
                         <div>
-                          <Label>Duration</Label>
+                          <div className="flex items-center gap-1">
+                            <Label>Duration</Label>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs text-sm">
+                                  How long will each activity last and what
+                                  time will it be?
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           <Input
                             value={stage.duration}
                             onChange={(e) =>
@@ -427,11 +449,33 @@ export default function EditLessonFormAdvanced() {
                             placeholder="e.g. 10 min"
                           />
                         </div>
+
+                        {/* Teaching/Learning/Assessing/Adapting with tooltips */}
                         <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-3">
                           {["teaching", "learning", "assessing", "adapting"].map(
                             (field) => (
                               <div key={field}>
-                                <Label className="capitalize">{field}</Label>
+                                <div className="flex items-center gap-1">
+                                  <Label className="capitalize">{field}</Label>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs text-sm">
+                                        {field === "teaching" &&
+                                          "Explain how you are planning / organising / structuring / adapting your placement school’s materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
+                                        {field === "learning" &&
+                                          "Detail pupil activity and clarify how pupils are engaged in learning at all times, during each phase of the lesson."}
+                                        {field === "assessing" &&
+                                          "Plot your learning checks to assess understanding and progress, including questioning sequences."}
+                                        {field === "adapting" &&
+                                          "Explain how you need to adapt learning for pupils who require support, guidance, LSA direction, and additional challenge."}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+
                                 <Textarea
                                   value={stage[field as keyof LessonStage] || ""}
                                   onChange={(e) =>
@@ -464,7 +508,7 @@ export default function EditLessonFormAdvanced() {
 
               <Separator className="my-8" />
 
-              {/* --- Homework, Evaluation, Notes --- */}
+              {/* Homework, Evaluation, Notes */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Homework</Label>

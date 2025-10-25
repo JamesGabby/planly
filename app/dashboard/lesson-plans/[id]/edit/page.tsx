@@ -2,7 +2,8 @@
 
 import { useUserMode } from "@/components/UserModeContext";
 import EditLessonFormStandard from "../../forms/EditLessonFormStandard";
-import EditLessonFormAdvanced from "../../forms/EditLessonFormAdvanced";
+import EditLessonFormAdvanced from "../../forms/EditLessonFormStudent";
+import EditLessonFormStudent from "../../forms/EditLessonFormStudent";
 
 export default function EditLessonPage() {
   const { mode } = useUserMode();
@@ -12,8 +13,8 @@ export default function EditLessonPage() {
       return <EditLessonFormAdvanced />;
     // case "tutor":
     //   return <NewLessonFormTutor />;
-    // case "student":
-    //   return <NewLessonFormStudent />;
+    case "student":
+      return <EditLessonFormStudent />;
     default:
       return <EditLessonFormStandard />;
   }
