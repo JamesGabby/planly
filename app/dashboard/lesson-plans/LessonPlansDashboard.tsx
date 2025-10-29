@@ -11,7 +11,6 @@ import { LessonCard } from "./components/LessonCard";
 import { MobileResponsiveModal } from "./components/MobileResponsiveModal";
 import { FiltersCard } from "./components/FiltersCard";
 import { LessonCardSkeleton } from "./skeletons/LessonCardSkeleton";
-import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { useUserMode } from "@/components/UserModeContext";
 import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
 import { Pagination } from "@/components/pagination";
@@ -218,8 +217,7 @@ export default function LessonPlansDashboard() {
             classes={classes}
           />
           <Separator className="my-6" />
-          <ModeSwitcher />
-          <Separator className="my-6" />
+          
           {/* Lessons */}
           {error ? (
             <div className="text-destructive">{error}</div>
