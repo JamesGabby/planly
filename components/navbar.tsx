@@ -22,7 +22,6 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: "Dashboard", href: "/" },
     { name: "Lessons", href: "/dashboard/lesson-plans" },
     { name: "Analytics", href: "/analytics" },
     { name: "Settings", href: "/settings" },

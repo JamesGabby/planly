@@ -171,11 +171,11 @@ export default function NewLessonPlanPage() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Class</Label>
+                  <Label>Student</Label>
                   <Input
                     value={lesson.class || ""}
                     onChange={(e) => updateField("class", e.target.value)}
-                    placeholder="e.g. Grade 5A"
+                    placeholder="e.g. Marlene"
                   />
                 </div>
                 <div>

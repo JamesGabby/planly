@@ -4,9 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,10 +13,20 @@ import { Separator } from "@/components/ui/separator";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { FormSkeleton } from "../skeletons/FormSkeleton";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 const supabase = createClient();
 
-export default function EditLessonPlanPage() {
+export default function EditLessonFormTutor() {
   const { id } = useParams();
   const router = useRouter();
 
@@ -50,11 +57,20 @@ export default function EditLessonPlanPage() {
         ? data.lesson_structure
         : [];
 
+      const ensureStage = (name: string) => ({
+        stage: name,
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      });
+
       const hasStarter = structure.some((s) => s.stage === "Starter");
       const hasPlenary = structure.some((s) => s.stage === "Plenary");
 
-      if (!hasStarter) structure.unshift(blankStage("Starter"));
-      if (!hasPlenary) structure.push(blankStage("Plenary"));
+      if (!hasStarter) structure.unshift(ensureStage("Starter"));
+      if (!hasPlenary) structure.push(ensureStage("Plenary"));
 
       structure = [
         structure.find((s) => s.stage === "Starter")!,
@@ -74,17 +90,6 @@ export default function EditLessonPlanPage() {
     }
   }
 
-  function blankStage(name: string): LessonStage {
-    return {
-      stage: name,
-      duration: "",
-      teaching: "",
-      learning: "",
-      assessing: "",
-      adapting: "",
-    };
-  }
-
   function updateField(field: keyof LessonPlan, value: string) {
     if (!lesson) return;
     setLesson((prev) => prev && { ...prev, [field]: value });
@@ -92,14 +97,28 @@ export default function EditLessonPlanPage() {
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
+    if (
+      field === "stage" &&
+      !["Starter", "Plenary"].includes(updated[index].stage)
+    ) {
+      value = value.replace(/^stage\s*/i, "Stage ");
+    }
     updated[index][field] = value;
     setStages(updated);
   }
 
   function clearStage(index: number) {
+    const stageName = stages[index].stage;
+    const blankStage = {
+      stage: stageName,
+      duration: "",
+      teaching: "",
+      learning: "",
+      assessing: "",
+      adapting: "",
+    };
     const updated = [...stages];
-    const stageName = updated[index].stage;
-    updated[index] = blankStage(stageName);
+    updated[index] = blankStage;
     setStages(updated);
   }
 
@@ -109,7 +128,14 @@ export default function EditLessonPlanPage() {
         (s) => s.stage !== "Starter" && s.stage !== "Plenary"
       );
       const nextNumber = middleStages.length + 1;
-      const newStage = blankStage(`Stage ${nextNumber}`);
+      const newStage = {
+        stage: `Stage ${nextNumber}`,
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      };
 
       const updated = [
         prev.find((s) => s.stage === "Starter")!,
@@ -125,13 +151,9 @@ export default function EditLessonPlanPage() {
     setStages((prev) => {
       const updated = [...prev];
       const target = updated[index];
-
-      // Prevent removing Starter or Plenary
       if (["Starter", "Plenary"].includes(target.stage)) return prev;
-
       updated.splice(index, 1);
 
-      // Renumber middle stages
       const middleStages = updated.filter(
         (s) => !["Starter", "Plenary"].includes(s.stage)
       );
@@ -140,9 +162,23 @@ export default function EditLessonPlanPage() {
       });
 
       return [
-        updated.find((s) => s.stage === "Starter") || blankStage("Starter"),
+        updated.find((s) => s.stage === "Starter") || {
+          stage: "Starter",
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        },
         ...middleStages,
-        updated.find((s) => s.stage === "Plenary") || blankStage("Plenary"),
+        updated.find((s) => s.stage === "Plenary") || {
+          stage: "Plenary",
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        },
       ];
     });
   }
@@ -175,11 +211,11 @@ export default function EditLessonPlanPage() {
       if (updateError) throw updateError;
 
       router.push("/dashboard/lesson-plans");
-      toast.success("Lesson plan edited successfully!")
+      toast.success("Lesson plan edited successfully!");
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan edited unsuccessfully.")
+      toast.error("Lesson plan edited unsuccessfully.");
     } finally {
       setSaving(false);
     }
@@ -208,7 +244,8 @@ export default function EditLessonPlanPage() {
               Edit Lesson Plan
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Update lesson objectives, structure, and notes
+              Update every detail of your lesson plan, including structure and
+              extended pedagogy fields.
             </p>
           </CardHeader>
 
@@ -217,11 +254,10 @@ export default function EditLessonPlanPage() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <Label>Class</Label>
+                  <Label>Student</Label>
                   <Input
                     value={lesson.class}
                     onChange={(e) => updateField("class", e.target.value)}
-                    placeholder="e.g. Grade 8A"
                   />
                 </div>
                 <div>
@@ -239,13 +275,6 @@ export default function EditLessonPlanPage() {
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
-                    onFocus={() => {
-                      if (!lesson.time_of_lesson) {
-                        const now = new Date();
-                        const hours = String(now.getHours()).padStart(2, "0");
-                        updateField("time_of_lesson", `${hours}:00`);
-                      }
-                    }}
                     onChange={(e) =>
                       updateField("time_of_lesson", e.target.value)
                     }
@@ -256,118 +285,92 @@ export default function EditLessonPlanPage() {
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
-                    placeholder="e.g. Introduction to Fractions"
                   />
                 </div>
               </div>
 
               <Separator className="my-8" />
 
-              {/* ✅ Objectives & Outcomes with bullet points */}
+              {/* Objectives */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Objectives */}
                 <div>
                   <Label>Objectives</Label>
                   <Textarea
                     value={lesson.objectives || ""}
-                    onChange={(e) => {
-                      const target = e.target;
-                      const start = target.selectionStart;
-                      const end = target.selectionEnd;
-                      let value = target.value;
-
-                      if (!value.startsWith("• ")) {
-                        value = "• " + value.replace(/^\s+/, "");
-                      }
-
-                      updateField("objectives", value);
-
-                      // Restore cursor after re-render
-                      requestAnimationFrame(() => {
-                        target.selectionStart = start;
-                        target.selectionEnd = end;
-                      });
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      const { selectionStart, selectionEnd, value } = target;
-
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        const newValue =
-                          value.substring(0, selectionStart) +
-                          "\n• " +
-                          value.substring(selectionEnd);
-                        updateField("objectives", newValue);
-
-                        requestAnimationFrame(() => {
-                          target.selectionStart = target.selectionEnd = selectionStart + 3;
-                        });
-                      }
-
-                      if (
-                        e.key === "Backspace" &&
-                        selectionStart >= 2 &&
-                        value.substring(selectionStart - 2, selectionStart) === "• "
-                      ) {
-                        e.preventDefault();
-                        const newValue =
-                          value.substring(0, selectionStart - 2) +
-                          value.substring(selectionEnd);
-                        updateField("objectives", newValue);
-
-                        requestAnimationFrame(() => {
-                          target.selectionStart = target.selectionEnd = selectionStart - 2;
-                        });
-                      }
-                    }}
-                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                    onChange={(e) => updateField("objectives", e.target.value)}
                   />
                 </div>
-
-                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
                     value={lesson.outcomes || ""}
-                    onChange={(e) => {
-                      let value = e.target.value;
-                      if (!value.startsWith("• ")) {
-                        value = "• " + value.replace(/^\s+/, "");
-                      }
-                      updateField("outcomes", value);
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      const { selectionStart, selectionEnd, value } = target;
+                    onChange={(e) => updateField("outcomes", e.target.value)}
+                  />
+                </div>
+              </div>
 
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        const newValue =
-                          value.substring(0, selectionStart) +
-                          "\n• " +
-                          value.substring(selectionEnd);
-                        updateField("outcomes", newValue);
-                        setTimeout(() => {
-                          target.selectionStart = target.selectionEnd =
-                            selectionStart + 3;
-                        }, 0);
-                      }
+              <Separator className="my-8" />
 
-                      if (
-                        e.key === "Backspace" &&
-                        selectionStart >= 2 &&
-                        value.substring(selectionStart - 2, selectionStart) ===
-                          "• "
-                      ) {
-                        e.preventDefault();
-                        const newValue =
-                          value.substring(0, selectionStart - 2) +
-                          value.substring(selectionEnd);
-                        updateField("outcomes", newValue);
-                      }
-                    }}
-                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
+              {/* Extended Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Specialist Subject Knowledge Required</Label>
+                  <Textarea
+                    value={lesson.specialist_subject_knowledge_required || ""}
+                    onChange={(e) =>
+                      updateField(
+                        "specialist_subject_knowledge_required",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Knowledge Revisited</Label>
+                  <Textarea
+                    value={lesson.knowledge_revisited || ""}
+                    onChange={(e) =>
+                      updateField("knowledge_revisited", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Subject Pedagogies</Label>
+                  <Textarea
+                    value={lesson.subject_pedagogies || ""}
+                    onChange={(e) =>
+                      updateField("subject_pedagogies", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Literacy Opportunities</Label>
+                  <Textarea
+                    value={lesson.literacy_opportunities || ""}
+                    onChange={(e) =>
+                      updateField("literacy_opportunities", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Numeracy Opportunities</Label>
+                  <Textarea
+                    value={lesson.numeracy_opportunities || ""}
+                    onChange={(e) =>
+                      updateField("numeracy_opportunities", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Health and Safety Considerations</Label>
+                  <Textarea
+                    value={lesson.health_and_safety_considerations || ""}
+                    onChange={(e) =>
+                      updateField(
+                        "health_and_safety_considerations",
+                        e.target.value
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -376,14 +379,9 @@ export default function EditLessonPlanPage() {
 
               {/* Lesson Structure */}
               <div>
-                <h3 className="text-lg font-semibold mb-3 text-primary">
+                <h3 className="text-lg font-semibold text-primary mb-3">
                   Lesson Structure
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Define timing, teaching, learning, assessment, and adaptations
-                  for each stage.
-                </p>
-
                 <div className="space-y-5">
                   {stages.map((stage, i) => (
                     <div
@@ -392,11 +390,15 @@ export default function EditLessonPlanPage() {
                     >
                       <div className="flex justify-between items-center mb-3">
                         {["Starter", "Plenary"].includes(stage.stage) ? (
-                          <h4 className="font-semibold text-foreground">{stage.stage}</h4>
+                          <h4 className="font-semibold text-foreground">
+                            {stage.stage}
+                          </h4>
                         ) : (
                           <Input
                             value={stage.stage}
-                            onChange={(e) => updateStage(i, "stage", e.target.value)}
+                            onChange={(e) =>
+                              updateStage(i, "stage", e.target.value)
+                            }
                             className="font-semibold w-40"
                           />
                         )}
@@ -423,8 +425,22 @@ export default function EditLessonPlanPage() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        {/* Duration with tooltip */}
                         <div>
-                          <Label>Duration</Label>
+                          <div className="flex items-center gap-1">
+                            <Label>Duration</Label>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs text-sm">
+                                  How long will each activity last and what
+                                  time will it be?
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           <Input
                             value={stage.duration}
                             onChange={(e) =>
@@ -434,11 +450,32 @@ export default function EditLessonPlanPage() {
                           />
                         </div>
 
+                        {/* Teaching/Learning/Assessing/Adapting with tooltips */}
                         <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-3">
                           {["teaching", "learning", "assessing", "adapting"].map(
                             (field) => (
                               <div key={field}>
-                                <Label className="capitalize">{field}</Label>
+                                <div className="flex items-center gap-1">
+                                  <Label className="capitalize">{field}</Label>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs text-sm">
+                                        {field === "teaching" &&
+                                          "Explain how you are planning / organising / structuring / adapting your placement school’s materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
+                                        {field === "learning" &&
+                                          "Detail pupil activity and clarify how pupils are engaged in learning at all times, during each phase of the lesson."}
+                                        {field === "assessing" &&
+                                          "Plot your learning checks to assess understanding and progress, including questioning sequences."}
+                                        {field === "adapting" &&
+                                          "Explain how you need to adapt learning for pupils who require support, guidance, LSA direction, and additional challenge."}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+
                                 <Textarea
                                   value={stage[field as keyof LessonStage] || ""}
                                   onChange={(e) =>
@@ -469,93 +506,31 @@ export default function EditLessonPlanPage() {
                 </div>
               </div>
 
-              {/* ✅ Resources Section */}
               <Separator className="my-8" />
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Resources</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Add links or names of lesson materials.
-                </p>
 
-                <div className="space-y-3">
-                  {(lesson.resources || []).map((res: any, index: number) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Input
-                        placeholder="Resource title or link"
-                        value={res.title || res.name || res.url || ""}
-                        onChange={(e) => {
-                          const updated = [...(lesson.resources || [])];
-                          updated[index] = { ...updated[index], title: e.target.value };
-                          updateField("resources", updated as any);
-                        }}
-                      />
-                      <Button
-                        variant="ghost"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => {
-                          updateField(
-                            "resources",
-                            (lesson.resources || []).filter((_: any, i: number) => i !== index) as any
-                          );
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() =>
-                      updateField("resources", [
-                        ...(lesson.resources || []),
-                        { title: "" },
-                      ] as any)
-                    }
-                  >
-                    + Add Resource
-                  </Button>
+              {/* Homework, Evaluation, Notes */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Homework</Label>
+                  <Textarea
+                    value={lesson.homework || ""}
+                    onChange={(e) => updateField("homework", e.target.value)}
+                  />
                 </div>
-              </div>
-
-              {/* ✅ Homework Section */}
-              <Separator className="my-8" />
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Homework</h3>
-                <Textarea
-                  placeholder="• Homework task..."
-                  value={lesson.homework || ""}
-                  onChange={(e) => updateField("homework", e.target.value)}
-                  className="min-h-[120px]"
-                />
-              </div>
-
-              {/* ✅ Evaluation Section */}
-              <Separator className="my-8" />
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  How will you measure student progress? What worked?
-                </p>
-                <Textarea
-                  placeholder="• Evaluation notes..."
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
-                  className="min-h-[120px]"
-                />
-              </div>
-
-              {/* ✅ Notes Section */}
-              <Separator className="my-8" />
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
-                <Textarea
-                  placeholder="Additional reminders or ideas..."
-                  value={lesson.notes || ""}
-                  onChange={(e) => updateField("notes", e.target.value)}
-                  className="min-h-[120px]"
-                />
+                <div>
+                  <Label>Evaluation</Label>
+                  <Textarea
+                    value={lesson.evaluation || ""}
+                    onChange={(e) => updateField("evaluation", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={lesson.notes || ""}
+                    onChange={(e) => updateField("notes", e.target.value)}
+                  />
+                </div>
               </div>
 
               {error && (
@@ -565,12 +540,8 @@ export default function EditLessonPlanPage() {
               )}
 
               <div className="flex justify-end pt-4">
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="w-full sm:w-auto"
-                >
-                  {saving ? "Saving..." : "Save Changes"}
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving..." : "Save Lesson"}
                 </Button>
               </div>
             </form>
