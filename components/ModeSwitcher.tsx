@@ -1,19 +1,36 @@
 import { Select, SelectItem, SelectTrigger, SelectContent } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useUserMode } from "./UserModeContext";
 
 export function ModeSwitcher() {
   const { mode, setMode } = useUserMode();
+
+  const items = [
+    { value: "standard", label: "Standard", description: "A minimal view showing only the essentials so you can plan quickly" },
+    { value: "extended", label: "Extended", description: "A detailed view covering all lesson considerations so you can plan carefully and thoroughly" },
+    { value: "tutor", label: "Tutor", description: "A view tailored for one-on-one tutoring" },
+    { value: "student", label: "Student", description: "Same as extended view but with tips and guidance to plan your lessons following best teaching practices" },
+  ];
+
   return (
-    <Select value={mode} onValueChange={(value) => setMode(value as any)}>
-      <SelectTrigger className="w-[180px]">
-        <span className="capitalize">{mode} View</span>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="standard">Standard</SelectItem>
-        <SelectItem value="extended">Extended</SelectItem>
-        <SelectItem value="tutor">Tutor</SelectItem>
-        <SelectItem value="student">Student</SelectItem>
-      </SelectContent>
-    </Select>
+    <TooltipProvider delayDuration={200}>
+      <Select value={mode} onValueChange={(value) => setMode(value as any)}>
+        <SelectTrigger className="w-[180px]">
+          <span className="capitalize">{mode} View</span>
+        </SelectTrigger>
+        <SelectContent>
+          {items.map(({ value, label, description }) => (
+            <Tooltip key={value}>
+              <TooltipTrigger asChild>
+                <SelectItem value={value}>{label}</SelectItem>
+              </TooltipTrigger>
+              <TooltipContent side="right" align="start" className="max-w-[200px] text-sm leading-snug">
+                {description}
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </SelectContent>
+      </Select>
+    </TooltipProvider>
   );
 }
