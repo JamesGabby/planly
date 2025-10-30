@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Edit3,
   Trash2,
   Calendar,
   Clock,
   GraduationCap,
-  Copy,
+  Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +18,14 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
-import { prettyDate, prettyTime } from "../utils/helpers";
+import { prettyDate, prettyTime } from "../../utils/helpers";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 /* ------------------------------------ */
-/* ADVANCED LESSON CARD COMPONENT       */
+/* MAIN LESSON CARD COMPONENT           */
 /* ------------------------------------ */
-export function LessonCardAdvanced({
+export function LessonCard({
   lesson,
   onDelete,
   onDuplicate,
@@ -74,13 +74,9 @@ export function LessonCardAdvanced({
                   </span>
                 )}
               </div>
-
-              <div className="flex flex-wrap gap-2 mt-1">
-                {/* NEW “Advanced” label */}
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-800/20 dark:text-blue-400">
-                  Extended
-                </span>
-              </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-800/20 dark:text-blue-400">
+                Standard
+              </span>
             </div>
           </div>
         </CardHeader>
@@ -102,7 +98,6 @@ export function LessonCardAdvanced({
                     className="hover:bg-primary/10"
                     onClick={(e) => {
                       e.stopPropagation();
-                      e.currentTarget.blur(); // removes focus immediately
                       onDuplicate();
                     }}
                   >
@@ -157,6 +152,7 @@ export function LessonCardAdvanced({
                     className="hover:bg-primary/10"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.currentTarget.blur(); // removes focus immediately
                       onDuplicate();
                     }}
                   >

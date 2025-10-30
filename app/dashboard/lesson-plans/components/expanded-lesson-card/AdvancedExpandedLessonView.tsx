@@ -3,13 +3,15 @@
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { parseResources, prettyDate, prettyTime } from "../utils/helpers";
+import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 
 /* --- ADVANCED EXPANDED LESSON VIEW --- */
 export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
   const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
+  const [homework, setHomework] = useState(lesson.homework ?? "");
+
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -18,7 +20,7 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
     ? lesson.lesson_structure
     : [];
 
-  async function handleSave(field: "notes" | "evaluation", value: string) {
+  async function handleSave(field: "notes" | "evaluation"  | "homework", value: string) {
     setSaving(true);
     setMessage(null);
     try {
@@ -47,10 +49,6 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         <p className="text-sm text-muted-foreground">
           {lesson.class} • {prettyDate(lesson.date_of_lesson)}{" "}
           {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Created: {new Date(lesson.created_at).toLocaleString()} • Updated:{" "}
-          {new Date(lesson.updated_at).toLocaleString()}
         </p>
       </header>
 
@@ -136,77 +134,75 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </section>
       )}
 
-      {/* --- ADDITIONAL INFORMATION --- */}
-      <section className="grid md:grid-cols-2 gap-6">
-        {lesson.homework && (
-          <div>
-            <h3 className="font-semibold mb-1 text-foreground">Homework</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.homework}
-            </p>
-          </div>
-        )}
-        {lesson.specialist_subject_knowledge_required && (
-          <div>
-            <h3 className="font-semibold mb-1 text-foreground">
-              Specialist Subject Knowledge Required
-            </h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.specialist_subject_knowledge_required}
-            </p>
-          </div>
-        )}
-        {lesson.knowledge_revisited && (
-          <div>
-            <h3 className="font-semibold mb-1 text-foreground">
-              Knowledge Revisited
-            </h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.knowledge_revisited}
-            </p>
-          </div>
-        )}
-        {lesson.subject_pedagogies && (
-          <div>
-            <h3 className="font-semibold mb-1 text-foreground">
-              Subject Pedagogies
-            </h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.subject_pedagogies}
-            </p>
-          </div>
-        )}
-        {lesson.literacy_opportunities && (
-          <div>
-            <h3 className="font-semibold mb-1 text-foreground">
-              Literacy Opportunities
-            </h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.literacy_opportunities}
-            </p>
-          </div>
-        )}
-        {lesson.numeracy_opportunities && (
-          <div>
-            <h3 className="font-semibold mb-1 text-foreground">
-              Numeracy Opportunities
-            </h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.numeracy_opportunities}
-            </p>
-          </div>
-        )}
-        {lesson.health_and_safety_considerations && (
-          <div className="md:col-span-2">
-            <h3 className="font-semibold mb-1 text-foreground">
-              Health & Safety Considerations
-            </h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {lesson.health_and_safety_considerations}
-            </p>
-          </div>
-        )}
-      </section>
+ {/* --- ADDITIONAL INFORMATION --- */}
+<section className="grid md:grid-cols-2 gap-6">
+  {lesson.specialist_subject_knowledge_required && (
+    <div>
+      <h3 className="font-semibold mb-1 text-foreground">
+        Specialist Subject Knowledge Required
+      </h3>
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {lesson.specialist_subject_knowledge_required}
+      </p>
+    </div>
+  )}
+
+  {lesson.knowledge_revisited && (
+    <div>
+      <h3 className="font-semibold mb-1 text-foreground">
+        Knowledge Revisited
+      </h3>
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {lesson.knowledge_revisited}
+      </p>
+    </div>
+  )}
+
+  {lesson.numeracy_opportunities && (
+    <div>
+      <h3 className="font-semibold mb-1 text-foreground">
+        Numeracy Opportunities
+      </h3>
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {lesson.numeracy_opportunities}
+      </p>
+    </div>
+  )}
+
+  {lesson.literacy_opportunities && (
+    <div>
+      <h3 className="font-semibold mb-1 text-foreground">
+        Literacy Opportunities
+      </h3>
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {lesson.literacy_opportunities}
+      </p>
+    </div>
+  )}
+
+  {lesson.subject_pedagogies && (
+    <div>
+      <h3 className="font-semibold mb-1 text-foreground">
+        Subject Pedagogies
+      </h3>
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {lesson.subject_pedagogies}
+      </p>
+    </div>
+  )}
+
+  {lesson.health_and_safety_considerations && (
+    <div>
+      <h3 className="font-semibold mb-1 text-foreground">
+        Health & Safety Considerations
+      </h3>
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {lesson.health_and_safety_considerations}
+      </p>
+    </div>
+  )}
+</section>
+
 
       {/* --- RESOURCES --- */}
       {resources.length > 0 && (
@@ -228,6 +224,20 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           </ul>
         </section>
       )}
+
+      {/* --- HOMEWORK (editable) --- */}
+      <section>
+        <h3 className="font-semibold mb-1 text-foreground">Homework</h3>
+
+        <textarea
+          className="w-full min-h-[80px] rounded-md border border-input bg-background 
+                    text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
+          value={homework}
+          onChange={(e) => setHomework(e.target.value)}
+          onBlur={() => handleSave("homework", homework)}
+          placeholder="Enter homework assigned for this lesson..."
+        />
+      </section>
 
       {/* --- NOTES & EVALUATION --- */}
       <section className="space-y-4">
@@ -263,6 +273,10 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           </p>
         )}
       </section>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Created: {new Date(lesson.created_at).toLocaleString()} • Updated:{" "}
+        {new Date(lesson.updated_at).toLocaleString()}
+      </p>
     </div>
   );
 }

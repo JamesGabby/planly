@@ -1,13 +1,14 @@
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { parseResources, prettyDate, prettyTime } from "../utils/helpers";
+import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 
 /* --- EXPANDED LESSON VIEW --- */
-export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
+export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
   const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
+  const [homework, setHomework] = useState(lesson.homework ?? "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -16,7 +17,7 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
     ? lesson.lesson_structure
     : [];
 
-  async function handleSave(field: "notes" | "evaluation", value: string) {
+  async function handleSave(field: "notes" | "evaluation" | "homework", value: string) {
     setSaving(true);
     setMessage(null);
     try {
@@ -138,6 +139,20 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           </ul>
         </section>
       )}
+
+      {/* --- HOMEWORK (editable) --- */}
+      <section>
+        <h3 className="font-semibold mb-1 text-foreground">Homework</h3>
+
+        <textarea
+          className="w-full min-h-[80px] rounded-md border border-input bg-background 
+                    text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
+          value={homework}
+          onChange={(e) => setHomework(e.target.value)}
+          onBlur={() => handleSave("homework", homework)}
+          placeholder="Enter homework assigned for this lesson..."
+        />
+      </section>
 
       {/* --- NOTES & EVALUATION --- */}
       <section className="space-y-4">

@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Edit3,
   Trash2,
   Calendar,
   Clock,
-  GraduationCap,
-  Copy,
+  User,
+  Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +17,14 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
-import { prettyDate, prettyTime } from "../utils/helpers";
+import { prettyDate, prettyTime } from "../../utils/helpers";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 /* ------------------------------------ */
-/* ADVANCED LESSON CARD COMPONENT       */
+/* MAIN LESSON CARD COMPONENT           */
 /* ------------------------------------ */
-export function LessonCardStudent({
+export function LessonCardTutor({
   lesson,
   onDelete,
   onDuplicate,
@@ -60,7 +59,7 @@ export function LessonCardStudent({
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground leading-relaxed">
                 <span className="flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5" />
+                  <User className="w-3.5 h-3.5" />
                   {lesson.class ?? "Unknown class"}
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -74,12 +73,9 @@ export function LessonCardStudent({
                   </span>
                 )}
               </div>
-
-              <div className="flex flex-wrap gap-2 mt-1">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-800/20 dark:text-blue-400">
-                  Student
-                </span>
-              </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-800/20 dark:text-blue-400">
+                Tutor
+              </span>
             </div>
           </div>
         </CardHeader>
@@ -101,7 +97,6 @@ export function LessonCardStudent({
                     className="hover:bg-primary/10"
                     onClick={(e) => {
                       e.stopPropagation();
-                      e.currentTarget.blur(); // removes focus immediately
                       onDuplicate();
                     }}
                   >
@@ -156,6 +151,7 @@ export function LessonCardStudent({
                     className="hover:bg-primary/10"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.currentTarget.blur(); // removes focus immediately
                       onDuplicate();
                     }}
                   >

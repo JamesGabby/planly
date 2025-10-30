@@ -7,17 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { LessonPlan } from "./types/lesson";
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
-import { LessonCard } from "./components/LessonCard";
+import { LessonCard } from "./components/lesson-cards/LessonCard";
 import { MobileResponsiveModal } from "./components/MobileResponsiveModal";
 import { FiltersCard } from "./components/FiltersCard";
 import { LessonCardSkeleton } from "./skeletons/LessonCardSkeleton";
 import { useUserMode } from "@/components/UserModeContext";
-import { LessonCardAdvanced } from "./components/LessonCardAdvanced";
+import { LessonCardAdvanced } from "./components/lesson-cards/LessonCardAdvanced";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LessonCardStudent } from "./components/LessonCardStudent";
-import { LessonCardTutor } from "./components/LessonCardTutor";
+import { LessonCardStudent } from "./components/lesson-cards/LessonCardStudent";
+import { LessonCardTutor } from "./components/lesson-cards/LessonCardTutor";
 
 const supabase = createClient();
 
