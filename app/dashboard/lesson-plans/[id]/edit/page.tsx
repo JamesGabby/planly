@@ -2,7 +2,7 @@
 
 import { useUserMode } from "@/components/UserModeContext";
 import EditLessonFormStandard from "../../forms/EditLessonFormStandard";
-import EditLessonFormAdvanced from "../../forms/EditLessonFormStudent";
+import EditLessonFormAdvanced from "../../forms/EditLessonFormAdvanced";
 import EditLessonFormStudent from "../../forms/EditLessonFormStudent";
 import EditLessonFormTutor from "../../forms/EditLessonFormTutor";
 
