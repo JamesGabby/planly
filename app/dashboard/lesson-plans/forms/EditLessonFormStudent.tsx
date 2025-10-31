@@ -506,31 +506,93 @@ export default function EditLessonFormStudent() {
                 </div>
               </div>
 
+              {/* ✅ Resources Section */}
               <Separator className="my-8" />
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Resources</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add links or names of lesson materials.
+                </p>
 
-              {/* Homework, Evaluation, Notes */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Homework</Label>
-                  <Textarea
-                    value={lesson.homework || ""}
-                    onChange={(e) => updateField("homework", e.target.value)}
-                  />
+                <div className="space-y-3">
+                  {(lesson.resources || []).map((res: any, index: number) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Resource title or link"
+                        value={res.title || res.name || res.url || ""}
+                        onChange={(e) => {
+                          const updated = [...(lesson.resources || [])];
+                          updated[index] = { ...updated[index], title: e.target.value };
+                          updateField("resources", updated as any);
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          updateField(
+                            "resources",
+                            (lesson.resources || []).filter((_: any, i: number) => i !== index) as any
+                          );
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() =>
+                      updateField("resources", [
+                        ...(lesson.resources || []),
+                        { title: "" },
+                      ] as any)
+                    }
+                  >
+                    + Add Resource
+                  </Button>
                 </div>
-                <div>
-                  <Label>Evaluation</Label>
-                  <Textarea
-                    value={lesson.evaluation || ""}
-                    onChange={(e) => updateField("evaluation", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Notes</Label>
-                  <Textarea
-                    value={lesson.notes || ""}
-                    onChange={(e) => updateField("notes", e.target.value)}
-                  />
-                </div>
+              </div>
+
+              {/* ✅ Homework Section */}
+              <Separator className="my-8" />
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Homework</h3>
+                <Textarea
+                  placeholder="• Homework task..."
+                  value={lesson.homework || ""}
+                  onChange={(e) => updateField("homework", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* ✅ Evaluation Section */}
+              <Separator className="my-8" />
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  How will you measure student progress? What worked?
+                </p>
+                <Textarea
+                  placeholder="• Evaluation notes..."
+                  value={lesson.evaluation || ""}
+                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* ✅ Notes Section */}
+              <Separator className="my-8" />
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
+                <Textarea
+                  placeholder="Additional reminders or ideas..."
+                  value={lesson.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  className="min-h-[120px]"
+                />
               </div>
 
               {error && (

@@ -6,8 +6,8 @@ export function ModeSwitcher() {
   const { mode, setMode } = useUserMode();
 
   const items = [
-    { value: "standard", label: "Standard", description: "A minimal view showing only the essentials so you can plan quickly" },
-    { value: "extended", label: "Extended", description: "A detailed view covering all lesson considerations so you can plan carefully and thoroughly" },
+    { value: "teacher", label: "Teacher", description: "A minimal teacher view showing only the essentials so you can plan quickly" },
+    { value: "extended", label: "Extended", description: "A detailed teacher view covering all lesson considerations so you can plan carefully and thoroughly" },
     { value: "tutor", label: "Tutor", description: "A view tailored for one-on-one tutoring" },
     { value: "student", label: "Student", description: "Same as extended view but with tips and guidance to plan your lessons following best teaching practices" },
   ];

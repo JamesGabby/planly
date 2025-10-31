@@ -1,10 +1,10 @@
 'use client'
 
 import { useUserMode } from "@/components/UserModeContext";
-import EditLessonFormStandard from "../../forms/EditLessonFormStandard";
 import EditLessonFormAdvanced from "../../forms/EditLessonFormAdvanced";
 import EditLessonFormStudent from "../../forms/EditLessonFormStudent";
 import EditLessonFormTutor from "../../forms/EditLessonFormTutor";
+import EditLessonFormStandard from "../../forms/EditLessonFormStandard";
 
 export default function EditLessonPage() {
   const { mode } = useUserMode();

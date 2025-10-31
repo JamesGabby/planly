@@ -17,7 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const supabase = createClient();
 
-export default function NewLessonPlanPage() {
+export default function NewLessonFormStandard() {
   const router = useRouter();
 
   const [lesson, setLesson] = useState<Partial<LessonPlan>>({

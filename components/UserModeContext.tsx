@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type UserMode = "standard" | "extended" | "tutor" | "student";
+export type UserMode = "teacher" | "extended" | "tutor" | "student";
 
 interface UserModeContextType {
   mode: UserMode;
@@ -11,7 +11,7 @@ interface UserModeContextType {
 const UserModeContext = createContext<UserModeContextType | undefined>(undefined);
 
 export const UserModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<UserMode>("standard");
+  const [mode, setMode] = useState<UserMode>("teacher");
 
     useEffect(() => {
       const stored = localStorage.getItem("userMode");
