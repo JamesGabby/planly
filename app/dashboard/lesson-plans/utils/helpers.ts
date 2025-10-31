@@ -30,7 +30,7 @@ export function prettyTime(t?: string | null) {
   }
 }
 
-export function parseResources(res: string): { title: string; url: string }[] {
+export function parseResources(res: Object): { title: string; url: string }[] {
   if (!res) return [];
   try {
     if (Array.isArray(res)) return res;

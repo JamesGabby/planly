@@ -3,6 +3,12 @@ export interface LessonResource {
   url?: string;
 }
 
+type Resource = {
+  title: string;
+  url?: string;
+};
+
+
 export type LessonPlan = {
   id: string; // UUID
   user_id: string; // UUID
@@ -12,7 +18,7 @@ export type LessonPlan = {
   topic?: string | null;
   objectives?: string | null;
   outcomes?: string | null;
-  resources: string[]; // JSONB default []
+  resources: Resource[]
   homework?: string | null;
   specialist_subject_knowledge_required?: string | null;
   knowledge_revisited?: string | null;
