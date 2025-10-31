@@ -15,8 +15,8 @@ export function ModeSwitcher() {
   return (
     <TooltipProvider delayDuration={200}>
       <Select value={mode} onValueChange={(value) => setMode(value as UserMode)}>
-        <SelectTrigger className="w-[150px]">
-          <span className="capitalize">{mode} View</span>
+        <SelectTrigger className="w-[110px]">
+          <span className="capitalize">{mode}</span>
         </SelectTrigger>
         <SelectContent>
           {items.map(({ value, label, description }) => (
