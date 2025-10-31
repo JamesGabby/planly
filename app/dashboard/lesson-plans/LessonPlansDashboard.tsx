@@ -135,7 +135,6 @@ export default function LessonPlansDashboard() {
         topic: `${lesson.topic} (Copy)`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        // Optional: set new date or leave as original
         date_of_lesson: lesson.date_of_lesson,
       };
 
@@ -149,9 +148,14 @@ export default function LessonPlansDashboard() {
 
       setLessons((prev) => [data, ...prev]);
       toast.success("Lesson duplicated successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Duplicate error:", err);
-      toast.error("Failed to duplicate lesson: " + (err.message || "Unknown error"));
+
+      if (err instanceof Error) {
+        toast.error("Failed to duplicate lesson: " + err.message);
+      } else {
+        toast.error("Failed to duplicate lesson: Unknown error");
+      }
     }
   }
 
