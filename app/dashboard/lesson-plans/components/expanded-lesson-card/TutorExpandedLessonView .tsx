@@ -49,15 +49,31 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </p>
       </header>
 
-      {/* --- OBJECTIVES --- */}
+      {/* --- OBJECTIVES & OUTCOMES INLINE --- */}
+{(lesson.objectives || lesson.outcomes) && (
+  <section>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {lesson.objectives && (
-        <section>
-          <h3 className="font-semibold mb-1 text-foreground">Objectives</h3>
+        <div>
+          <h4 className="font-medium text-foreground">Objectives</h4>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {lesson.objectives}
           </p>
-        </section>
+        </div>
       )}
+
+      {lesson.outcomes && (
+        <div>
+          <h4 className="font-medium text-foreground">Outcomes</h4>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            {lesson.outcomes}
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+
 
       {/* --- LESSON STRUCTURE --- */}
       {lessonStructure.length > 0 && (
