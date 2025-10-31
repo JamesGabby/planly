@@ -12,7 +12,7 @@ export type LessonPlan = {
   topic?: string | null;
   objectives?: string | null;
   outcomes?: string | null;
-  resources: any[]; // JSONB default []
+  resources: string[]; // JSONB default []
   homework?: string | null;
   specialist_subject_knowledge_required?: string | null;
   knowledge_revisited?: string | null;
@@ -28,7 +28,7 @@ export type LessonPlan = {
   evaluation?: string | null;
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
-  lesson_structure?: Record<string, any> | null; // JSONB
+  lesson_structure?: Record<string, string> | null; // JSONB
   notes?: string | null;
 };
 

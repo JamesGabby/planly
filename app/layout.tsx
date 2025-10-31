@@ -3,7 +3,6 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { UserModeProvider } from "@/components/UserModeContext";
-import { ToastContainer, Slide } from "react-toastify";
 import { CustomToastContainer } from "@/components/ui/CustomToastContainer";
 
 const defaultUrl = process.env.VERCEL_URL

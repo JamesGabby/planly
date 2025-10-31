@@ -49,9 +49,13 @@ export default function LessonPlansDashboard() {
         .order("date_of_lesson", { ascending: true });
       if (error) throw error;
       setLessons(data ?? []);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to load lesson plans");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to load lesson plans");
+      }
     } finally {
       setLoading(false);
     }
@@ -113,7 +117,7 @@ export default function LessonPlansDashboard() {
         setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
         toast.success("Lesson deleted successfully!");
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.error("Unexpected error occurred during deletion.");
     } finally {

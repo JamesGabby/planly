@@ -1,6 +1,6 @@
 import { Select, SelectItem, SelectTrigger, SelectContent } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { useUserMode } from "./UserModeContext";
+import { UserMode, useUserMode } from "./UserModeContext";
 
 export function ModeSwitcher() {
   const { mode, setMode } = useUserMode();
@@ -14,7 +14,7 @@ export function ModeSwitcher() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <Select value={mode} onValueChange={(value) => setMode(value as any)}>
+      <Select value={mode} onValueChange={(value) => setMode(value as UserMode)}>
         <SelectTrigger className="w-[150px]">
           <span className="capitalize">{mode} View</span>
         </SelectTrigger>
