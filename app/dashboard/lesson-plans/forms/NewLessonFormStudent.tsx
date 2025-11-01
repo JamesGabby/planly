@@ -21,6 +21,7 @@ import { LessonStage } from "@/components/lesson-structure-editor";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion } from "framer-motion";
 
 const supabase = createClient();
 
@@ -50,6 +51,8 @@ export default function NewLessonFormAdvanced() {
     evaluation: "",
     notes: "",
     exam_board: "",
+    subject: "",
+    year_group: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -59,6 +62,17 @@ export default function NewLessonFormAdvanced() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const year = parseInt(lesson.year_group?.replace("Year ", "") || "0");
+  const isGCSE = year >= 10 && year <= 11;
+  const isAlevel = year >= 12 && year <= 13;
+  const showExamBoard = isGCSE || isAlevel;
+
+  const boardOptions = [
+    ...(isGCSE || isAlevel ? ["AQA", "OCR", "Edexcel", "WJEC", "Eduqas"] : []),
+    ...(isAlevel ? ["Cambridge", "IB"] : []),
+    "Other"
+  ];
 
   const updateField = (field: keyof LessonPlan, value: string) =>
     setLesson((prev) => ({ ...prev, [field]: value }));
@@ -127,9 +141,11 @@ export default function NewLessonFormAdvanced() {
           : [];
 
       const finalExamBoard =
-        lesson.exam_board === "Other"
-          ? lesson.custom_exam_board?.trim() || "Other"
-          : lesson.exam_board;
+        showExamBoard
+          ? (lesson.exam_board === "Other"
+              ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
+              : lesson.exam_board)
+          : null;
 
       const { error: insertError } = await supabase.from("lesson_plans").insert([
         {
@@ -178,6 +194,24 @@ export default function NewLessonFormAdvanced() {
                   <Input value={lesson.class || ""} onChange={(e) => updateField("class", e.target.value)} placeholder="e.g. Year 7A" />
                 </div>
                 <div>
+                  <Label>Year Group</Label>
+                  <Select
+                    value={lesson.year_group || ""}
+                    onValueChange={(value) => updateField("year_group", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Year..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 13 }).map((_, i) => (
+                        <SelectItem key={i} value={`Year ${i + 1}`}>
+                          Year {i + 1}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>Date of Lesson</Label>
                   <Input type="date" value={lesson.date_of_lesson || ""} onChange={(e) => updateField("date_of_lesson", e.target.value)} />
                 </div>
@@ -190,43 +224,62 @@ export default function NewLessonFormAdvanced() {
                   <Input value={lesson.topic || ""} onChange={(e) => updateField("topic", e.target.value)} placeholder="Lesson topic..." />
                 </div>
                 <div>
-                  <Label>Exam Board</Label>
-
+                  <Label>Subject</Label>
                   <Select
-                    value={lesson.exam_board || ""}
-                    onValueChange={(value) => updateField("exam_board", value)}
+                    value={lesson.subject || ""}
+                    onValueChange={(value) => updateField("subject", value)}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select exam board..." />
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select subject..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="AQA">AQA</SelectItem>
-                      <SelectItem value="OCR">OCR</SelectItem>
-                      <SelectItem value="Edexcel">Edexcel</SelectItem>
-                      <SelectItem value="WJEC">WJEC</SelectItem>
-                      <SelectItem value="Eduqas">Eduqas</SelectItem>
-                      <SelectItem value="Cambridge">Cambridge</SelectItem>
-                      <SelectItem value="IB">IB</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="Maths">Maths</SelectItem>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="Science">Science</SelectItem>
+                      <SelectItem value="Biology">Biology</SelectItem>
+                      <SelectItem value="Chemistry">Chemistry</SelectItem>
+                      <SelectItem value="Physics">Physics</SelectItem>
+                      <SelectItem value="Computer Science">Computer Science</SelectItem>
+                      <SelectItem value="Geography">Geography</SelectItem>
+                      <SelectItem value="History">History</SelectItem>
+                      <SelectItem value="Business">Business</SelectItem>
+                      <SelectItem value="Languages">Languages</SelectItem>
                     </SelectContent>
                   </Select>
-
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Select an exam board if relevant for this class.
-                  </p>
-
-                  {lesson.exam_board === "Other" && (
-                    <Input
-                      autoFocus
-                      placeholder="Enter exam board"
-                      className="mt-2"
-                      value={lesson.custom_exam_board || ""}
-                      onChange={(e) =>
-                        updateField("custom_exam_board", e.target.value)
-                      }
-                    />
-                  )}
                 </div>
+
+                {showExamBoard && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="col-span-1 md:col-span-2"
+                  >
+                    <Label>Exam Board</Label>
+                    <Select
+                      value={lesson.exam_board || ""}
+                      onValueChange={(value) => updateField("exam_board", value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select exam board..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {boardOptions.map((b) => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {lesson.exam_board === "Other" && (
+                      <Input
+                        className="mt-2"
+                        placeholder="Enter exam board..."
+                        value={lesson.custom_exam_board || ""}
+                        onChange={(e) => updateField("custom_exam_board", e.target.value)}
+                      />
+                    )}
+                  </motion.div>
+                )}
               </div>
 
               <Separator />

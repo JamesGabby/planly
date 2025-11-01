@@ -38,5 +38,7 @@ export type LessonPlan = {
   notes?: string | null;
   exam_board?: string;
   custom_exam_board?: string;
+  subject?: string;
+  year_group?: string;
 };
 
