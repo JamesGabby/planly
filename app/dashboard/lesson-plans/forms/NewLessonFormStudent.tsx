@@ -198,6 +198,64 @@ export default function NewLessonFormAdvanced() {
               </div>
 
               <Separator />
+              
+              {/* Pedagogical Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Specialist Subject Knowledge Required</Label>
+                  <Textarea
+                    value={lesson.specialist_subject_knowledge_required || ""}
+                    onChange={(e) =>
+                      updateField("specialist_subject_knowledge_required", e.target.value)
+                    }
+                    placeholder="Knowledge needed before teaching..."
+                  />
+                </div>
+                <div>
+                  <Label>Knowledge Revisited</Label>
+                  <Textarea
+                    value={lesson.knowledge_revisited || ""}
+                    onChange={(e) => updateField("knowledge_revisited", e.target.value)}
+                    placeholder="What prior learning is being built upon?"
+                  />
+                </div>
+                <div>
+                  <Label>Numeracy Opportunities</Label>
+                  <Textarea
+                    value={lesson.numeracy_opportunities || ""}
+                    onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
+                    placeholder="Opportunities for numeracy practice..."
+                  />
+                </div>
+                <div>
+                  <Label>Literacy Opportunities</Label>
+                  <Textarea
+                    value={lesson.literacy_opportunities || ""}
+                    onChange={(e) => updateField("literacy_opportunities", e.target.value)}
+                    placeholder="Opportunities for literacy skill development..."
+                  />
+                </div>
+                <div>
+                  <Label>Subject Pedagogies</Label>
+                  <Textarea
+                    value={lesson.subject_pedagogies || ""}
+                    onChange={(e) => updateField("subject_pedagogies", e.target.value)}
+                    placeholder="Pedagogical approaches used..."
+                  />
+                </div>
+                <div>
+                  <Label>Health & Safety Considerations</Label>
+                  <Textarea
+                    value={lesson.health_and_safety_considerations || ""}
+                    onChange={(e) =>
+                      updateField("health_and_safety_considerations", e.target.value)
+                    }
+                    placeholder="Potential hazards or safety measures..."
+                  />
+                </div>
+              </div>
+
+              <Separator />
 
               {/* --- Lesson Structure --- */}
               <div>
@@ -282,30 +340,101 @@ export default function NewLessonFormAdvanced() {
               </div>
 
               <Separator />
+              
+              {/* Resources */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Resources</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Add links or names of teaching materials used during the lesson.
+                </p>
 
-              {/* --- Additional Sections --- */}
-              {[
-                { label: "Specialist Subject Knowledge Required", key: "specialist_subject_knowledge_required" },
-                { label: "Knowledge Revisited", key: "knowledge_revisited" },
-                { label: "Subject Pedagogies", key: "subject_pedagogies" },
-                { label: "Literacy Opportunities", key: "literacy_opportunities" },
-                { label: "Numeracy Opportunities", key: "numeracy_opportunities" },
-                { label: "Health and Safety Considerations", key: "health_and_safety_considerations" },
-                { label: "Homework", key: "homework" },
-                { label: "Evaluation", key: "evaluation" },
-                { label: "Notes", key: "notes" },
-              ].map(({ label, key }) => (
-                <div key={key}>
-                  <Label>{label}</Label>
-                  <Textarea
-                    value={(lesson as any)[key] || ""}
-                    onChange={(e) => updateField(key as keyof LessonPlan, e.target.value)}
-                    placeholder={`${label}...`}
-                  />
+                <div className="space-y-3">
+                  {(lesson.resources || []).map((res: any, index: number) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Resource title or link"
+                        value={res.title || ""}
+                        onChange={(e) => {
+                          const updated = [...(lesson.resources || [])];
+                          updated[index].title = e.target.value;
+                          updateField("resources", updated as any);
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          updateField(
+                            "resources",
+                            (lesson.resources || []).filter((_: any, i: number) => i !== index) as any
+                          );
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() =>
+                      updateField("resources", [
+                        ...(lesson.resources || []),
+                        { title: "" },
+                      ] as any)
+                    }
+                  >
+                    + Add Resource
+                  </Button>
                 </div>
-              ))}
+              </div>
 
-              {error && <p className="text-destructive text-sm font-medium">{error}</p>}
+              <Separator />
+
+              {/* Homework */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Homework</h3>
+                <Textarea
+                  placeholder="• Task students must complete at home..."
+                  value={lesson.homework || ""}
+                  onChange={(e) => updateField("homework", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              <Separator />
+
+              {/* Evaluation */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  How will you evaluate the lesson’s success?
+                </p>
+                <Textarea
+                  placeholder="• Reflection on students’ progress..."
+                  value={lesson.evaluation || ""}
+                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              <Separator />
+
+              {/* Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
+                <Textarea
+                  placeholder="Any additional comments or reminders..."
+                  value={lesson.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {error && (
+                <p className="text-destructive text-sm font-medium">{error}</p>
+              )}
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={saving}>

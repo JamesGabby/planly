@@ -134,75 +134,74 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </section>
       )}
 
- {/* --- ADDITIONAL INFORMATION --- */}
-<section className="grid md:grid-cols-2 gap-6">
-  {lesson.specialist_subject_knowledge_required && (
-    <div>
-      <h3 className="font-semibold mb-1 text-foreground">
-        Specialist Subject Knowledge Required
-      </h3>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {lesson.specialist_subject_knowledge_required}
-      </p>
-    </div>
-  )}
+      {/* --- ADDITIONAL INFORMATION --- */}
+      <section className="grid md:grid-cols-2 gap-6">
+        {lesson.specialist_subject_knowledge_required && (
+          <div>
+            <h3 className="font-semibold mb-1 text-foreground">
+              Specialist Subject Knowledge Required
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {lesson.specialist_subject_knowledge_required}
+            </p>
+          </div>
+        )}
 
-  {lesson.knowledge_revisited && (
-    <div>
-      <h3 className="font-semibold mb-1 text-foreground">
-        Knowledge Revisited
-      </h3>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {lesson.knowledge_revisited}
-      </p>
-    </div>
-  )}
+        {lesson.knowledge_revisited && (
+          <div>
+            <h3 className="font-semibold mb-1 text-foreground">
+              Knowledge Revisited
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {lesson.knowledge_revisited}
+            </p>
+          </div>
+        )}
 
-  {lesson.numeracy_opportunities && (
-    <div>
-      <h3 className="font-semibold mb-1 text-foreground">
-        Numeracy Opportunities
-      </h3>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {lesson.numeracy_opportunities}
-      </p>
-    </div>
-  )}
+        {lesson.numeracy_opportunities && (
+          <div>
+            <h3 className="font-semibold mb-1 text-foreground">
+              Numeracy Opportunities
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {lesson.numeracy_opportunities}
+            </p>
+          </div>
+        )}
 
-  {lesson.literacy_opportunities && (
-    <div>
-      <h3 className="font-semibold mb-1 text-foreground">
-        Literacy Opportunities
-      </h3>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {lesson.literacy_opportunities}
-      </p>
-    </div>
-  )}
+        {lesson.literacy_opportunities && (
+          <div>
+            <h3 className="font-semibold mb-1 text-foreground">
+              Literacy Opportunities
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {lesson.literacy_opportunities}
+            </p>
+          </div>
+        )}
 
-  {lesson.subject_pedagogies && (
-    <div>
-      <h3 className="font-semibold mb-1 text-foreground">
-        Subject Pedagogies
-      </h3>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {lesson.subject_pedagogies}
-      </p>
-    </div>
-  )}
+        {lesson.subject_pedagogies && (
+          <div>
+            <h3 className="font-semibold mb-1 text-foreground">
+              Subject Pedagogies
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {lesson.subject_pedagogies}
+            </p>
+          </div>
+        )}
 
-  {lesson.health_and_safety_considerations && (
-    <div>
-      <h3 className="font-semibold mb-1 text-foreground">
-        Health & Safety Considerations
-      </h3>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {lesson.health_and_safety_considerations}
-      </p>
-    </div>
-  )}
-</section>
-
+        {lesson.health_and_safety_considerations && (
+          <div>
+            <h3 className="font-semibold mb-1 text-foreground">
+              Health & Safety Considerations
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {lesson.health_and_safety_considerations}
+            </p>
+          </div>
+        )}
+      </section>
 
       {/* --- RESOURCES --- */}
       {resources.length > 0 && (

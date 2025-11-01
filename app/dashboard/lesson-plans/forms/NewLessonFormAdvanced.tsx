@@ -257,11 +257,11 @@ export default function NewLessonFormAdvanced() {
                   />
                 </div>
                 <div>
-                  <Label>Subject Pedagogies</Label>
+                  <Label>Numeracy Opportunities</Label>
                   <Textarea
-                    value={lesson.subject_pedagogies || ""}
-                    onChange={(e) => updateField("subject_pedagogies", e.target.value)}
-                    placeholder="Pedagogical approaches used..."
+                    value={lesson.numeracy_opportunities || ""}
+                    onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
+                    placeholder="Opportunities for numeracy practice..."
                   />
                 </div>
                 <div>
@@ -273,11 +273,11 @@ export default function NewLessonFormAdvanced() {
                   />
                 </div>
                 <div>
-                  <Label>Numeracy Opportunities</Label>
+                  <Label>Subject Pedagogies</Label>
                   <Textarea
-                    value={lesson.numeracy_opportunities || ""}
-                    onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
-                    placeholder="Opportunities for numeracy practice..."
+                    value={lesson.subject_pedagogies || ""}
+                    onChange={(e) => updateField("subject_pedagogies", e.target.value)}
+                    placeholder="Pedagogical approaches used..."
                   />
                 </div>
                 <div>
@@ -363,32 +363,92 @@ export default function NewLessonFormAdvanced() {
               
               <Separator />
 
-              {/* Homework, Evaluation, Notes */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Homework</Label>
-                  <Textarea
-                    value={lesson.homework || ""}
-                    onChange={(e) => updateField("homework", e.target.value)}
-                    placeholder="Homework assigned..."
-                  />
+              {/* Resources */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Resources</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Add links or names of teaching materials used during the lesson.
+                </p>
+
+                <div className="space-y-3">
+                  {(lesson.resources || []).map((res: any, index: number) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Resource title or link"
+                        value={res.title || ""}
+                        onChange={(e) => {
+                          const updated = [...(lesson.resources || [])];
+                          updated[index].title = e.target.value;
+                          updateField("resources", updated as any);
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          updateField(
+                            "resources",
+                            (lesson.resources || []).filter((_: any, i: number) => i !== index) as any
+                          );
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() =>
+                      updateField("resources", [
+                        ...(lesson.resources || []),
+                        { title: "" },
+                      ] as any)
+                    }
+                  >
+                    + Add Resource
+                  </Button>
                 </div>
-                <div>
-                  <Label>Evaluation</Label>
-                  <Textarea
-                    value={lesson.evaluation || ""}
-                    onChange={(e) => updateField("evaluation", e.target.value)}
-                    placeholder="Lesson evaluation..."
-                  />
-                </div>
-                <div>
-                  <Label>Notes</Label>
-                  <Textarea
-                    value={lesson.notes || ""}
-                    onChange={(e) => updateField("notes", e.target.value)}
-                    placeholder="Additional notes..."
-                  />
-                </div>
+              </div>
+
+              <Separator />
+
+              {/* Homework */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Homework</h3>
+                <Textarea
+                  placeholder="• Task students must complete at home..."
+                  value={lesson.homework || ""}
+                  onChange={(e) => updateField("homework", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              <Separator />
+
+              {/* Evaluation */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
+                <Textarea
+                  placeholder="• Reflection on students’ progress..."
+                  value={lesson.evaluation || ""}
+                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              <Separator />
+
+              {/* Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
+                <Textarea
+                  placeholder="Any additional comments or reminders..."
+                  value={lesson.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  className="min-h-[120px]"
+                />
               </div>
 
               {error && (

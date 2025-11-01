@@ -49,13 +49,25 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
         </p>
       </header>
 
-      {/* --- OBJECTIVES --- */}
-      {lesson.objectives && (
-        <section>
-          <h3 className="font-semibold mb-1 text-foreground">Objectives</h3>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-            {lesson.objectives}
-          </p>
+      {/* --- OBJECTIVES & OUTCOMES --- */}
+      {(lesson.objectives || lesson.outcomes) && (
+        <section className="grid md:grid-cols-2 gap-4">
+          {lesson.objectives && (
+            <div>
+              <h3 className="font-semibold mb-1 text-foreground">Objectives</h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {lesson.objectives}
+              </p>
+            </div>
+          )}
+          {lesson.outcomes && (
+            <div>
+              <h3 className="font-semibold mb-1 text-foreground">Outcomes</h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {lesson.outcomes}
+              </p>
+            </div>
+          )}
         </section>
       )}
 

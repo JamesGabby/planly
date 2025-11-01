@@ -457,9 +457,6 @@ export default function NewLessonFormTutor() {
               {/* Evaluation */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  How will you evaluate the lesson’s success?
-                </p>
                 <Textarea
                   placeholder="• Reflection on students’ progress..."
                   value={lesson.evaluation || ""}
