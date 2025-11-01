@@ -37,5 +37,6 @@ export type LessonPlan = {
   lesson_structure?: Record<string, string> | null; // JSONB
   notes?: string | null;
   exam_board?: string;
+  custom_exam_board?: string;
 };
 

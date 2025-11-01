@@ -14,6 +14,7 @@ import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const supabase = createClient();
 
@@ -136,6 +137,11 @@ export default function NewLessonFormAdvanced() {
             }))
           : [];
 
+      const finalExamBoard =
+        lesson.exam_board === "Other"
+          ? lesson.custom_exam_board?.trim() || "Other"
+          : lesson.exam_board;
+
       const { error: insertError } = await supabase.from("lesson_plans").insert([
         {
           ...lesson,
@@ -144,7 +150,7 @@ export default function NewLessonFormAdvanced() {
           lesson_structure: stages,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          exam_board: lesson.exam_board || null,
+          exam_board: finalExamBoard,
         },
       ]);
 
@@ -214,23 +220,41 @@ export default function NewLessonFormAdvanced() {
                 </div>
                 <div>
                   <Label>Exam Board</Label>
-                  <select
+
+                  <Select
                     value={lesson.exam_board || ""}
-                    onChange={(e) => updateField("exam_board", e.target.value)}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors
-                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                      disabled:cursor-not-allowed disabled:opacity-50"
+                    onValueChange={(value) => updateField("exam_board", value)}
                   >
-                    <option value="">Select exam board...</option>
-                    <option value="AQA">AQA</option>
-                    <option value="OCR">OCR</option>
-                    <option value="Edexcel">Edexcel</option>
-                    <option value="WJEC">WJEC</option>
-                    <option value="Eduqas">Eduqas</option>
-                    <option value="Cambridge">Cambridge</option>
-                    <option value="IB">IB</option>
-                    <option value="Other">Other</option>
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select exam board..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AQA">AQA</SelectItem>
+                      <SelectItem value="OCR">OCR</SelectItem>
+                      <SelectItem value="Edexcel">Edexcel</SelectItem>
+                      <SelectItem value="WJEC">WJEC</SelectItem>
+                      <SelectItem value="Eduqas">Eduqas</SelectItem>
+                      <SelectItem value="Cambridge">Cambridge</SelectItem>
+                      <SelectItem value="IB">IB</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select an exam board if relevant for this class.
+                  </p>
+
+                  {lesson.exam_board === "Other" && (
+                    <Input
+                      autoFocus
+                      placeholder="Enter exam board"
+                      className="mt-2"
+                      value={lesson.custom_exam_board || ""}
+                      onChange={(e) =>
+                        updateField("custom_exam_board", e.target.value)
+                      }
+                    />
+                  )}
                 </div>
               </div>
 
