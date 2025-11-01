@@ -36,5 +36,6 @@ export type LessonPlan = {
   updated_at: string; // ISO timestamp
   lesson_structure?: Record<string, string> | null; // JSONB
   notes?: string | null;
+  exam_board?: string;
 };
 

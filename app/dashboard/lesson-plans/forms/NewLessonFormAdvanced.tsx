@@ -42,6 +42,7 @@ export default function NewLessonFormAdvanced() {
     adapting: "",
     evaluation: "",
     notes: "",
+    exam_board: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -143,6 +144,7 @@ export default function NewLessonFormAdvanced() {
           lesson_structure: stages,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          exam_board: lesson.exam_board || null,
         },
       ]);
 
@@ -209,6 +211,26 @@ export default function NewLessonFormAdvanced() {
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="Lesson topic..."
                   />
+                </div>
+                <div>
+                  <Label>Exam Board</Label>
+                  <select
+                    value={lesson.exam_board || ""}
+                    onChange={(e) => updateField("exam_board", e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+                      disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Select exam board...</option>
+                    <option value="AQA">AQA</option>
+                    <option value="OCR">OCR</option>
+                    <option value="Edexcel">Edexcel</option>
+                    <option value="WJEC">WJEC</option>
+                    <option value="Eduqas">Eduqas</option>
+                    <option value="Cambridge">Cambridge</option>
+                    <option value="IB">IB</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
               </div>
 
