@@ -390,7 +390,7 @@ export default function NewLessonFormStandard() {
 
               <Separator />
 
-              {/* Resources */}
+             {/* Resources */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">Resources</h3>
                 <p className="text-sm text-muted-foreground mb-3">
@@ -399,9 +399,10 @@ export default function NewLessonFormStandard() {
 
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: any, index: number) => (
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                      {/* Title */}
                       <Input
-                        placeholder="Resource title or link"
+                        placeholder="Resource title"
                         value={res.title || ""}
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
@@ -409,15 +410,28 @@ export default function NewLessonFormStandard() {
                           updateField("resources", updated as any);
                         }}
                       />
+
+                      {/* URL */}
+                      <Input
+                        placeholder="https://example.com"
+                        value={res.url || ""}
+                        onChange={(e) => {
+                          const updated = [...(lesson.resources || [])];
+                          updated[index].url = e.target.value;
+                          updateField("resources", updated as any);
+                        }}
+                      />
+
                       <Button
                         variant="ghost"
                         className="text-destructive hover:bg-destructive/10"
-                        onClick={() => {
+                        type="button"
+                        onClick={() =>
                           updateField(
                             "resources",
-                            (lesson.resources || []).filter((_: any, i: number) => i !== index) as any
-                          );
-                        }}
+                            (lesson.resources || []).filter((_, i) => i !== index) as any
+                          )
+                        }
                       >
                         Remove
                       </Button>
@@ -430,7 +444,7 @@ export default function NewLessonFormStandard() {
                     onClick={() =>
                       updateField("resources", [
                         ...(lesson.resources || []),
-                        { title: "" },
+                        { title: "", url: "" },
                       ] as any)
                     }
                   >
