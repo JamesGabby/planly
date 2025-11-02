@@ -19,7 +19,7 @@ import { motion } from "framer-motion";
 
 const supabase = createClient();
 
-export default function NewLessonFormAdvanced() {
+export default function NewLessonFormStandard() {
   const router = useRouter();
 
   const [lesson, setLesson] = useState<Partial<LessonPlan>>({
@@ -31,17 +31,6 @@ export default function NewLessonFormAdvanced() {
     outcomes: "",
     resources: [],
     homework: "",
-    specialist_subject_knowledge_required: "",
-    knowledge_revisited: "",
-    subject_pedagogies: "",
-    literacy_opportunities: "",
-    numeracy_opportunities: "",
-    health_and_safety_considerations: "",
-    timing: "",
-    teaching: "",
-    learning: "",
-    assessing: "",
-    adapting: "",
     evaluation: "",
     notes: "",
     exam_board: "",
@@ -70,6 +59,7 @@ export default function NewLessonFormAdvanced() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   const year = parseInt(lesson.year_group?.replace("Year ", "") || "0");
   const isGCSE = year >= 10 && year <= 11;
@@ -92,6 +82,21 @@ export default function NewLessonFormAdvanced() {
     setStages(updated);
   }
 
+  function clearStage(index: number) {
+    setStages((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      };
+      return updated;
+    });
+  }
+
   function addStage() {
     setStages((prev) => {
       const newStage = {
@@ -102,23 +107,11 @@ export default function NewLessonFormAdvanced() {
         assessing: "",
         adapting: "",
       };
+      // Insert new stage before the last (Plenary)
       const updated = [...prev];
       updated.splice(prev.length - 1, 0, newStage);
       return updated;
     });
-  }
-
-  function clearStage(index: number) {
-    const updated = [...stages];
-    updated[index] = {
-      ...updated[index],
-      duration: "",
-      teaching: "",
-      learning: "",
-      assessing: "",
-      adapting: "",
-    };
-    setStages(updated);
   }
 
   function removeStage(index: number) {
@@ -129,10 +122,41 @@ export default function NewLessonFormAdvanced() {
     );
   }
 
+  function validateForm() {
+    const errors: { [key: string]: string } = {};
+
+    if (!lesson.class?.trim()) errors.class = "Class is required.";
+    if (!lesson.year_group?.trim()) errors.year_group = "Year group is required.";
+    if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
+    if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
+
+    // Exam board required if GCSE or A-Level
+    const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
+    const isGCSE = yearNum >= 10 && yearNum <= 11;
+    const isAlevel = yearNum >= 12 && yearNum <= 13;
+    const showExamBoard = isGCSE || isAlevel;
+
+    if (showExamBoard && !lesson.exam_board?.trim()) {
+      errors.exam_board = "Exam board is required for this year group.";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+
+    if (!validateForm()) {
+      setSaving(false);
+      toast.error("Please fill in all required fields before saving.");
+      return;
+    }
 
     try {
       const {
@@ -172,7 +196,7 @@ export default function NewLessonFormAdvanced() {
 
       if (insertError) throw insertError;
 
-      router.push("/dashboard/lesson-plans");
+      router.push(`/dashboard/lesson-plans`);
       toast.success("Lesson plan created successfully!")
     } catch (err: any) {
       console.error(err);
@@ -189,7 +213,7 @@ export default function NewLessonFormAdvanced() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
           <p className="text-muted-foreground text-sm">
-            Create a detailed, extended lesson plan including pedagogical, safety, and adaptation details.
+            Create a structured and detailed lesson plan.
           </p>
         </div>
 
@@ -203,20 +227,29 @@ export default function NewLessonFormAdvanced() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Class</Label>
+                  <Label className={formErrors.class ? "text-destructive" : ""}>
+                    Class <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.class || ""}
                     onChange={(e) => updateField("class", e.target.value)}
                     placeholder="e.g. Grade 5A"
+                    className={formErrors.class ? "border-destructive" : ""}
                   />
+                  {formErrors.class && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.class}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Year Group</Label>
+                  <Label className={formErrors.year_group ? "text-destructive" : ""}>
+                    Year Group <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={lesson.year_group || ""}
                     onValueChange={(value) => updateField("year_group", value)}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className={`mt-1 ${formErrors.year_group ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Year..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -227,38 +260,73 @@ export default function NewLessonFormAdvanced() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.year_group && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.year_group}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Date of Lesson</Label>
+                  <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
+                    Date of Lesson <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="date"
                     value={lesson.date_of_lesson || ""}
                     onChange={(e) => updateField("date_of_lesson", e.target.value)}
+                    className={formErrors.date_of_lesson ? "border-destructive" : ""}
                   />
+                  {formErrors.date_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Time of Lesson</Label>
+                  <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
+                    Time of Lesson <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
+                    onFocus={() => {
+                      if (!lesson.time_of_lesson) {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, "0");
+                        const defaultTime = `${hours}:00`;
+                        updateField("time_of_lesson", defaultTime);
+                      }
+                    }}
                     onChange={(e) => updateField("time_of_lesson", e.target.value)}
+                    className={formErrors.time_of_lesson ? "border-destructive" : ""}
                   />
+                  {formErrors.time_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Topic</Label>
+                  <Label className={formErrors.topic ? "text-destructive" : ""}>
+                    Topic <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="Lesson topic..."
+                    className={formErrors.topic ? "border-destructive" : ""}
                   />
+                  {formErrors.topic && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Subject</Label>
+                  <Label className={formErrors.subject ? "text-destructive" : ""}>
+                    Subject <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={lesson.subject || ""}
                     onValueChange={(value) => updateField("subject", value)}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select subject..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -275,6 +343,9 @@ export default function NewLessonFormAdvanced() {
                       <SelectItem value="Languages">Languages</SelectItem>
                     </SelectContent>
                   </Select>
+                  {formErrors.subject && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
+                  )}
                 </div>
 
                 {showExamBoard && (
@@ -284,7 +355,9 @@ export default function NewLessonFormAdvanced() {
                     transition={{ duration: 0.25 }}
                     className="col-span-1 md:col-span-2"
                   >
-                    <Label>Exam Board</Label>
+                    <Label className={formErrors.exam_board ? "text-destructive" : ""}>
+                      Exam Board <span className="text-destructive">*</span>
+                    </Label>
                     <Select
                       value={lesson.exam_board || ""}
                       onValueChange={(value) => updateField("exam_board", value)}
@@ -298,6 +371,9 @@ export default function NewLessonFormAdvanced() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {formErrors.exam_board && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.exam_board}</p>
+                    )}
 
                     {lesson.exam_board === "Other" && (
                       <Input
@@ -313,22 +389,99 @@ export default function NewLessonFormAdvanced() {
 
               <Separator />
 
-              {/* Objectives / Outcomes */}
+              {/* Objectives & Outcomes with bullet points */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Objectives */}
                 <div>
-                  <Label>Objectives</Label>
+                  <Label className={formErrors.objectives ? "text-destructive" : ""}>
+                    Objectives <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     value={lesson.objectives || ""}
-                    onChange={(e) => updateField("objectives", e.target.value)}
-                    placeholder="• Learning goal 1"
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("objectives", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                      }
+                    }}
+                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                    className={formErrors.objectives ? "border-destructive" : ""}
                   />
+                  {formErrors.objectives && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>
+                  )}
                 </div>
+
+                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
                     value={lesson.outcomes || ""}
-                    onChange={(e) => updateField("outcomes", e.target.value)}
-                    placeholder="• Expected outcome 1"
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("outcomes", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                      }
+                    }}
+                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
                   />
                 </div>
               </div>

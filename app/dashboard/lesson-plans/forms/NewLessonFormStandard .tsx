@@ -59,6 +59,7 @@ export default function NewLessonFormStandard() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   const year = parseInt(lesson.year_group?.replace("Year ", "") || "0");
   const isGCSE = year >= 10 && year <= 11;
@@ -70,7 +71,6 @@ export default function NewLessonFormStandard() {
     ...(isAlevel ? ["Cambridge", "IB"] : []),
     "Other"
   ];
-
 
   function updateField(field: keyof LessonPlan, value: string) {
     setLesson((prev) => ({ ...prev, [field]: value }));
@@ -122,10 +122,41 @@ export default function NewLessonFormStandard() {
     );
   }
 
+  function validateForm() {
+    const errors: { [key: string]: string } = {};
+
+    if (!lesson.class?.trim()) errors.class = "Class is required.";
+    if (!lesson.year_group?.trim()) errors.year_group = "Year group is required.";
+    if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
+    if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
+
+    // Exam board required if GCSE or A-Level
+    const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
+    const isGCSE = yearNum >= 10 && yearNum <= 11;
+    const isAlevel = yearNum >= 12 && yearNum <= 13;
+    const showExamBoard = isGCSE || isAlevel;
+
+    if (showExamBoard && !lesson.exam_board?.trim()) {
+      errors.exam_board = "Exam board is required for this year group.";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+
+    if (!validateForm()) {
+      setSaving(false);
+      toast.error("Please fill in all required fields before saving.");
+      return;
+    }
 
     try {
       const {
@@ -196,20 +227,29 @@ export default function NewLessonFormStandard() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Class</Label>
+                  <Label className={formErrors.class ? "text-destructive" : ""}>
+                    Class <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.class || ""}
                     onChange={(e) => updateField("class", e.target.value)}
                     placeholder="e.g. Grade 5A"
+                    className={formErrors.class ? "border-destructive" : ""}
                   />
+                  {formErrors.class && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.class}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Year Group</Label>
+                  <Label className={formErrors.year_group ? "text-destructive" : ""}>
+                    Year Group <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={lesson.year_group || ""}
                     onValueChange={(value) => updateField("year_group", value)}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className={`mt-1 ${formErrors.year_group ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Year..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -220,17 +260,30 @@ export default function NewLessonFormStandard() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.year_group && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.year_group}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Date of Lesson</Label>
+                  <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
+                    Date of Lesson <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="date"
                     value={lesson.date_of_lesson || ""}
                     onChange={(e) => updateField("date_of_lesson", e.target.value)}
+                    className={formErrors.date_of_lesson ? "border-destructive" : ""}
                   />
+                  {formErrors.date_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Time of Lesson</Label>
+                  <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
+                    Time of Lesson <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
@@ -243,23 +296,37 @@ export default function NewLessonFormStandard() {
                       }
                     }}
                     onChange={(e) => updateField("time_of_lesson", e.target.value)}
+                    className={formErrors.time_of_lesson ? "border-destructive" : ""}
                   />
+                  {formErrors.time_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Topic</Label>
+                  <Label className={formErrors.topic ? "text-destructive" : ""}>
+                    Topic <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="Lesson topic..."
+                    className={formErrors.topic ? "border-destructive" : ""}
                   />
+                  {formErrors.topic && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
+                  )}
                 </div>
+
                 <div>
-                  <Label>Subject</Label>
+                  <Label className={formErrors.subject ? "text-destructive" : ""}>
+                    Subject <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={lesson.subject || ""}
                     onValueChange={(value) => updateField("subject", value)}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select subject..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -276,6 +343,9 @@ export default function NewLessonFormStandard() {
                       <SelectItem value="Languages">Languages</SelectItem>
                     </SelectContent>
                   </Select>
+                  {formErrors.subject && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
+                  )}
                 </div>
 
                 {showExamBoard && (
@@ -285,7 +355,9 @@ export default function NewLessonFormStandard() {
                     transition={{ duration: 0.25 }}
                     className="col-span-1 md:col-span-2"
                   >
-                    <Label>Exam Board</Label>
+                    <Label className={formErrors.exam_board ? "text-destructive" : ""}>
+                      Exam Board <span className="text-destructive">*</span>
+                    </Label>
                     <Select
                       value={lesson.exam_board || ""}
                       onValueChange={(value) => updateField("exam_board", value)}
@@ -299,6 +371,9 @@ export default function NewLessonFormStandard() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {formErrors.exam_board && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.exam_board}</p>
+                    )}
 
                     {lesson.exam_board === "Other" && (
                       <Input
@@ -318,12 +393,13 @@ export default function NewLessonFormStandard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Objectives */}
                 <div>
-                  <Label>Objectives</Label>
+                  <Label className={formErrors.objectives ? "text-destructive" : ""}>
+                    Objectives <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => {
                       let value = e.target.value;
-                      // Ensure first bullet is always present
                       if (!value.startsWith("• ")) {
                         value = "• " + value.replace(/^\s+/, "");
                       }
@@ -333,7 +409,6 @@ export default function NewLessonFormStandard() {
                       const target = e.target as HTMLTextAreaElement;
                       const { selectionStart, selectionEnd, value } = target;
 
-                      // Enter → new bullet
                       if (e.key === "Enter") {
                         e.preventDefault();
                         const newValue =
@@ -341,13 +416,11 @@ export default function NewLessonFormStandard() {
                           "\n• " +
                           value.substring(selectionEnd);
                         updateField("objectives", newValue);
-                        // Restore cursor position after React state update
                         setTimeout(() => {
                           target.selectionStart = target.selectionEnd = selectionStart + 3;
                         }, 0);
                       }
 
-                      // Backspace → remove bullet cleanly
                       if (
                         e.key === "Backspace" &&
                         selectionStart >= 2 &&
@@ -361,7 +434,11 @@ export default function NewLessonFormStandard() {
                       }
                     }}
                     placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                    className={formErrors.objectives ? "border-destructive" : ""}
                   />
+                  {formErrors.objectives && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>
+                  )}
                 </div>
 
                 {/* Outcomes */}
@@ -408,6 +485,8 @@ export default function NewLessonFormStandard() {
                   />
                 </div>
               </div>
+
+              <Separator />
 
               <Separator />
 
