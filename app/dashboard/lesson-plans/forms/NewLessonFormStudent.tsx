@@ -398,9 +398,19 @@ export default function NewLessonFormStandard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Objectives */}
                 <div>
-                  <Label className={formErrors.objectives ? "text-destructive" : ""}>
-                    Objectives <span className="text-destructive">*</span>
-                  </Label>
+                  <div className={`flex items-center gap-1 ${formErrors.objectives ? "text-destructive" : ""}`}>
+                    <Label>Objectives</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          What students will learn <i>during</i> instruction.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => {
@@ -448,7 +458,19 @@ export default function NewLessonFormStandard() {
 
                 {/* Outcomes */}
                 <div>
-                  <Label>Outcomes</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Outcomes</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          What students can do <i>independently</i> after learning.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.outcomes || ""}
                     onChange={(e) => {
@@ -496,7 +518,19 @@ export default function NewLessonFormStandard() {
               {/* Pedagogical Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Specialist Subject Knowledge Required</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Specialist Subject Knowledge</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          What you must know in advance.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.specialist_subject_knowledge_required || ""}
                     onChange={(e) =>
@@ -506,7 +540,19 @@ export default function NewLessonFormStandard() {
                   />
                 </div>
                 <div>
-                  <Label>Knowledge Revisited</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Knowledge Revisited</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          Prior learning being built upon.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.knowledge_revisited || ""}
                     onChange={(e) => updateField("knowledge_revisited", e.target.value)}
@@ -514,7 +560,19 @@ export default function NewLessonFormStandard() {
                   />
                 </div>
                 <div>
-                  <Label>Numeracy Opportunities</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Numeracy Opportunities</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          Embedded maths skills in lesson
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.numeracy_opportunities || ""}
                     onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
@@ -522,7 +580,19 @@ export default function NewLessonFormStandard() {
                   />
                 </div>
                 <div>
-                  <Label>Literacy Opportunities</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Literacy Opportunities</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          Embedded reading/writing/speaking
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.literacy_opportunities || ""}
                     onChange={(e) => updateField("literacy_opportunities", e.target.value)}
@@ -530,7 +600,19 @@ export default function NewLessonFormStandard() {
                   />
                 </div>
                 <div>
-                  <Label>Subject Pedagogies</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Subject Pedagogies</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          How subject-specific methods are applied
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.subject_pedagogies || ""}
                     onChange={(e) => updateField("subject_pedagogies", e.target.value)}
@@ -538,7 +620,19 @@ export default function NewLessonFormStandard() {
                   />
                 </div>
                 <div>
-                  <Label>Health & Safety Considerations</Label>
+                  <div className={`flex items-center gap-1`}>
+                    <Label>Health & Safety Considerations</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          Hazards + safety controls
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Textarea
                     value={lesson.health_and_safety_considerations || ""}
                     onChange={(e) =>
@@ -637,11 +731,20 @@ export default function NewLessonFormStandard() {
               
               {/* Resources */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Resources</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Add links or names of teaching materials used during the lesson.
-                </p>
-
+                <div className={`flex items-center gap-1`}>
+                  <Label>Resources</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-sm">
+                        Add links or names of teaching materials used during the lesson.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: any, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
@@ -702,7 +805,19 @@ export default function NewLessonFormStandard() {
 
               {/* Homework */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Homework</h3>
+                <div className={`flex items-center gap-1`}>
+                    <Label>Homework</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          Independent work extending learning
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 <Textarea
                   placeholder="• Task students must complete at home..."
                   value={lesson.homework || ""}
@@ -715,10 +830,19 @@ export default function NewLessonFormStandard() {
 
               {/* Evaluation */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  How will you evaluate the lesson’s success?
-                </p>
+                <div className={`flex items-center gap-1`}>
+                  <Label>Evaluation</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-sm">
+                        How successful was the lesson?
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Textarea
                   placeholder="• Reflection on students’ progress..."
                   value={lesson.evaluation || ""}
@@ -731,7 +855,19 @@ export default function NewLessonFormStandard() {
 
               {/* Notes */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
+                <div className={`flex items-center gap-1`}>
+                    <Label>Teacher Notes</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          Any professional reminders or context
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 <Textarea
                   placeholder="Any additional comments or reminders..."
                   value={lesson.notes || ""}
