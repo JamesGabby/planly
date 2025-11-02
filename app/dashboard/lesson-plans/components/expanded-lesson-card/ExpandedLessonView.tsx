@@ -2,6 +2,7 @@ import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
+import { Calendar, Clock, GraduationCap } from "lucide-react";
 
 /* --- EXPANDED LESSON VIEW --- */
 export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
@@ -44,8 +45,9 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           {lesson.topic ?? "Untitled"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {lesson.class} • {prettyDate(lesson.date_of_lesson)}{" "}
-          {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
+          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} • {lesson.exam_board} 
+          <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "}
+          <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>
       </header>
 
