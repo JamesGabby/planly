@@ -343,6 +343,9 @@ export default function NewLessonFormStandard() {
                       <SelectItem value="History">History</SelectItem>
                       <SelectItem value="Business">Business</SelectItem>
                       <SelectItem value="Languages">Languages</SelectItem>
+                      <SelectItem value="Art">Art</SelectItem>
+                      <SelectItem value="Music">Music</SelectItem>
+                      <SelectItem value="Drama">Drama</SelectItem>
                     </SelectContent>
                   </Select>
                   {formErrors.subject && (
