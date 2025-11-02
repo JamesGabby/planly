@@ -260,7 +260,7 @@ export default function NewLessonFormTutor() {
                         updateField("objectives", newValue);
                       }
                     }}
-                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                    placeholder={"What you intend to teach or what students will learn during instruction"}
                   />
                 </div>
 
@@ -304,7 +304,7 @@ export default function NewLessonFormTutor() {
                         updateField("outcomes", newValue);
                       }
                     }}
-                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
+                    placeholder={"What the students will be able to do independently after learning takes place"}
                   />
                 </div>
               </div>

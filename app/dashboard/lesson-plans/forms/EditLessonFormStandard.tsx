@@ -431,7 +431,7 @@ export default function EditLessonPlanPage() {
                         updateField("objectives", newValue);
                       }
                     }}
-                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                    placeholder={"What you intend to teach or what students will learn during instruction"}
                     className={formErrors.objectives ? "border-destructive" : ""}
                   />
                   {formErrors.objectives && <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>}
@@ -456,7 +456,7 @@ export default function EditLessonPlanPage() {
                         setTimeout(() => { target.selectionStart = target.selectionEnd = selectionStart + 3; }, 0);
                       }
                     }}
-                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
+                    placeholder={"What the students will be able to do independently after learning takes place"}
                   />
                 </div>
               </div>

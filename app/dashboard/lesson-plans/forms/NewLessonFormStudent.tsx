@@ -438,7 +438,7 @@ export default function NewLessonFormStandard() {
                         updateField("objectives", newValue);
                       }
                     }}
-                    placeholder={"• Learning goal 1\n• Learning goal 2 ..."}
+                    placeholder={"What you intend to teach or what students will learn during instruction"}
                     className={formErrors.objectives ? "border-destructive" : ""}
                   />
                   {formErrors.objectives && (
@@ -486,7 +486,7 @@ export default function NewLessonFormStandard() {
                         updateField("outcomes", newValue);
                       }
                     }}
-                    placeholder={"• Expected outcome 1\n• Expected outcome 2 ..."}
+                    placeholder={"What the students will be able to do independently after learning takes place"}
                   />
                 </div>
               </div>
