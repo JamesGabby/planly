@@ -233,7 +233,7 @@ export default function NewLessonFormStandard() {
                   <Input
                     value={lesson.class || ""}
                     onChange={(e) => updateField("class", e.target.value)}
-                    placeholder="e.g. Grade 5A"
+                    placeholder="e.g. 7S"
                     className={formErrors.class ? "border-destructive" : ""}
                   />
                   {formErrors.class && (
