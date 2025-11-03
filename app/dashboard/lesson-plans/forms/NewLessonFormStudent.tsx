@@ -399,7 +399,7 @@ export default function NewLessonFormStandard() {
                 {/* Objectives */}
                 <div>
                   <div className={`flex items-center gap-1 ${formErrors.objectives ? "text-destructive" : ""}`}>
-                    <Label>Objectives</Label>
+                    <Label>Objectives<span className="text-destructive">*</span></Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
