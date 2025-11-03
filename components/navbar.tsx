@@ -54,7 +54,6 @@ export function Navbar() {
           {/* Logout Button */}
           <LogoutButton />
         </div>
-
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -79,9 +78,9 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <ThemeSwitcher />
-            <div className="pt-3 border-t border-border w-full">
+            <div className="pt-3 border-t border-border w-full flex items-center gap-3">
               <LogoutButton />
+              <ThemeSwitcher />
             </div>
           </div>
         </div>
