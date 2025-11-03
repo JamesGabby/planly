@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { FormSkeleton } from "../skeletons/FormSkeleton";
 import { toast } from "react-toastify";
@@ -23,6 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { TutorLessonPlan } from "../types/lesson_tutor";
 
 const supabase = createClient();
 
@@ -30,7 +30,7 @@ export default function EditLessonFormTutor() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<LessonPlan | null>(null);
+  const [lesson, setLesson] = useState<TutorLessonPlan | null>(null);
   const [stages, setStages] = useState<LessonStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -90,7 +90,7 @@ export default function EditLessonFormTutor() {
     }
   }
 
-  function updateField(field: keyof LessonPlan, value: string) {
+  function updateField(field: keyof TutorLessonPlan, value: string) {
     if (!lesson) return;
     setLesson((prev) => prev && { ...prev, [field]: value });
   }

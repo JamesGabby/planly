@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonCardStudent } from "./components/lesson-cards/LessonCardStudent";
 import { LessonCardTutor } from "./components/lesson-cards/LessonCardTutor";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
 
 const supabase = createClient();
 
@@ -227,6 +228,14 @@ export default function LessonPlansDashboard() {
             setDateFilter={setDateFilter}
             classes={classes}
           />
+          
+          <Separator className="my-6" />
+
+          <p className="text-sm text-muted-foreground mb-1">
+            Select the view you would like
+          </p>
+          <ModeSwitcher />
+
           <Separator className="my-6" />
           
           {/* Lessons */}

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
-import { ModeSwitcher } from "./ModeSwitcher";
 import { ThemeSwitcher } from "./theme-switcher";
 
 const poppins = Poppins({
@@ -51,7 +50,6 @@ export function Navbar() {
             </Link>
           ))}
 
-          <ModeSwitcher />
           <ThemeSwitcher />
           {/* Logout Button */}
           <LogoutButton />
@@ -81,7 +79,6 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <ModeSwitcher />
             <ThemeSwitcher />
             <div className="pt-3 border-t border-border w-full">
               <LogoutButton />
