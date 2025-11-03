@@ -218,6 +218,15 @@ export default function LessonPlansDashboard() {
             </div>
           </div>
 
+          <Separator className="my-6" />
+                    
+          <p className="text-sm text-muted-foreground mb-1">
+            Select your mode
+          </p>
+          <ModeSwitcher />
+
+          <Separator className="my-6" />
+
           {/* Filters */}
           <FiltersCard
             search={search}
@@ -228,13 +237,6 @@ export default function LessonPlansDashboard() {
             setDateFilter={setDateFilter}
             classes={classes}
           />
-          
-          <Separator className="my-6" />
-
-          <p className="text-sm text-muted-foreground mb-1">
-            Select the view you would like
-          </p>
-          <ModeSwitcher />
 
           <Separator className="my-6" />
           
