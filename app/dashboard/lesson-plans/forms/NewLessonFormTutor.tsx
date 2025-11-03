@@ -57,6 +57,7 @@ export default function NewLessonFormTutor() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   function updateField(field: keyof TutorLessonPlan, value: string) {
     setLesson((prev) => ({ ...prev, [field]: value }));
@@ -108,10 +109,30 @@ export default function NewLessonFormTutor() {
     );
   }
 
+  function validateForm() {
+    const errors: { [key: string]: string } = {};
+
+    if (!lesson.student?.trim()) errors.student = "Student is required.";
+    if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
+    if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+
+    if (!validateForm()) {
+      setSaving(false);
+      toast.error("Please fill in all required fields before saving.");
+      return;
+    }
 
     try {
       const {
@@ -174,23 +195,35 @@ export default function NewLessonFormTutor() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Student</Label>
+                  <Label className={formErrors.student ? "text-destructive" : ""}>
+                    Student <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.student || ""}
                     onChange={(e) => updateField("student", e.target.value)}
                     placeholder="e.g. Marlene"
                   />
+                  {formErrors.student && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.student}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Date of Lesson</Label>
+                  <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
+                    Date of Lesson <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="date"
                     value={lesson.date_of_lesson || ""}
                     onChange={(e) => updateField("date_of_lesson", e.target.value)}
                   />
+                  {formErrors.date_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Time of Lesson</Label>
+                  <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
+                    Time of Lesson <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="time"
                     value={lesson.time_of_lesson || ""}
@@ -204,17 +237,25 @@ export default function NewLessonFormTutor() {
                     }}
                     onChange={(e) => updateField("time_of_lesson", e.target.value)}
                   />
+                  {formErrors.time_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Topic</Label>
+                  <Label className={formErrors.topic ? "text-destructive" : ""}>
+                    Topic <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="Lesson topic..."
                   />
+                  {formErrors.topic && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>
+                  <Label className={formErrors.subject ? "text-destructive" : ""}>
                     Subject <span className="text-destructive">*</span>
                   </Label>
                   <Select
@@ -241,7 +282,9 @@ export default function NewLessonFormTutor() {
                       <SelectItem value="Drama">Drama</SelectItem>
                     </SelectContent>
                   </Select>
-            
+                  {formErrors.subject && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
+                  )}
                 </div>
               </div>
 
@@ -251,7 +294,9 @@ export default function NewLessonFormTutor() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Objectives */}
                 <div>
-                  <Label>Objectives</Label>
+                  <Label className={formErrors.objectives ? "text-destructive" : ""}>
+                    Objectives <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => {
@@ -295,6 +340,9 @@ export default function NewLessonFormTutor() {
                     }}
                     placeholder={"What you intend to teach or what students will learn during instruction"}
                   />
+                  {formErrors.objectives && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>
+                  )}
                 </div>
 
                 {/* Outcomes */}
