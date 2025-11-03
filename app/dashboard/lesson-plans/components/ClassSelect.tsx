@@ -9,6 +9,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useUserMode } from "@/components/UserModeContext";
 
 export function ClassSelect({
   classes,
@@ -20,6 +21,7 @@ export function ClassSelect({
   setSelectedClass: (val: string) => void;
 }) {
   const [isMobile, setIsMobile] = useState(false);
+  const mode = useUserMode();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -28,9 +30,10 @@ export function ClassSelect({
     return () => window.removeEventListener("resize", check);
   }, []);
 
+
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor="class-select">Class</Label>
+      <Label htmlFor="class-select">{mode.mode === 'tutor' ? 'Student' : 'Class'}</Label>
 
       {isMobile ? (
         // ✅ Native select for mobile

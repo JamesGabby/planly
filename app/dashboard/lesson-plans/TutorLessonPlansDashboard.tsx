@@ -65,20 +65,20 @@ export default function TutorLessonPlansDashboard() {
 
   const classes = useMemo(() => {
     const set = new Set<string>();
-    lessons.forEach((l) => l.class && set.add(l.class));
+    lessons.forEach((l) => l.student && set.add(l.student));
     return Array.from(set).sort();
   }, [lessons]);
 
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
-      if (selectedClass && l.class !== selectedClass) return false;
+      if (selectedClass && l.student !== selectedClass) return false;
       if (dateFilter && l.date_of_lesson !== dateFilter) return false;
       if (!search) return true;
       const s = search.toLowerCase();
       return (
         (l.topic ?? "").toLowerCase().includes(s) ||
         (l.objectives ?? "").toLowerCase().includes(s) ||
-        (l.class ?? "").toLowerCase().includes(s)
+        (l.student ?? "").toLowerCase().includes(s)
       );
     });
   }, [lessons, search, selectedClass, dateFilter]);
