@@ -10,17 +10,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { TutorLessonPlan } from "../types/lesson_tutor";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const supabase = createClient();
 
 export default function NewLessonFormTutor() {
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<Partial<LessonPlan>>({
+  const [lesson, setLesson] = useState<Partial<TutorLessonPlan>>({
     class: "",
     date_of_lesson: "",
     time_of_lesson: "",
@@ -31,6 +32,8 @@ export default function NewLessonFormTutor() {
     homework: "",
     evaluation: "",
     notes: "",
+    student: "",
+    subject: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -55,7 +58,7 @@ export default function NewLessonFormTutor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function updateField(field: keyof LessonPlan, value: string) {
+  function updateField(field: keyof TutorLessonPlan, value: string) {
     setLesson((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -127,7 +130,7 @@ export default function NewLessonFormTutor() {
             }))
           : [];
 
-      const { error: insertError } = await supabase.from("lesson_plans").insert([
+      const { error: insertError } = await supabase.from("tutor_lesson_plans").insert([
         {
           ...lesson,
           user_id: user.id,
@@ -173,8 +176,8 @@ export default function NewLessonFormTutor() {
                 <div>
                   <Label>Student</Label>
                   <Input
-                    value={lesson.class || ""}
-                    onChange={(e) => updateField("class", e.target.value)}
+                    value={lesson.student || ""}
+                    onChange={(e) => updateField("student", e.target.value)}
                     placeholder="e.g. Marlene"
                   />
                 </div>
@@ -209,6 +212,36 @@ export default function NewLessonFormTutor() {
                     onChange={(e) => updateField("topic", e.target.value)}
                     placeholder="Lesson topic..."
                   />
+                </div>
+                <div>
+                  <Label>
+                    Subject <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={lesson.subject || ""}
+                    onValueChange={(value) => updateField("subject", value)}
+                  >
+                    <SelectTrigger className={`mt-1`}>
+                      <SelectValue placeholder="Select subject..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Maths">Maths</SelectItem>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="Science">Science</SelectItem>
+                      <SelectItem value="Biology">Biology</SelectItem>
+                      <SelectItem value="Chemistry">Chemistry</SelectItem>
+                      <SelectItem value="Physics">Physics</SelectItem>
+                      <SelectItem value="Computer Science">Computer Science</SelectItem>
+                      <SelectItem value="Geography">Geography</SelectItem>
+                      <SelectItem value="History">History</SelectItem>
+                      <SelectItem value="Business">Business</SelectItem>
+                      <SelectItem value="Languages">Languages</SelectItem>
+                      <SelectItem value="Art">Art</SelectItem>
+                      <SelectItem value="Music">Music</SelectItem>
+                      <SelectItem value="Drama">Drama</SelectItem>
+                    </SelectContent>
+                  </Select>
+            
                 </div>
               </div>
 

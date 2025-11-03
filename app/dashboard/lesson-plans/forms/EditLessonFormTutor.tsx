@@ -45,7 +45,7 @@ export default function EditLessonFormTutor() {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from("lesson_plans")
+        .from("tutor_lesson_plans")
         .select("*")
         .eq("id", id)
         .single();
@@ -199,7 +199,7 @@ export default function EditLessonFormTutor() {
           : [];
 
       const { error: updateError } = await supabase
-        .from("lesson_plans")
+        .from("tutor_lesson_plans")
         .update({
           ...lesson,
           resources: formattedResources,
@@ -256,8 +256,8 @@ export default function EditLessonFormTutor() {
                 <div>
                   <Label>Student</Label>
                   <Input
-                    value={lesson.class}
-                    onChange={(e) => updateField("class", e.target.value)}
+                    value={lesson.student}
+                    onChange={(e) => updateField("student", e.target.value)}
                   />
                 </div>
                 <div>

@@ -9,7 +9,7 @@ type Resource = {
 };
 
 
-export type LessonPlan = {
+export type TutorLessonPlan = {
   id: string; // UUID
   user_id: string; // UUID
   class: string;
@@ -39,7 +39,6 @@ export type LessonPlan = {
   exam_board?: string;
   custom_exam_board?: string;
   subject?: string;
-  year_group?: string;
   student?: string;
 };
 
