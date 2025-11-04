@@ -53,7 +53,7 @@ export function MobileResponsiveModal({
         <FocusTrap>
           {/* --- MAIN MODAL --- */}
           <motion.div
-            className={`bg-card text-card-foreground rounded-2xl shadow-2xl border border-border w-full max-w-3xl relative z-50 flex flex-col ${
+            className={`bg-card text-card-foreground rounded-2xl shadow-2xl border border-border w-full max-w-6xl relative z-50 flex flex-col ${
               isMobile ? "mt-auto" : ""
             }`}
             initial={{

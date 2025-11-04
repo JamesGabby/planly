@@ -92,13 +92,13 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
                   <th className="text-left p-3 font-semibold border-r border-border">
                     Teaching
                   </th>
-                  <th className="text-left p-3 font-semibold border-r border-border">
+                  {/* <th className="text-left p-3 font-semibold border-r border-border">
                     Learning
                   </th>
                   <th className="text-left p-3 font-semibold border-r border-border">
                     Assessing
                   </th>
-                  <th className="text-left p-3 font-semibold">Adapting</th>
+                  <th className="text-left p-3 font-semibold">Adapting</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -118,13 +118,13 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
                     <td className="p-3 border-r border-border">
                       {stage.teaching}
                     </td>
-                    <td className="p-3 border-r border-border">
+                    {/* <td className="p-3 border-r border-border">
                       {stage.learning}
                     </td>
                     <td className="p-3 border-r border-border">
                       {stage.assessing}
                     </td>
-                    <td className="p-3">{stage.adapting}</td>
+                    <td className="p-3">{stage.adapting}</td> */}
                   </tr>
                 ))}
               </tbody>
