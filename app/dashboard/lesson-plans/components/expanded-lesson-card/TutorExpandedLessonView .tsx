@@ -167,7 +167,6 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           value={homework}
           onChange={(e) => setHomework(e.target.value)}
           onBlur={() => handleSave("homework", homework)}
-          placeholder="Enter homework assigned for this lesson..."
         />
       </section>
 

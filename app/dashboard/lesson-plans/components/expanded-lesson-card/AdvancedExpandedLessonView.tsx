@@ -236,22 +236,11 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           value={homework}
           onChange={(e) => setHomework(e.target.value)}
           onBlur={() => handleSave("homework", homework)}
-          placeholder="Enter homework assigned for this lesson..."
         />
       </section>
 
       {/* --- NOTES & EVALUATION --- */}
       <section className="space-y-4">
-        <div>
-          <h3 className="font-semibold mb-1 text-foreground">Notes</h3>
-          <textarea
-            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={() => handleSave("notes", notes)}
-          />
-        </div>
-
         <div>
           <h3 className="font-semibold mb-1 text-foreground">Evaluation</h3>
           <textarea
@@ -259,6 +248,15 @@ export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
             value={evaluation}
             onChange={(e) => setEvaluation(e.target.value)}
             onBlur={() => handleSave("evaluation", evaluation)}
+          />
+        </div>
+        <div>
+          <h3 className="font-semibold mb-1 text-foreground">Notes</h3>
+          <textarea
+            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={() => handleSave("notes", notes)}
           />
         </div>
 
