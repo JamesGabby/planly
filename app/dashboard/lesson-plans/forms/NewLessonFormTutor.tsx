@@ -208,6 +208,19 @@ export default function NewLessonFormTutor() {
                   )}
                 </div>
                 <div>
+                  <Label className={formErrors.topic ? "text-destructive" : ""}>
+                    Topic <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    value={lesson.topic || ""}
+                    onChange={(e) => updateField("topic", e.target.value)}
+                    placeholder="Lesson topic..."
+                  />
+                  {formErrors.topic && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
+                  )}
+                </div>
+                <div>
                   <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
                     Date of Lesson <span className="text-destructive">*</span>
                   </Label>
@@ -239,19 +252,6 @@ export default function NewLessonFormTutor() {
                   />
                   {formErrors.time_of_lesson && (
                     <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className={formErrors.topic ? "text-destructive" : ""}>
-                    Topic <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    value={lesson.topic || ""}
-                    onChange={(e) => updateField("topic", e.target.value)}
-                    placeholder="Lesson topic..."
-                  />
-                  {formErrors.topic && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
                   )}
                 </div>
                 <div>
