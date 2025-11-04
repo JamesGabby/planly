@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { LessonPlan } from "../types/lesson";
 import { ExpandedLessonView } from "./expanded-lesson-card/ExpandedLessonView";
 import { useUserMode } from "@/components/UserModeContext";
-import { AdvancedExpandedLessonView } from "./expanded-lesson-card/AdvancedExpandedLessonView";
+import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
 import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView ";
 
 /* --- MOBILE MODAL --- */
@@ -25,11 +25,10 @@ export function MobileResponsiveModal({
 
     switch (mode) {
       case "detailed":
-        return <AdvancedExpandedLessonView lesson={lesson} />;
+      case "student":
+        return <DetailedExpandedLessonView lesson={lesson} />;
       case "tutor":
         return <TutorExpandedLessonView lesson={lesson} />;
-      case "student":
-        return <AdvancedExpandedLessonView lesson={lesson} />;
       default:
         return <ExpandedLessonView lesson={lesson} />;
     }

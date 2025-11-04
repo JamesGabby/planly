@@ -6,8 +6,7 @@ import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 import { GraduationCap, Calendar, Clock } from "lucide-react";
 
-/* --- ADVANCED EXPANDED LESSON VIEW --- */
-export function AdvancedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
+export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
   const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
