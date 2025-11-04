@@ -24,7 +24,7 @@ import { Info } from "lucide-react";
 
 const supabase = createClient();
 
-export default function EditLessonPlanPage() {
+export default function EditLessonFormStudent() {
   const { id } = useParams();
   const router = useRouter();
 
@@ -463,7 +463,7 @@ export default function EditLessonPlanPage() {
                 </div>
               </div>
 
-              {/* Extended Fields */}
+              {/* detailed Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Specialist Subject Knowledge Required</Label>

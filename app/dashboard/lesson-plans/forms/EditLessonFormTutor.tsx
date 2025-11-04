@@ -250,7 +250,7 @@ export default function EditLessonFormTutor() {
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan edited unsuccessfully.");
+      toast.error("Something went wrong.");
     } finally {
       setSaving(false);
     }
@@ -280,7 +280,7 @@ export default function EditLessonFormTutor() {
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Update every detail of your lesson plan, including structure and
-              extended pedagogy fields.
+              detailed pedagogy fields.
             </p>
           </CardHeader>
 

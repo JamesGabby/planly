@@ -22,7 +22,7 @@ import { FormSkeleton } from "../skeletons/FormSkeleton";
 
 const supabase = createClient();
 
-export default function EditLessonPlanPage() {
+export default function EditLessonFormStandard() {
   const { id } = useParams();
   const router = useRouter();
 
@@ -211,7 +211,7 @@ export default function EditLessonPlanPage() {
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan edited unsuccessfully.");
+      toast.error("Something went wrong.");
     } finally {
       setSaving(false);
     }

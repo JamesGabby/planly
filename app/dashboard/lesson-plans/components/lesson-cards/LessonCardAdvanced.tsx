@@ -75,9 +75,8 @@ export function LessonCardAdvanced({
               </div>
 
               <div className="flex flex-wrap gap-2 mt-1">
-                {/* NEW “Advanced” label */}
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-800/20 dark:text-blue-400">
-                  Extended
+                  Detailed
                 </span>
               </div>
             </div>

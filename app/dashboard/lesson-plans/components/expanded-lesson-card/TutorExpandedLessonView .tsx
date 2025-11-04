@@ -2,6 +2,7 @@ import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
+import { User, Calendar, Clock } from "lucide-react";
 
 /* --- EXPANDED LESSON VIEW --- */
 export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
@@ -44,36 +45,36 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           {lesson.topic ?? "Untitled"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {lesson.class} • {prettyDate(lesson.date_of_lesson)}{" "}
-          {lesson.time_of_lesson && `• ${prettyTime(lesson.time_of_lesson)}`}
+          <User size={20} className="inline" /> {lesson.student} 
+          <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "}
+          <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>
       </header>
 
       {/* --- OBJECTIVES & OUTCOMES INLINE --- */}
-{(lesson.objectives || lesson.outcomes) && (
-  <section>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {lesson.objectives && (
-        <div>
-          <h4 className="font-medium text-foreground">Objectives</h4>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-            {lesson.objectives}
-          </p>
-        </div>
-      )}
+      {(lesson.objectives || lesson.outcomes) && (
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {lesson.objectives && (
+              <div>
+                <h4 className="font-medium text-foreground">Objectives</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {lesson.objectives}
+                </p>
+              </div>
+            )}
 
-      {lesson.outcomes && (
-        <div>
-          <h4 className="font-medium text-foreground">Outcomes</h4>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-            {lesson.outcomes}
-          </p>
-        </div>
+            {lesson.outcomes && (
+              <div>
+                <h4 className="font-medium text-foreground">Outcomes</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {lesson.outcomes}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       )}
-    </div>
-  </section>
-)}
-
 
       {/* --- LESSON STRUCTURE --- */}
       {lessonStructure.length > 0 && (
@@ -173,22 +174,22 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
       {/* --- NOTES & EVALUATION --- */}
       <section className="space-y-4">
         <div>
-          <h3 className="font-semibold mb-1 text-foreground">Notes</h3>
-          <textarea
-            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={() => handleSave("notes", notes)}
-          />
-        </div>
-
-        <div>
           <h3 className="font-semibold mb-1 text-foreground">Evaluation</h3>
           <textarea
             className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
             value={evaluation}
             onChange={(e) => setEvaluation(e.target.value)}
             onBlur={() => handleSave("evaluation", evaluation)}
+          />
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-1 text-foreground">Notes</h3>
+          <textarea
+            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={() => handleSave("notes", notes)}
           />
         </div>
 
