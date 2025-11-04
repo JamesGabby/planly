@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import { TutorLessonPlan } from "../types/lesson_tutor";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const supabase = createClient();
 
@@ -30,11 +31,25 @@ export default function EditLessonFormTutor() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<TutorLessonPlan | null>(null);
   const [stages, setStages] = useState<LessonStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  
+  const [lesson, setLesson] = useState<Partial<TutorLessonPlan>>({
+    date_of_lesson: "",
+    time_of_lesson: "",
+    topic: "",
+    objectives: "",
+    outcomes: "",
+    resources: [],
+    homework: "",
+    evaluation: "",
+    notes: "",
+    student: "",
+    subject: "",
+  });
 
   useEffect(() => {
     if (id) fetchLesson();
@@ -183,11 +198,31 @@ export default function EditLessonFormTutor() {
     });
   }
 
+  function validateForm() {
+    const errors: { [key: string]: string } = {};
+
+    if (!lesson.student?.trim()) errors.student = "Student is required.";
+    if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
+    if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!lesson) return;
     setSaving(true);
     setError(null);
+
+    if (!validateForm()) {
+      setSaving(false);
+      toast.error("Please fill in all required fields before saving.");
+      return;
+    }
 
     try {
       const formattedResources =
@@ -254,57 +289,197 @@ export default function EditLessonFormTutor() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <Label>Student</Label>
+                  <Label className={formErrors.student ? "text-destructive" : ""}>
+                    Student <span className="text-destructive">*</span>
+                  </Label>
                   <Input
-                    value={lesson.student}
+                    value={lesson.student || ""}
                     onChange={(e) => updateField("student", e.target.value)}
+                    placeholder="e.g. Marlene"
                   />
+                  {formErrors.student && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.student}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Date of Lesson</Label>
-                  <Input
-                    type="date"
-                    value={lesson.date_of_lesson || ""}
-                    onChange={(e) =>
-                      updateField("date_of_lesson", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Time of Lesson</Label>
-                  <Input
-                    type="time"
-                    value={lesson.time_of_lesson || ""}
-                    onChange={(e) =>
-                      updateField("time_of_lesson", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Topic</Label>
+                  <Label className={formErrors.topic ? "text-destructive" : ""}>
+                    Topic <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
+                    placeholder="Lesson topic..."
                   />
+                  {formErrors.topic && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
+                    Date of Lesson <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={lesson.date_of_lesson || ""}
+                    onChange={(e) => updateField("date_of_lesson", e.target.value)}
+                  />
+                  {formErrors.date_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
+                    Time of Lesson <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="time"
+                    value={lesson.time_of_lesson || ""}
+                    onFocus={() => {
+                      if (!lesson.time_of_lesson) {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, "0");
+                        const defaultTime = `${hours}:00`;
+                        updateField("time_of_lesson", defaultTime);
+                      }
+                    }}
+                    onChange={(e) => updateField("time_of_lesson", e.target.value)}
+                  />
+                  {formErrors.time_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className={formErrors.subject ? "text-destructive" : ""}>
+                    Subject <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={lesson.subject || ""}
+                    onValueChange={(value) => updateField("subject", value)}
+                  >
+                    <SelectTrigger className={`mt-1`}>
+                      <SelectValue placeholder="Select subject..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Maths">Maths</SelectItem>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="Science">Science</SelectItem>
+                      <SelectItem value="Biology">Biology</SelectItem>
+                      <SelectItem value="Chemistry">Chemistry</SelectItem>
+                      <SelectItem value="Physics">Physics</SelectItem>
+                      <SelectItem value="Computer Science">Computer Science</SelectItem>
+                      <SelectItem value="Geography">Geography</SelectItem>
+                      <SelectItem value="History">History</SelectItem>
+                      <SelectItem value="Business">Business</SelectItem>
+                      <SelectItem value="Languages">Languages</SelectItem>
+                      <SelectItem value="Art">Art</SelectItem>
+                      <SelectItem value="Music">Music</SelectItem>
+                      <SelectItem value="Drama">Drama</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formErrors.subject && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
+                  )}
                 </div>
               </div>
 
               <Separator className="my-8" />
 
-              {/* Objectives */}
+              {/* Objectives & Outcomes with bullet points */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Objectives */}
                 <div>
-                  <Label>Objectives</Label>
+                  <Label className={formErrors.objectives ? "text-destructive" : ""}>
+                    Objectives <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     value={lesson.objectives || ""}
-                    onChange={(e) => updateField("objectives", e.target.value)}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Ensure first bullet is always present
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("objectives", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      // Enter → new bullet
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                        // Restore cursor position after React state update
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      // Backspace → remove bullet cleanly
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("objectives", newValue);
+                      }
+                    }}
+                    placeholder={"What you intend to teach or what students will learn during instruction"}
                   />
+                  {formErrors.objectives && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>
+                  )}
                 </div>
+
+                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
                     value={lesson.outcomes || ""}
-                    onChange={(e) => updateField("outcomes", e.target.value)}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
+                      updateField("outcomes", value);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      const { selectionStart, selectionEnd, value } = target;
+
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
+                      }
+                    }}
+                    placeholder={"What the students will be able to do independently after learning takes place"}
                   />
                 </div>
               </div>

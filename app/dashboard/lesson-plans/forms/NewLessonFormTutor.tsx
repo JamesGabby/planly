@@ -22,7 +22,6 @@ export default function NewLessonFormTutor() {
   const router = useRouter();
 
   const [lesson, setLesson] = useState<Partial<TutorLessonPlan>>({
-    class: "",
     date_of_lesson: "",
     time_of_lesson: "",
     topic: "",
