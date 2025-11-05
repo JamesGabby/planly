@@ -23,8 +23,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Lessons", href: "/dashboard/lesson-plans" },
-    { name: "Analytics", href: "/analytics" },
-    { name: "Settings", href: "/settings" },
+    { name: "Analytics", href: "/dashboard/analytics" },
   ];
 
   return (
