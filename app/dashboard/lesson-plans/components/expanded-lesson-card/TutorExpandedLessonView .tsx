@@ -204,6 +204,10 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           </p>
         )}
       </section>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Created: {new Date(lesson.created_at).toLocaleString()} • Updated:{" "}
+        {new Date(lesson.updated_at).toLocaleString()}
+      </p>
     </div>
   );
 }
