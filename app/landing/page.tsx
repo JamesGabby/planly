@@ -5,7 +5,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center text-center px-6 py-24 gap-8">
+      <section className="flex flex-col items-center justify-center text-center px-6 py-40 gap-8">
         <h1 className="text-4xl md:text-6xl font-bold max-w-3xl leading-tight">
           Plan Smarter. Teach Better.
         </h1>
@@ -34,7 +34,7 @@ export default function LandingPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
           {[{
             title: "Lesson Planner",
-            desc: "Build structured lessons with drag‑and‑drop content blocks.",
+            desc: "Build structured lessons with simplified, detailed or tutor views.",
           }, {
             title: "Curriculum Tracking",
             desc: "See student progression and align lessons to objectives.",
@@ -57,7 +57,7 @@ export default function LandingPage() {
           Join thousands of educators improving workflow and saving time.
         </p>
         <Button size="lg" asChild>
-          <Link href="/auth/signup">Start Now — It's Free</Link>
+          <Link href="/auth/signup">Start Now — It's Free!</Link>
         </Button>
       </section>
     </main>
