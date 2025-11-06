@@ -4,7 +4,7 @@ import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
-import { GraduationCap, Calendar, Clock } from "lucide-react";
+import { GraduationCap, Calendar, Clock, Printer } from "lucide-react";
 
 export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
   const supabase = createClient();
@@ -39,15 +39,85 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
     }
   }
 
+  const handlePrint = () => {
+    const printElement = document.getElementById('lesson-print');
+    if (!printElement) return;
+
+    // Clone the element to manipulate without affecting the UI
+    const clone = printElement.cloneNode(true) as HTMLElement;
+
+    // Replace textareas with their content as paragraphs
+    const textareas = clone.querySelectorAll('textarea');
+    textareas.forEach((ta) => {
+      const p = document.createElement('p');
+      p.textContent = ta.value;
+      p.style.whiteSpace = 'pre-wrap'; // preserve line breaks
+      ta.parentNode?.replaceChild(p, ta);
+    });
+
+    const newWindow = window.open('', '', 'width=800,height=600');
+    if (!newWindow) return;
+
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Lesson Plan</title>
+          <style>
+            body {
+              font-family: sans-serif;
+              margin: 20px;
+              color: #000;
+              background: #fff;
+            }
+            h2, h3 {
+              color: #000;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              border: 1px solid #000;
+              padding: 6px 8px;
+              text-align: left;
+            }
+            ul {
+              padding-left: 20px;
+            }
+            button, input {
+              display: none !important;
+            }
+            section {
+              page-break-inside: avoid;
+              margin-bottom: 15px;
+            }
+            .meta-space {
+              margin-right: 55px;
+            }
+          </style>
+        </head>
+        <body>
+          ${clone.outerHTML}
+        </body>
+      </html>
+    `);
+
+    newWindow.document.close();
+    newWindow.focus();
+    newWindow.print();
+    newWindow.close();
+  };
+
   return (
-    <div className="space-y-8 text-foreground">
+    <div id="lesson-print" className="ExpandedLessonView space-y-6 text-foreground">
       {/* --- HEADER --- */}
       <header>
         <h2 className="text-2xl font-bold text-foreground">
           {lesson.topic ?? "Untitled Lesson"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} • {lesson.exam_board} 
+          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} • {lesson.exam_board} <span className="meta-space" />
           <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "}
           <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>
@@ -271,10 +341,20 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           </p>
         )}
       </section>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Created: {new Date(lesson.created_at).toLocaleString()} • Updated:{" "}
-        {new Date(lesson.updated_at).toLocaleString()}
-      </p>
+      <div className="flex justify-between items-center mt-4">
+        <span className="text-xs text-muted-foreground">
+          Created: {new Date(lesson.created_at).toLocaleString()} • Updated:{" "}
+          {new Date(lesson.updated_at).toLocaleString()}
+        </span>
+
+        <button
+          onClick={handlePrint}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/80 transition"
+        >
+          <Printer size={18} />
+          Print / Export PDF
+        </button>
+      </div>
     </div>
   );
 }
