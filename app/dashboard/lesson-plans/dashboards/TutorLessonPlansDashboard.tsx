@@ -222,6 +222,8 @@ export default function TutorLessonPlansDashboard() {
             setDateFilter={setDateFilter}
             classes={classes}
           />
+
+          <Separator className="my-6" />
           
           {/* Lessons */}
           {error ? (
@@ -267,6 +269,8 @@ export default function TutorLessonPlansDashboard() {
                       </motion.div>
                     </>
                   )}
+
+                  <Separator className="my-6" />
 
                   {/* Tomorrow */}
                   {tomorrowLessons.length > 0 && (
