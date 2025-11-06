@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "../types/lesson";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { MobileResponsiveModal } from "../components/MobileResponsiveModal";
 import { FiltersCard } from "../components/FiltersCard";
@@ -20,14 +19,14 @@ import { ModeSwitcher } from "@/components/ModeSwitcher";
 const supabase = createClient();
 
 export default function TutorLessonPlansDashboard() {
-  const [lessons, setLessons] = useState<LessonPlan[]>([]);
+  const [lessons, setLessons] = useState<TutorLessonPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<LessonPlan | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<LessonPlan | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<TutorLessonPlan | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<TutorLessonPlan | null>(null);
 
   const ITEMS_PER_PAGE = 6;
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -123,7 +122,7 @@ export default function TutorLessonPlansDashboard() {
     }
   }
 
-  async function handleDuplicateLesson(lesson: LessonPlan) {
+  async function handleDuplicateLesson(lesson: TutorLessonPlan) {
     try {
       // Remove fields Supabase auto-generates
       const { id, created_at, updated_at, ...copy } = lesson;

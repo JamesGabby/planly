@@ -2,6 +2,7 @@ import { FocusTrap } from "focus-trap-react";
 import { useScroll, useTransform, AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
 import { LessonPlan } from "../types/lesson";
+import { TutorLessonPlan } from "../types/lesson_tutor";
 import { ExpandedLessonView } from "./expanded-lesson-card/ExpandedLessonView";
 import { useUserMode } from "@/components/UserModeContext";
 import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
@@ -20,7 +21,7 @@ export function MobileResponsiveModal({
   const { scrollYProgress } = useScroll({ container: scrollRef });
   const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
 
-  function renderExpandedLessonView(lesson: LessonPlan) {
+  function renderExpandedLessonView(lesson: LessonPlan | TutorLessonPlan) {
     const { mode } = useUserMode();
 
     switch (mode) {

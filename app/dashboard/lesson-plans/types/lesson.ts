@@ -12,7 +12,7 @@ type Resource = {
 export type LessonPlan = {
   id: string; // UUID
   user_id: string; // UUID
-  class: string;
+  class?: string;
   date_of_lesson?: string | null; // ISO date string (YYYY-MM-DD)
   time_of_lesson?: string | null; // HH:MM:SS (24h)
   topic?: string | null;
