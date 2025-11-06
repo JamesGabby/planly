@@ -222,8 +222,6 @@ export default function TutorLessonPlansDashboard() {
             setDateFilter={setDateFilter}
             classes={classes}
           />
-
-          <Separator className="my-6" />
           
           {/* Lessons */}
           {error ? (
