@@ -14,7 +14,7 @@ export default function LandingPage() {
         </p>
         <div className="flex gap-4">
           <Button className="px-6 py-3 text-lg" asChild>
-            <Link href="/signup">Get Started</Link>
+            <Link href="/dashboard/lesson-plans">Get Started</Link>
           </Button>
           <Button variant="secondary" className="px-6 py-3 text-lg" asChild>
             <Link href="#features">Learn More</Link>
