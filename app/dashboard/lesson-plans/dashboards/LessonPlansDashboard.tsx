@@ -249,6 +249,15 @@ export default function LessonPlansDashboard() {
                 </motion.div>
               ) : (
                 <>
+                  {/* No Lessons Available */}
+                  {!loading && filtered.length === 0 && (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <p>No lessons found. Try adjusting your filters or create a new lesson plan.</p>
+                      <Button className="mt-4" asChild>
+                        <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
+                      </Button>
+                    </div>
+                  )}
                   {/* Today */}
                   {todayLessons.length > 0 && (
                     <>
@@ -341,15 +350,12 @@ export default function LessonPlansDashboard() {
                   )}
 
                   {/* Previous */}
-                  <Separator className="my-8" />
-                  <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
-                  {previous.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">No previous lessons yet.</p>
-                  ) : (
+                  {previous.length > 0 && (
                     <>
+                      <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
                       <motion.div
                         layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
                       >
                         {paginatedPrevious.map((lp) => (
                           <motion.div

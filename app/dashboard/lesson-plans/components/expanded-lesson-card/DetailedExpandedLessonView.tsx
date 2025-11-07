@@ -117,7 +117,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           {lesson.topic ?? "Untitled Lesson"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} • {lesson.exam_board} <span className="meta-space" />
+          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} {lesson.exam_board ? '•' : ''} {lesson.exam_board} <span className="meta-space" />
           <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "}
           <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>
