@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { SlidersHorizontal, X } from "lucide-react"
 import { ClassSelect } from "./ClassSelect"
 import { useUserMode } from "@/components/UserModeContext"
+import { ModeSwitcher } from "@/components/ModeSwitcher"
 
 export function FiltersCard({
   search,
@@ -51,6 +52,11 @@ export function FiltersCard({
 
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="search">Mode</Label>
+            <ModeSwitcher />
+          </div>
+          
           {/* Search Field */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="search">Search</Label>

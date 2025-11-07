@@ -57,7 +57,7 @@ export default function LandingPage() {
           Join thousands of educators improving workflow and saving time.
         </p>
         <Button size="lg" asChild>
-          <Link href="/auth/signup">Start Now — It's Free!</Link>
+          <Link href="/dashboard/lesson-plans">Start Now — It's Free!</Link>
         </Button>
       </section>
     </main>
