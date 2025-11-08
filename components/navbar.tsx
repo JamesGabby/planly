@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
+import { useUserMode } from "./UserModeContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,9 +21,11 @@ export const metadata = {
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { mode } = useUserMode();
 
   const navLinks = [
     { name: "Lessons", href: "/dashboard/lesson-plans" },
+    { name: mode === "tutor" ? "Students" : "Classes", href: mode === "tutor" ? "/dashboard/students" : "/dashboard/classes" },
     { name: "Analytics", href: "/dashboard/analytics" },
   ];
 
