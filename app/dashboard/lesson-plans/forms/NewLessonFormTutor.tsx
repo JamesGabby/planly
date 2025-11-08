@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -57,6 +57,13 @@ export default function NewLessonFormTutor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Scroll to top when errors occur
+  useEffect(() => {
+    if (error || Object.keys(formErrors).length > 0) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [error, formErrors]);
 
   function updateField(field: keyof TutorLessonPlan, value: string) {
     setLesson((prev) => ({ ...prev, [field]: value }));
