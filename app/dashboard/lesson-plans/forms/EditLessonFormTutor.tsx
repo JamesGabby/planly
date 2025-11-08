@@ -51,6 +51,14 @@ export default function EditLessonFormTutor() {
     subject: "",
   });
 
+  // Scroll to top when errors occur
+  const scrollToTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+  useEffect(() => {
+    if (error || Object.keys(formErrors).length > 0) scrollToTop();
+  }, [error, formErrors]);
+
   useEffect(() => {
     if (id) fetchLesson();
   }, [id]);

@@ -33,6 +33,13 @@ export default function EditLessonFormStandard() {
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
+  const scrollToTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+  useEffect(() => {
+    if (error || Object.keys(formErrors).length > 0) scrollToTop();
+  }, [error, formErrors]);
+
   useEffect(() => {
     if (id) fetchLesson();
   }, [id]);
