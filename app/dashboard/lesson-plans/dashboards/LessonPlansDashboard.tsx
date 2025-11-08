@@ -286,8 +286,6 @@ export default function LessonPlansDashboard() {
                     </>
                   )}
 
-                  <Separator className="my-6" />
-
                   {/* Tomorrow */}
                   {tomorrowLessons.length > 0 && (
                     <>
