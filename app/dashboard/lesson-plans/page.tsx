@@ -8,9 +8,9 @@ export default function LessonPlansPage() {
   const { mode } = useUserMode();
   
   switch (mode) {
-      case "tutor":
-        return <TutorLessonPlansDashboard />;
-      default:
-        return <LessonPlansDashboard />;
-    }
+    case "tutor":
+      return <TutorLessonPlansDashboard />;
+    default:
+      return <LessonPlansDashboard />;
+  }
 }

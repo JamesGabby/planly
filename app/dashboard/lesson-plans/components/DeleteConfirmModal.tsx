@@ -1,19 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
+import { useUserMode } from "@/components/UserModeContext";
+import { StudentProfile } from "../types/student_profile";
 
 /* --- DELETE CONFIRM MODAL --- */
 export function DeleteConfirmModal({
   onCancel,
   onConfirm,
-  lesson,
+  data,
 }: {
   onCancel: () => void;
   onConfirm: () => void;
-  lesson: LessonPlan;
+  data: LessonPlan & StudentProfile;
 }) {
+  const { mode } = useUserMode();
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => cancelRef.current?.focus(), []);
 
@@ -44,7 +47,7 @@ export function DeleteConfirmModal({
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
             Are you sure you want to delete{" "}
-            <b className="text-foreground">{lesson.topic || "Untitled"}</b>? This
+            <b className="text-foreground">{mode !== 'tutor' ? data.topic || "Untitled" : data.first_name || "Unnamed Student"}</b>? This
             action cannot be undone.
           </p>
 

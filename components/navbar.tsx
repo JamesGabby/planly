@@ -25,7 +25,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Lessons", href: "/dashboard/lesson-plans" },
-    { name: mode === "tutor" ? "Students" : "Classes", href: mode === "tutor" ? "/dashboard/students" : "/dashboard/classes" },
+    { name: "Students", href: "/dashboard/student-profiles"},
     { name: "Analytics", href: "/dashboard/analytics" },
   ];
 

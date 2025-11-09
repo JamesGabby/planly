@@ -386,7 +386,7 @@ export default function TutorLessonPlansDashboard() {
             <DeleteConfirmModal
               onCancel={() => setConfirmDelete(null)}
               onConfirm={handleDeleteConfirm}
-              lesson={confirmDelete}
+              data={confirmDelete}
             />
           )}
         </AnimatePresence>
