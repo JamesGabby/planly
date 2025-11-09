@@ -8,7 +8,11 @@ import {
   Heart,
   Sparkles,
   Brain,
-  Quote
+  Quote,
+  Smile,
+  Frown,
+  BicepsFlexed,
+  Loader
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +100,7 @@ export function StudentCard({
           {/* Strengths */}
           {student.strengths && (
             <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Brain className="w-3.5 h-3.5 mt-1 shrink-0" />
+              <BicepsFlexed className="w-3.5 h-3.5 mt-1 shrink-0" />
               {student.strengths}
             </p>
           )}
@@ -104,7 +108,7 @@ export function StudentCard({
           {/* Weaknesses */}
           {student.weaknesses && (
             <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Quote className="w-3.5 h-3.5 mt-1 shrink-0" />
+              <Frown className="w-3.5 h-3.5 mt-1 shrink-0" />
               {student.weaknesses}
             </p>
           )}

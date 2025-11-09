@@ -47,7 +47,7 @@ export function DeleteConfirmModal({
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
             Are you sure you want to delete{" "}
-            <b className="text-foreground">{mode !== 'tutor' ? data.topic || "Untitled" : data.first_name || "Unnamed Student"}</b>? This
+            <b className="text-foreground">{mode !== 'tutor' ? data.topic || "Untitled" : data.first_name || data.topic || "Unnamed Student"}</b>? This
             action cannot be undone.
           </p>
 

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
-import { FiltersCard } from "../components/FiltersCard";
+import { FiltersCard } from "../components/student-profiles/FiltersCard";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
@@ -22,6 +22,8 @@ export default function TutorStudentProfilesDashboard() {
   const [search, setSearch] = useState("");
 
   const [selectedLevel, setSelectedLevel] = useState<string | "">("");
+  const [dateFilter, setDateFilter] = useState<string | "">("");
+
 
   const [error, setError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -64,6 +66,7 @@ export default function TutorStudentProfilesDashboard() {
   const filtered = useMemo(() => {
     return students.filter((s) => {
       if (selectedLevel && s.level !== selectedLevel) return false;
+      if (dateFilter && s.created_at !== dateFilter) return false;
       if (!search) return true;
       const term = search.toLowerCase();
       return (
@@ -72,7 +75,7 @@ export default function TutorStudentProfilesDashboard() {
         (s.interests ?? "").toLowerCase().includes(term)
       );
     });
-  }, [students, search, selectedLevel]);
+  }, [students, search, selectedLevel, dateFilter]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -138,9 +141,11 @@ export default function TutorStudentProfilesDashboard() {
           <FiltersCard
             search={search}
             setSearch={setSearch}
-            selectedClass={selectedLevel} // ✅ Reuse as level
-            setSelectedClass={setSelectedLevel}
-            classes={levels} // ✅ Reuse classes dropdown for levels
+            selectedLevel={selectedLevel} // ✅ Reuse as level
+            setSelectedLevel={setSelectedLevel}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            levels={levels} // ✅ Reuse classes dropdown for levels
           />
 
           <Separator className="my-6" />

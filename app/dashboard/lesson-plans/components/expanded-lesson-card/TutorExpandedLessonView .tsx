@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 import { User, Calendar, Clock, Printer } from "lucide-react";
+import Link from "next/link";
 
 /* --- EXPANDED LESSON VIEW --- */
 export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
@@ -115,7 +116,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           {lesson.topic ?? "Untitled"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          <User size={20} className="inline" /> {lesson.student} <span className="meta-space" />
+          <Link href={`/dashboard/student-profiles/${lesson.student_profiles.student_id}`}><User size={20} className="inline" /> {lesson.student} <span className="meta-space" /></Link>
           <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "} <span className="meta-space" />
           <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>

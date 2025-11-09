@@ -72,6 +72,7 @@ export default function NewTutorStudentProfileForm() {
       const { error: insertError } = await supabase.from("student_profiles").insert([
         {
           ...student,
+          student_id: 123,
           created_by: user.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -81,7 +82,7 @@ export default function NewTutorStudentProfileForm() {
       if (insertError) throw insertError;
 
       toast.success("Student profile created successfully!");
-      router.push("/dashboard/students");
+      router.push("/dashboard/student-profiles");
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -145,13 +146,13 @@ export default function NewTutorStudentProfileForm() {
                       <SelectValue placeholder="Select level..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Year 7">Year 7</SelectItem>
-                      <SelectItem value="Year 8">Year 8</SelectItem>
-                      <SelectItem value="Year 9">Year 9</SelectItem>
-                      <SelectItem value="Year 10">Year 10</SelectItem>
-                      <SelectItem value="Year 11">Year 11</SelectItem>
-                      <SelectItem value="Year 12">Year 12</SelectItem>
-                      <SelectItem value="Year 13">Year 13</SelectItem>
+                      <SelectItem value="A1">A1</SelectItem>
+                      <SelectItem value="A2">A2</SelectItem>
+                      <SelectItem value="B1">B1</SelectItem>
+                      <SelectItem value="B2">B2</SelectItem>
+                      <SelectItem value="C1">C1</SelectItem>
+                      <SelectItem value="C2">C2</SelectItem>
+                      <SelectItem value="Uknown">Unknown</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
