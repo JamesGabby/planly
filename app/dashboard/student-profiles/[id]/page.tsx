@@ -13,9 +13,11 @@ import {
   FileText,
   CheckCircle2,
   Pencil,
+  ArrowLeft,
 } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface Props {
   params: Promise<{ id: string }>; // params is now a Promise
@@ -94,34 +96,43 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-6">
+      <div className="mb-6">
+        <Button asChild variant="ghost" className="flex items-center gap-2 pl-0">
+          <Link href="/dashboard/student-profiles">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Student Profiles
+          </Link>
+        </Button>
+      </div>
+
       <h1 className="text-3xl font-bold tracking-tight">
         {student.first_name} {student.last_name}
       </h1>
 
       {/* Edit Mode Toggle */}
       <div className="flex items-center justify-between mb-4">
-  <span className="text-sm text-muted-foreground">
-    {editMode ? "Editing – changes save automatically" : "View only mode"}
-  </span>
+        <span className="text-sm text-muted-foreground">
+          {editMode ? "Editing – changes save automatically" : "View only mode"}
+        </span>
 
-  <Button
-    variant={editMode ? "default" : "outline"}
-    onClick={() => setEditMode(!editMode)}
-    className="flex items-center gap-2 transition-all"
-  >
-    {editMode ? (
-      <>
-        <CheckCircle2 className="w-4 h-4" />
-        Done
-      </>
-    ) : (
-      <>
-        <Pencil className="w-4 h-4" />
-        Edit
-      </>
-    )}
-  </Button>
-</div>
+        <Button
+          variant={editMode ? "default" : "outline"}
+          onClick={() => setEditMode(!editMode)}
+          className="flex items-center gap-2 transition-all"
+        >
+          {editMode ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              Done
+            </>
+          ) : (
+            <>
+              <Pencil className="w-4 h-4" />
+              Edit
+            </>
+          )}
+        </Button>
+      </div>
 
       {/* Table */}
       <div className="overflow-x-auto rounded-lg border bg-card text-card-foreground shadow-sm">
