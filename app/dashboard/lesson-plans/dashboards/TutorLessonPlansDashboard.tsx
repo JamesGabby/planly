@@ -41,7 +41,14 @@ export default function TutorLessonPlansDashboard() {
     try {
       const { data, error } = await supabase
         .from("tutor_lesson_plans")
-        .select("*, student_profiles(*)")
+        .select(`
+          *,
+          student_profiles:student_id (
+            student_id,
+            first_name,
+            last_name
+          )
+        `)
         .order("date_of_lesson", { ascending: true });
       if (error) throw error;
       setLessons(data ?? []);

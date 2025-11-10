@@ -44,7 +44,7 @@ export default function TutorStudentProfilesDashboard() {
       const { data, error } = await supabase
         .from("student_profiles")
         .select("*")
-        .order("student_id", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 

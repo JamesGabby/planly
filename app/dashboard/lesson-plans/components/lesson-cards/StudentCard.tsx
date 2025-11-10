@@ -60,7 +60,7 @@ export function StudentCard({
     >
       <Card
         className={cn(
-          "group relative cursor-pointer bg-card text-card-foreground border border-border shadow-sm transition-all duration-200 h-full flex flex-col justify-between",
+          "group relative cursor-pointer bg-card text-card-foreground border border-border shadow-sm transition-all duration-200 flex flex-col h-[300px] sm:h-[320px] justify-between",
           "hover:shadow-md hover:border-primary/30 active:scale-[0.99]"
         )}
       >
@@ -80,7 +80,7 @@ export function StudentCard({
         </CardHeader>
 
         {/* CONTENT */}
-        <CardContent className="p-4 sm:p-5 space-y-3">
+        <CardContent className="p-4 sm:p-5 space-y-3 flex-1 overflow-hidden">
           {/* Goals */}
           {student.goals && (
             <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">

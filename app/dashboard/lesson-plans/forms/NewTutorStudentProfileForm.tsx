@@ -72,7 +72,6 @@ export default function NewTutorStudentProfileForm() {
       const { error: insertError } = await supabase.from("student_profiles").insert([
         {
           ...student,
-          student_id: 123,
           created_by: user.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
