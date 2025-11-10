@@ -11,8 +11,11 @@ import {
   ThumbsUp,
   AlertTriangle,
   FileText,
+  CheckCircle2,
+  Pencil,
 } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   params: Promise<{ id: string }>; // params is now a Promise
@@ -96,103 +99,114 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
       </h1>
 
       {/* Edit Mode Toggle */}
-      <div className="flex items-center gap-2 mb-4">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={editMode}
-            onChange={() => setEditMode(!editMode)}
-            className="w-5 h-5 rounded border border-input bg-background accent-primary"
-          />
-          <span className="text-foreground font-medium">Edit</span>
-        </label>
-      </div>
+      <div className="flex items-center justify-between mb-4">
+  <span className="text-sm text-muted-foreground">
+    {editMode ? "Editing – changes save automatically" : "View only mode"}
+  </span>
+
+  <Button
+    variant={editMode ? "default" : "outline"}
+    onClick={() => setEditMode(!editMode)}
+    className="flex items-center gap-2 transition-all"
+  >
+    {editMode ? (
+      <>
+        <CheckCircle2 className="w-4 h-4" />
+        Done
+      </>
+    ) : (
+      <>
+        <Pencil className="w-4 h-4" />
+        Edit
+      </>
+    )}
+  </Button>
+</div>
 
       {/* Table */}
       <div className="overflow-x-auto rounded-lg border bg-card text-card-foreground shadow-sm">
         {/* Responsive Table / Card Layout */}
-<div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-  <table className="hidden md:table w-full table-fixed text-sm">
-    <tbody className="divide-y">
-      {fields.map((field) => (
-        <tr key={field.key} className="divide-x border-b hover:bg-accent transition-colors">
-          <td className="w-56 px-4 py-3 font-medium text-foreground align-top">
-            <div className="flex items-center gap-2">
-              {field.icon} {field.label}
-            </div>
-          </td>
-          <td className="px-4 py-3 text-muted-foreground">
-            {editMode ? (
-              <Textarea
-                value={student[field.key] || ""}
-                onChange={(e) => handleChange(field.key, e.target.value)}
-                rows={field.key === "notes" ? 5 : 2}
-                className="resize-none w-full"
-              />
-            ) : student[field.key] ? (
-              <span className="whitespace-pre-wrap">{student[field.key]}</span>
-            ) : (
-              <span className="italic opacity-60">Not provided</span>
-            )}
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <table className="hidden md:table w-full table-fixed text-sm">
+            <tbody className="divide-y">
+              {fields.map((field) => (
+                <tr key={field.key} className="divide-x border-b hover:bg-accent transition-colors">
+                  <td className="w-56 px-4 py-3 font-medium text-foreground align-top">
+                    <div className="flex items-center gap-2">
+                      {field.icon} {field.label}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {editMode ? (
+                      <Textarea
+                        value={student[field.key] || ""}
+                        onChange={(e) => handleChange(field.key, e.target.value)}
+                        rows={field.key === "notes" ? 5 : 2}
+                        className="resize-none w-full"
+                      />
+                    ) : student[field.key] ? (
+                      <span className="whitespace-pre-wrap">{student[field.key]}</span>
+                    ) : (
+                      <span className="italic opacity-60">Not provided</span>
+                    )}
 
-            {/* Saving indicator */}
-            {saving[field.key] && editMode && (
-              <span className="ml-2 text-xs text-muted-foreground animate-pulse">
-                Saving…
-              </span>
-            )}
-            {!saving[field.key] && lastSaved[field.key] && editMode && (
-              <span className="ml-2 text-xs text-muted-foreground">
-                Saved at {lastSaved[field.key]?.toLocaleTimeString()}
-              </span>
-            )}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
+                    {/* Saving indicator */}
+                    {saving[field.key] && editMode && (
+                      <span className="ml-2 text-xs text-muted-foreground animate-pulse">
+                        Saving…
+                      </span>
+                    )}
+                    {!saving[field.key] && lastSaved[field.key] && editMode && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        Saved at {lastSaved[field.key]?.toLocaleTimeString()}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-  {/* ✅ Mobile card version */}
-  <div className="md:hidden divide-y">
-    {fields.map((field) => (
-      <div key={field.key} className="p-4 space-y-2 hover:bg-accent transition-colors">
-        <div className="flex items-center gap-2 font-semibold">
-          {field.icon} {field.label}
+          {/* ✅ Mobile card version */}
+          <div className="md:hidden divide-y">
+            {fields.map((field) => (
+              <div key={field.key} className="p-4 space-y-2 hover:bg-accent transition-colors">
+                <div className="flex items-center gap-2 font-semibold">
+                  {field.icon} {field.label}
+                </div>
+
+                {editMode ? (
+                  <Textarea
+                    value={student[field.key] || ""}
+                    onChange={(e) => handleChange(field.key, e.target.value)}
+                    rows={field.key === "notes" ? 5 : 2}
+                    className="resize-none w-full"
+                  />
+                ) : student[field.key] ? (
+                  <p className="whitespace-pre-wrap text-muted-foreground">
+                    {student[field.key]}
+                  </p>
+                ) : (
+                  <p className="italic text-muted-foreground opacity-60">
+                    Not provided
+                  </p>
+                )}
+
+                {/* Saving & timestamps */}
+                {saving[field.key] && editMode && (
+                  <span className="text-xs text-muted-foreground animate-pulse block">
+                    Saving…
+                  </span>
+                )}
+                {!saving[field.key] && lastSaved[field.key] && editMode && (
+                  <span className="text-xs text-muted-foreground block">
+                    Saved at {lastSaved[field.key]?.toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-
-        {editMode ? (
-          <Textarea
-            value={student[field.key] || ""}
-            onChange={(e) => handleChange(field.key, e.target.value)}
-            rows={field.key === "notes" ? 5 : 2}
-            className="resize-none w-full"
-          />
-        ) : student[field.key] ? (
-          <p className="whitespace-pre-wrap text-muted-foreground">
-            {student[field.key]}
-          </p>
-        ) : (
-          <p className="italic text-muted-foreground opacity-60">
-            Not provided
-          </p>
-        )}
-
-        {/* Saving & timestamps */}
-        {saving[field.key] && editMode && (
-          <span className="text-xs text-muted-foreground animate-pulse block">
-            Saving…
-          </span>
-        )}
-        {!saving[field.key] && lastSaved[field.key] && editMode && (
-          <span className="text-xs text-muted-foreground block">
-            Saved at {lastSaved[field.key]?.toLocaleTimeString()}
-          </span>
-        )}
-      </div>
-    ))}
-  </div>
-</div>
-
       </div>
     </div>
   );
