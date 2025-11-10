@@ -31,7 +31,8 @@ export default function NewLessonFormTutor() {
     homework: "",
     evaluation: "",
     notes: "",
-    student: "",
+    first_name: "",
+    last_name: "",
     subject: "",
   });
 
@@ -118,7 +119,7 @@ export default function NewLessonFormTutor() {
   function validateForm() {
     const errors: { [key: string]: string } = {};
 
-    if (!lesson.student?.trim()) errors.student = "Student is required.";
+    if (!lesson.first_name?.trim()) errors.first_name = "First Name is required.";
     if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
     if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
     if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
@@ -127,6 +128,24 @@ export default function NewLessonFormTutor() {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  }
+
+  async function createStudentProfile(): Promise<string> {
+    const {
+      data: studentData,
+      error: insertError,
+    } = await supabase.from("student_profiles").insert([
+      {
+        first_name: lesson.first_name,
+        last_name: lesson.last_name,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]).select("student_id").single(); // <- important: get the generated student_id
+
+    if (insertError) throw insertError;
+
+    return studentData.student_id;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -141,11 +160,9 @@ export default function NewLessonFormTutor() {
     }
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const student_id = await createStudentProfile(); // <-- get the new student_id
 
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
@@ -161,6 +178,7 @@ export default function NewLessonFormTutor() {
         {
           ...lesson,
           user_id: user.id,
+          student_id, // <-- attach the foreign key here
           resources: formattedResources,
           lesson_structure: stages,
           created_at: new Date().toISOString(),
@@ -171,11 +189,11 @@ export default function NewLessonFormTutor() {
       if (insertError) throw insertError;
 
       router.push(`/dashboard/lesson-plans`);
-      toast.success("Lesson plan created successfully!")
+      toast.success("Lesson plan created successfully!");
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan created unsuccessfully.")
+      toast.error("Lesson plan creation failed.");
     } finally {
       setSaving(false);
     }
@@ -201,17 +219,27 @@ export default function NewLessonFormTutor() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className={formErrors.student ? "text-destructive" : ""}>
-                    Student <span className="text-destructive">*</span>
+                  <Label className={formErrors.first_name ? "text-destructive" : ""}>
+                    First Name <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    value={lesson.student || ""}
-                    onChange={(e) => updateField("student", e.target.value)}
+                    value={lesson.first_name || ""}
+                    onChange={(e) => updateField("first_name", e.target.value)}
                     placeholder="e.g. Marlene"
                   />
                   {formErrors.student && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.student}</p>
+                    <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
                   )}
+                </div>
+                <div>
+                  <Label>
+                    Last Name 
+                  </Label>
+                  <Input
+                    value={lesson.last_name || ""}
+                    onChange={(e) => updateField("last_name", e.target.value)}
+                    placeholder="e.g. Smith"
+                  />
                 </div>
                 <div>
                   <Label className={formErrors.topic ? "text-destructive" : ""}>

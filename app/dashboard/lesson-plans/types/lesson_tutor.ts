@@ -12,6 +12,7 @@ type Resource = {
 export type TutorLessonPlan = {
   id: string; // UUID
   user_id: string; // UUID
+  student_id: string 
   date_of_lesson?: string | null; // ISO date string (YYYY-MM-DD)
   time_of_lesson?: string | null; // HH:MM:SS (24h)
   topic?: string | null;
@@ -36,6 +37,7 @@ export type TutorLessonPlan = {
   lesson_structure?: Record<string, string> | null; // JSONB
   notes?: string | null;
   subject?: string;
-  student?: string;
+  first_name?: string,
+  last_name?: string,
 };
 

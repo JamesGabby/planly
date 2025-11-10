@@ -1,12 +1,12 @@
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 import { User, Calendar, Clock, Printer } from "lucide-react";
 import Link from "next/link";
+import { TutorLessonPlan } from "../../types/lesson_tutor";
 
 /* --- EXPANDED LESSON VIEW --- */
-export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
+export function TutorExpandedLessonView({ lesson }: { lesson: TutorLessonPlan }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
   const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
@@ -24,7 +24,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
     setMessage(null);
     try {
       const { error } = await supabase
-        .from("lesson_plans")
+        .from("tutor_lesson_plans")
         .update({ [field]: value })
         .eq("id", lesson.id);
       if (error) throw error;
@@ -116,7 +116,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
           {lesson.topic ?? "Untitled"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          <Link href={`/dashboard/student-profiles/${lesson.student_profiles.student_id}`}><User size={20} className="inline" /> {lesson.student} <span className="meta-space" /></Link>
+          <Link href={`/dashboard/student-profiles/${lesson.student_id}`}><User size={20} className="inline" /> {lesson.first_name} <span className="meta-space" /></Link>
           <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "} <span className="meta-space" />
           <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>
