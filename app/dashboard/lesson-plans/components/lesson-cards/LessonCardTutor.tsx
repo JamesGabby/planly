@@ -60,7 +60,7 @@ export function LessonCardTutor({
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground leading-relaxed">
                 <span className="flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5" />
-                  {lesson.first_name}
+                  {lesson.first_name}{" "}{lesson.last_name}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />

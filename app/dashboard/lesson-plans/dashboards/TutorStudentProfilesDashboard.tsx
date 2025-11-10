@@ -5,14 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { FiltersCard } from "../components/student-profiles/FiltersCard";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { StudentCard } from "../components/lesson-cards/StudentCard";
-import { StudentMobileResponsiveModal } from "../components/StudentMobileResponsiveModal";
+import Link from "next/link";
 
 const supabase = createClient();
 
@@ -66,7 +64,6 @@ export default function TutorStudentProfilesDashboard() {
   const filtered = useMemo(() => {
     return students.filter((s) => {
       if (selectedLevel && s.level !== selectedLevel) return false;
-      if (dateFilter && s.created_at !== dateFilter) return false;
       if (!search) return true;
       const term = search.toLowerCase();
       return (
@@ -81,30 +78,6 @@ export default function TutorStudentProfilesDashboard() {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
-
-  async function handleDeleteConfirm() {
-    if (!confirmDelete) return;
-
-    try {
-      const { error } = await supabase
-        .from("student_profiles")
-        .delete()
-        .eq("student_id", confirmDelete.student_id);
-
-      if (error) {
-        toast.error(`Failed: ${error.message}`);
-      } else {
-        setStudents((prev) =>
-          prev.filter((p) => p.student_id !== confirmDelete.student_id)
-        );
-        toast.success("Student removed ✔");
-      }
-    } catch (err) {
-      toast.error("Unexpected error");
-    } finally {
-      setConfirmDelete(null);
-    }
-  }
 
   const backgroundClass =
     selectedStudent || confirmDelete
@@ -143,8 +116,6 @@ export default function TutorStudentProfilesDashboard() {
             setSearch={setSearch}
             selectedLevel={selectedLevel} // ✅ Reuse as level
             setSelectedLevel={setSelectedLevel}
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
             levels={levels} // ✅ Reuse classes dropdown for levels
           />
 
@@ -174,15 +145,23 @@ export default function TutorStudentProfilesDashboard() {
                 {paginated.map((student) => (
                   <motion.div
                     key={student.student_id}
-                    className="cursor-pointer h-full"
-                    onClick={() => setSelectedStudent(student)}
                     whileHover={{ scale: 1.02 }}
+                    className="h-full"
                   >
-                    <StudentCard
-                      student={student}
-                      onDelete={() => setConfirmDelete(student)}
-                    />
+                    <Link
+                      href={`/dashboard/student-profiles/${student.student_id}`}
+                      className="block cursor-pointer h-full"
+                    >
+                      <StudentCard
+                        student={student}
+                        onDelete={(e) => {
+                          e.preventDefault(); // Prevent link click when deleting
+                          setConfirmDelete(student);
+                        }}
+                      />
+                    </Link>
                   </motion.div>
+
                 ))}
               </motion.div>
 
@@ -194,27 +173,6 @@ export default function TutorStudentProfilesDashboard() {
             </>
           )}
         </div>
-
-        {/* Expanded Modal */}
-        <AnimatePresence>
-          {selectedStudent && (
-            <StudentMobileResponsiveModal
-              student={selectedStudent}
-              onClose={() => setSelectedStudent(null)}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Delete Confirmation Modal */}
-        <AnimatePresence>
-          {confirmDelete && (
-            <DeleteConfirmModal
-              onCancel={() => setConfirmDelete(null)}
-              onConfirm={handleDeleteConfirm}
-              data={confirmDelete}
-            />
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
