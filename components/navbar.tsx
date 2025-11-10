@@ -7,6 +7,7 @@ import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
 import { useUserMode } from "./UserModeContext";
+import { usePathname } from "next/navigation";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -14,14 +15,10 @@ const poppins = Poppins({
   display: "swap",
 });
 
-export const metadata = {
-  title: "Lessonly",
-  description: "Learning management made simple.",
-};
-
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { mode } = useUserMode();
+  const pathname = usePathname();
 
   const navLinks = [
     { name: "Lessons", href: "/dashboard/lesson-plans" },
@@ -32,7 +29,6 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md transition-colors">
       <div className="max-w-6xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link
           href="/"
           className={`${poppins.className} text-xl font-semibold tracking-tight text-primary hover:opacity-80 transition`}
@@ -42,20 +38,27 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-foreground/80 hover:text-primary transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = pathname.startsWith(link.href);
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`transition-colors ${
+                  isActive
+                    ? "text-primary font-semibold"
+                    : "text-foreground/80 hover:text-primary"
+                }`}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
 
           <ThemeSwitcher />
-          {/* Logout Button */}
           <LogoutButton />
         </div>
+
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -70,16 +73,24 @@ export function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md animate-slide-down">
           <div className="flex flex-col items-start px-6 py-4 space-y-3 text-sm font-medium">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="w-full py-2 text-foreground/80 hover:text-primary transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`w-full py-2 transition-colors ${
+                    isActive
+                      ? "text-primary font-semibold"
+                      : "text-foreground/80 hover:text-primary"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+
             <div className="pt-3 border-t border-border w-full flex items-center gap-3">
               <LogoutButton />
               <ThemeSwitcher />
