@@ -2,22 +2,18 @@
 
 import { motion } from "framer-motion";
 import {
-  Edit3,
-  Trash2,
   Star,
   Sparkles,
   BicepsFlexed,
   Target,
   AlertTriangle
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export type StudentProfile = {
@@ -35,12 +31,8 @@ export type StudentProfile = {
 
 export function StudentCard({
   student,
-  onDelete,
-  onEdit,
 }: {
   student: StudentProfile;
-  onDelete: () => void;
-  onEdit: () => void;
 }) {
   const fullName =
     `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||
@@ -67,117 +59,39 @@ export function StudentCard({
             {fullName}
           </CardTitle>
 
-          {student.level && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Star className="w-3.5 h-3.5" />
-              Level: {student.level}
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Star className="w-3.5 h-3.5" />
+            Level: {student.level}
+          </div>
         </CardHeader>
 
         {/* CONTENT */}
         <CardContent className="p-4 sm:p-5 space-y-3 flex-1 overflow-hidden">
           {/* Goals */}
-          {student.goals && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Target className="w-3.5 h-3.5 mt-1 shrink-0" />
-              {student.goals}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+            <Target className="w-3.5 h-3.5 mt-1 shrink-0" />
+            {student.goals}
+          </p>
+          
 
           {/* Interests */}
-          {student.interests && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
-              {student.interests}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
+            {student.interests}
+          </p>
+          
 
           {/* Strengths */}
-          {student.strengths && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <BicepsFlexed className="w-3.5 h-3.5 mt-1 shrink-0" />
-              {student.strengths}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+            <BicepsFlexed className="w-3.5 h-3.5 mt-1 shrink-0" />
+            {student.strengths}
+          </p>
 
           {/* Weaknesses */}
-          {student.weaknesses && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
-              {student.weaknesses}
-            </p>
-          )}
-
-          {/* Mobile Quick Actions */}
-          <div className="flex sm:hidden justify-start gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="secondary" onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                  }}>
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          {/* Desktop Hover Quick Actions */}
-          <div className="hidden sm:flex absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit();
-                    }}
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
+            {student.weaknesses}
+          </p>
         </CardContent>
       </Card>
     </motion.div>
