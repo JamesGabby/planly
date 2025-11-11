@@ -5,27 +5,25 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
+import { LessonPlan } from "../types/lesson";
 import { FiltersCard } from "../components/FiltersCard";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { StudentCard } from "../components/lesson-cards/StudentCard";
-import { StudentMobileResponsiveModal } from "../components/StudentMobileResponsiveModal";
+import Link from "next/link";
+import { StudentCardTeacher } from "../components/lesson-cards/StudentCardTeacher";
 
 const supabase = createClient();
 
-export default function TutorStudentProfilesDashboard() {
-  const [students, setStudents] = useState([]);
+export default function StudentProfilesDashboard() {
+  const [lessons, setLessons] = useState<LessonPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
-  const [selectedLevel, setSelectedLevel] = useState<string | "">("");
-
+  const [selectedClass, setSelectedClass] = useState<string | "">("");
+  const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
+  const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
@@ -33,16 +31,16 @@ export default function TutorStudentProfilesDashboard() {
   useEffect(() => {
     fetchStudents();
   }, []);
-
+  
   async function fetchStudents() {
     setLoading(true);
     setError(null);
 
     try {
       const { data, error } = await supabase
-        .from("student_profiles")
+        .from("teacher_student_profiles")
         .select("*")
-        .order("student_id", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -54,16 +52,9 @@ export default function TutorStudentProfilesDashboard() {
       setLoading(false);
     }
   }
-
-  const levels = useMemo(() => {
-    const set = new Set<string>();
-    students.forEach((s) => s.level && set.add(s.level));
-    return Array.from(set).sort();
-  }, [students]);
-
+  
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      if (selectedLevel && s.level !== selectedLevel) return false;
       if (!search) return true;
       const term = search.toLowerCase();
       return (
@@ -72,62 +63,43 @@ export default function TutorStudentProfilesDashboard() {
         (s.interests ?? "").toLowerCase().includes(term)
       );
     });
-  }, [students, search, selectedLevel]);
-
+  }, [students, search, dateFilter]);
+  
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
 
-  async function handleDeleteConfirm() {
-    if (!confirmDelete) return;
-
-    try {
-      const { error } = await supabase
-        .from("student_profiles")
-        .delete()
-        .eq("student_id", confirmDelete.student_id);
-
-      if (error) {
-        toast.error(`Failed: ${error.message}`);
-      } else {
-        setStudents((prev) =>
-          prev.filter((p) => p.student_id !== confirmDelete.student_id)
-        );
-        toast.success("Student removed ✔");
-      }
-    } catch (err) {
-      toast.error("Unexpected error");
-    } finally {
-      setConfirmDelete(null);
-    }
-  }
-
   const backgroundClass =
-    selectedStudent || confirmDelete
+    selectedStudent 
       ? "scale-[0.987] blur-sm transition-all duration-300"
       : "transition-all duration-300";
+
+  const classes = useMemo(() => {
+    const set = new Set<string>();
+    students.forEach((l) => l.class_name && set.add(l.class_name));
+    return Array.from(set).sort();
+  }, [students]);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Student Profiles
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage your student roster
               </p>
             </div>
-            <div className="flex gap-2">
+
+            <div className="flex gap-2 shrink-0">
               <Button variant="outline" onClick={() => fetchStudents()}>
                 Refresh
               </Button>
               <Button asChild>
-                <a href="/dashboard/students/new">Add Student</a>
+                <a href="/dashboard/student-profiles/new">Add Student</a>
               </Button>
             </div>
           </div>
@@ -138,13 +110,15 @@ export default function TutorStudentProfilesDashboard() {
           <FiltersCard
             search={search}
             setSearch={setSearch}
-            selectedClass={selectedLevel} // ✅ Reuse as level
-            setSelectedClass={setSelectedLevel}
-            classes={levels} // ✅ Reuse classes dropdown for levels
+            selectedClass={selectedClass}
+            setSelectedClass={setSelectedClass}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            classes={classes}
           />
 
           <Separator className="my-6" />
-
+          
           {error ? (
             <p className="text-destructive">{error}</p>
           ) : loading ? (
@@ -162,31 +136,37 @@ export default function TutorStudentProfilesDashboard() {
             </div>
           ) : (
             <>
-              Classes
+              <motion.div
+                layout
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              >
+                {paginated.map((student) => (
+                  <motion.div
+                    key={student.student_id}
+                    whileHover={{ scale: 1.02 }}
+                    className="h-full"
+                  >
+                    <Link
+                      href={`/dashboard/student-profiles/teacher/${student.student_id}`}
+                      className="block cursor-pointer h-full"
+                    >
+                      <StudentCardTeacher
+                        student={student}
+                      />
+                    </Link>
+                  </motion.div>
+
+                ))}
+              </motion.div>
+
+              <Pagination
+                totalItems={filtered.length}
+                currentPage={page}
+                onPageChange={setPage}
+              />
             </>
           )}
         </div>
-
-        {/* Expanded Modal */}
-        <AnimatePresence>
-          {selectedStudent && (
-            <StudentMobileResponsiveModal
-              student={selectedStudent}
-              onClose={() => setSelectedStudent(null)}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Delete Confirmation Modal */}
-        <AnimatePresence>
-          {confirmDelete && (
-            <DeleteConfirmModal
-              onCancel={() => setConfirmDelete(null)}
-              onConfirm={handleDeleteConfirm}
-              data={confirmDelete}
-            />
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

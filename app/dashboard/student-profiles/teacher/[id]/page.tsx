@@ -14,6 +14,8 @@ import {
   Pencil,
   ArrowLeft,
   BicepsFlexed,
+  GraduationCap,
+  ChartLine,
 } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +43,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   useEffect(() => {
     async function fetchStudent() {
       const { data, error } = await supabase
-        .from("student_profiles")
+        .from("teacher_student_profiles")
         .select("*")
         .eq("student_id", id)
         .single();
@@ -64,7 +66,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
     const timer = setTimeout(async () => {
       const { error } = await supabase
-        .from("student_profiles")
+        .from("teacher_student_profiles")
         .update({ [field]: value })
         .eq("student_id", id);
 
@@ -93,12 +95,13 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     );
 
   const fields = [
-    { label: "Level", key: "level", icon: <BarChart3 /> },
+    { label: "Class", key: "class_name", icon: <GraduationCap /> },
     { label: "Goals", key: "goals", icon: <Target /> },
     { label: "Interests", key: "interests", icon: <Sparkles /> },
     { label: "Learning Preferences", key: "learning_preferences", icon: <BrainCircuit /> },
     { label: "Strengths", key: "strengths", icon: <BicepsFlexed /> },
-    { label: "Areas to Improve", key: "weaknesses", icon: <AlertTriangle /> },
+    { label: "Areas to Improve", key: "weaknesses", icon: <ChartLine /> },
+    { label: "Special Educational Needs", key: "special_educational_needs", icon: <AlertTriangle /> },
     { label: "Notes", key: "notes", icon: <FileText /> },
   ];
 
