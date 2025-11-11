@@ -8,12 +8,12 @@ import {
   Target,
   Sparkles,
   BrainCircuit,
-  ThumbsUp,
   AlertTriangle,
   FileText,
   CheckCircle2,
   Pencil,
   ArrowLeft,
+  BicepsFlexed,
 } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
@@ -89,7 +89,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     { label: "Goals", key: "goals", icon: <Target /> },
     { label: "Interests", key: "interests", icon: <Sparkles /> },
     { label: "Learning Preferences", key: "learning_preferences", icon: <BrainCircuit /> },
-    { label: "Strengths", key: "strengths", icon: <ThumbsUp /> },
+    { label: "Strengths", key: "strengths", icon: <BicepsFlexed /> },
     { label: "Weaknesses", key: "weaknesses", icon: <AlertTriangle /> },
     { label: "Notes", key: "notes", icon: <FileText /> },
   ];

@@ -5,14 +5,10 @@ import {
   Edit3,
   Trash2,
   Star,
-  Heart,
   Sparkles,
-  Brain,
-  Quote,
-  Smile,
-  Frown,
   BicepsFlexed,
-  Loader
+  Target,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,7 +62,7 @@ export function StudentCard({
       >
 
         {/* HEADER */}
-        <CardHeader className="p-4 sm:p-5 space-y-2">
+        <CardHeader className="p-4 sm:p-5 space-y-1.5">
           <CardTitle className="text-base sm:text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
             {fullName}
           </CardTitle>
@@ -84,7 +80,7 @@ export function StudentCard({
           {/* Goals */}
           {student.goals && (
             <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
+              <Target className="w-3.5 h-3.5 mt-1 shrink-0" />
               {student.goals}
             </p>
           )}
@@ -92,7 +88,7 @@ export function StudentCard({
           {/* Interests */}
           {student.interests && (
             <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Heart className="w-3.5 h-3.5 mt-1 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
               {student.interests}
             </p>
           )}
@@ -108,7 +104,7 @@ export function StudentCard({
           {/* Weaknesses */}
           {student.weaknesses && (
             <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-              <Frown className="w-3.5 h-3.5 mt-1 shrink-0" />
+              <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
               {student.weaknesses}
             </p>
           )}
