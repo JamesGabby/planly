@@ -47,7 +47,7 @@ export default function EditLessonFormTutor() {
     homework: "",
     evaluation: "",
     notes: "",
-    student: "",
+    first_name: "",
     subject: "",
   });
 
@@ -209,7 +209,7 @@ export default function EditLessonFormTutor() {
   function validateForm() {
     const errors: { [key: string]: string } = {};
 
-    if (!lesson.student?.trim()) errors.student = "Student is required.";
+    if (!lesson.first_name?.trim()) errors.first_name = "Student is required.";
     if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
     if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
     if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
@@ -297,16 +297,16 @@ export default function EditLessonFormTutor() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <Label className={formErrors.student ? "text-destructive" : ""}>
+                  <Label className={formErrors.first_name ? "text-destructive" : ""}>
                     Student <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    value={lesson.student || ""}
-                    onChange={(e) => updateField("student", e.target.value)}
+                    value={lesson.first_name || ""}
+                    onChange={(e) => updateField("first_name", e.target.value)}
                     placeholder="e.g. Marlene"
                   />
-                  {formErrors.student && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.student}</p>
+                  {formErrors.first_name && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
                   )}
                 </div>
                 <div>
@@ -705,7 +705,7 @@ export default function EditLessonFormTutor() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  How will you measure your student's progress? What worked?
+                  How will you measure your first_name's progress? What worked?
                 </p>
                 <Textarea
                   placeholder="• Evaluation notes..."
