@@ -69,34 +69,33 @@ export default function TutorLessonPlansDashboard() {
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
   // Extract unique "classes" (students)
-const classes = useMemo(() => {
-  const set = new Set<string>();
-  lessons.forEach((l) => {
-    const name = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
-    if (name) set.add(name);
-  });
-  return Array.from(set).sort();
-}, [lessons]);
+  const classes = useMemo(() => {
+    const set = new Set<string>();
+    lessons.forEach((l) => {
+      const name = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
+      if (name) set.add(name);
+    });
+    return Array.from(set).sort();
+  }, [lessons]);
 
-// Apply filters
-const filtered = useMemo(() => {
-  return lessons.filter((l) => {
-    const studentName = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
+  // Apply filters
+  const filtered = useMemo(() => {
+    return lessons.filter((l) => {
+      const studentName = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
 
-    if (selectedClass && studentName !== selectedClass) return false;
-    if (dateFilter && l.date_of_lesson !== dateFilter) return false;
+      if (selectedClass && studentName !== selectedClass) return false;
+      if (dateFilter && l.date_of_lesson !== dateFilter) return false;
 
-    if (!search) return true;
-    const s = search.toLowerCase();
+      if (!search) return true;
+      const s = search.toLowerCase();
 
-    return (
-      (l.topic ?? "").toLowerCase().includes(s) ||
-      (l.objectives ?? "").toLowerCase().includes(s) ||
-      studentName.toLowerCase().includes(s)
-    );
-  });
-}, [lessons, search, selectedClass, dateFilter]);
-
+      return (
+        (l.topic ?? "").toLowerCase().includes(s) ||
+        (l.objectives ?? "").toLowerCase().includes(s) ||
+        studentName.toLowerCase().includes(s)
+      );
+    });
+  }, [lessons, search, selectedClass, dateFilter]);
 
   const today = new Date().toISOString().split("T")[0];
   const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {

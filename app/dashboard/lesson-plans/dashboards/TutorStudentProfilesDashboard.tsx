@@ -55,26 +55,41 @@ export default function TutorStudentProfilesDashboard() {
     }
   }
 
+  // Extract unique "classes" (students)
   const classes = useMemo(() => {
     const set = new Set<string>();
-    students.forEach((s) => s.level && set.add(s.level));
+    students.forEach((s) => {
+      const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+      if (name) set.add(name);
+    });
     return Array.from(set).sort();
   }, [students]);
 
+  // Apply filters
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      if (selectedClass && s.level !== selectedClass) return false;
+      const studentName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+
+      if (selectedClass && studentName !== selectedClass) return false;
+
+      if (dateFilter) {
+        const createdDate = new Date(s.created_at).toISOString().split("T")[0];
+        if (createdDate !== dateFilter) return false;
+      }
+
       if (!search) return true;
-      const term = search.toLowerCase();
+      const srch = search.toLowerCase();
+
       return (
-        (s.first_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.last_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.goals ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.strengths ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.weaknesses ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.notes ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.special_educational_needs ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.interests ?? "").toLowerCase().includes(search.toLowerCase())
+        (s.first_name ?? "").toLowerCase().includes(srch) ||
+        (s.last_name ?? "").toLowerCase().includes(srch) ||
+        (s.goals ?? "").toLowerCase().includes(srch) ||
+        (s.strengths ?? "").toLowerCase().includes(srch) ||
+        (s.weaknesses ?? "").toLowerCase().includes(srch) ||
+        (s.notes ?? "").toLowerCase().includes(srch) ||
+        (s.special_educational_needs ?? "").toLowerCase().includes(srch) ||
+        (s.interests ?? "").toLowerCase().includes(srch) ||
+        studentName.toLowerCase().includes(srch)
       );
     });
   }, [students, search, selectedClass, dateFilter]);
