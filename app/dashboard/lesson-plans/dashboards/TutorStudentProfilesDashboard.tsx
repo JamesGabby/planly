@@ -109,16 +109,15 @@ export default function TutorStudentProfilesDashboard() {
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Student Profiles
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage your student roster
               </p>
             </div>
-            <div className="flex gap-2">
+
+            <div className="flex gap-2 shrink-0">
               <Button variant="outline" onClick={() => fetchStudents()}>
                 Refresh
               </Button>
