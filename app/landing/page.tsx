@@ -29,7 +29,7 @@ export default function LandingPage() {
           Plan Smarter. Teach Better.
         </h1>
         <p className="text-lg md:text-xl max-w-2xl text-muted-foreground animate-fade-up animate-delay-200 animate-once">
-          Lessonly helps teachers, student teachers and tutors easily plan, organise, and deliver effective lessons.
+          Lessonly helps teachers, students and tutors easily plan, organise, and deliver effective lessons.
         </p>
         <div className="flex gap-4 animate-fade-up animate-delay-300 animate-once">
           <Button className="px-6 py-3 text-lg shadow-lg hover:shadow-xl" asChild>

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FiltersCard } from "../components/student-profiles/FiltersCard";
+import { FiltersCard } from "../components/FiltersCard";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,7 +19,7 @@ export default function TutorStudentProfilesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const [selectedLevel, setSelectedLevel] = useState<string | "">("");
+  const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
 
 
@@ -55,7 +55,7 @@ export default function TutorStudentProfilesDashboard() {
     }
   }
 
-  const levels = useMemo(() => {
+  const classes = useMemo(() => {
     const set = new Set<string>();
     students.forEach((s) => s.level && set.add(s.level));
     return Array.from(set).sort();
@@ -63,16 +63,21 @@ export default function TutorStudentProfilesDashboard() {
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      if (selectedLevel && s.level !== selectedLevel) return false;
+      if (selectedClass && s.level !== selectedClass) return false;
       if (!search) return true;
       const term = search.toLowerCase();
       return (
-        (s.first_name ?? "").toLowerCase().includes(term) ||
-        (s.last_name ?? "").toLowerCase().includes(term) ||
-        (s.interests ?? "").toLowerCase().includes(term)
+        (s.first_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.last_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.goals ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.strengths ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.weaknesses ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.notes ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.special_educational_needs ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.interests ?? "").toLowerCase().includes(search.toLowerCase())
       );
     });
-  }, [students, search, selectedLevel, dateFilter]);
+  }, [students, search, selectedClass, dateFilter]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -114,9 +119,11 @@ export default function TutorStudentProfilesDashboard() {
           <FiltersCard
             search={search}
             setSearch={setSearch}
-            selectedLevel={selectedLevel} // ✅ Reuse as level
-            setSelectedLevel={setSelectedLevel}
-            levels={levels} // ✅ Reuse classes dropdown for levels
+            selectedClass={selectedClass}
+            setSelectedClass={setSelectedClass}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            classes={classes}
           />
 
           <Separator className="my-6" />

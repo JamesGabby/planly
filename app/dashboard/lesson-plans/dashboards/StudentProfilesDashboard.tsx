@@ -55,15 +55,32 @@ export default function StudentProfilesDashboard() {
   
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      if (!search) return true;
-      const term = search.toLowerCase();
-      return (
-        (s.first_name ?? "").toLowerCase().includes(term) ||
-        (s.last_name ?? "").toLowerCase().includes(term) ||
-        (s.interests ?? "").toLowerCase().includes(term)
-      );
+      // Text search filter
+      const matchesSearch =
+        !search ||
+        (s.first_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.last_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.goals ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.strengths ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.weaknesses ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.notes ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.special_educational_needs ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.interests ?? "").toLowerCase().includes(search.toLowerCase());
+
+      // Class filter
+      const matchesClass = !selectedClass || s.class_name === selectedClass;
+
+      // Date filter (example: check created_at date)
+      const matchesDate =
+        !dateFilter ||
+        (s.created_at &&
+          new Date(s.created_at).toDateString() ===
+            new Date(dateFilter).toDateString());
+
+      return matchesSearch && matchesClass && matchesDate;
     });
-  }, [students, search, dateFilter]);
+  }, [students, search, selectedClass, dateFilter]);
+
   
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;

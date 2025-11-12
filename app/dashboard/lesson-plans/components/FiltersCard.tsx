@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { SlidersHorizontal, X } from "lucide-react"
 import { ClassSelect } from "./ClassSelect"
-import { useUserMode } from "@/components/UserModeContext"
 import { ModeSwitcher } from "@/components/ModeSwitcher"
 
 export function FiltersCard({
@@ -24,7 +23,6 @@ export function FiltersCard({
   setDateFilter: (val: string) => void
   classes: string[]
 }) {
-  const mode = useUserMode()
 
   return (
     <Card className="bg-card text-card-foreground border border-border shadow-sm">
@@ -64,7 +62,7 @@ export function FiltersCard({
               id="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Topic, ${mode.mode === 'tutor' ? 'student' : 'class'}, or objective...`}
+              placeholder={`Search anything...`}
               className="bg-background focus:ring-2 focus:ring-ring"
             />
           </div>
