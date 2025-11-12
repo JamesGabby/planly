@@ -2,6 +2,7 @@
 
 import { useUserMode } from "@/components/UserModeContext";
 import NewTutorStudentProfileForm from "../../lesson-plans/forms/new-student/NewTutorStudentProfileForm";
+import NewTeacherStudentProfileForm from "../../lesson-plans/forms/new-student/NewTeacherStudentProfileForm";
 
 export default function NewLessonPage() {
   const { mode } = useUserMode();
@@ -11,6 +12,6 @@ export default function NewLessonPage() {
     case "tutor":
       return <NewTutorStudentProfileForm />;
     default:
-      return ;
+      return <NewTeacherStudentProfileForm />;
   }
 }
