@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -31,6 +32,8 @@ export default function NewTeacherStudentProfileForm() {
     notes: "",
   });
 
+  const [classes, setClasses] = useState<string[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
@@ -40,6 +43,28 @@ export default function NewTeacherStudentProfileForm() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [error, formErrors]);
+
+  // 🆕 Fetch class names from Supabase
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const { data, error } = await supabase
+          .from("classes")
+          .select("class_name")
+          .order("class_name", { ascending: true });
+
+        if (error) throw error;
+        setClasses(data?.map((c: any) => c.class_name) || []);
+      } catch (err: any) {
+        console.error("Error loading classes:", err);
+        toast.error("Failed to load class list.");
+      } finally {
+        setLoadingClasses(false);
+      }
+    }
+
+    fetchClasses();
+  }, []);
 
   function updateField(field: keyof typeof student, value: string) {
     setStudent((prev) => ({ ...prev, [field]: value }));
@@ -110,6 +135,7 @@ export default function NewTeacherStudentProfileForm() {
           <CardContent className="pt-6 space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* First Name */}
                 <div>
                   <Label className={formErrors.first_name ? "text-destructive" : ""}>
                     First Name <span className="text-destructive">*</span>
@@ -123,6 +149,8 @@ export default function NewTeacherStudentProfileForm() {
                     <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
                   )}
                 </div>
+
+                {/* Last Name */}
                 <div>
                   <Label className={formErrors.last_name ? "text-destructive" : ""}>
                     Last Name <span className="text-destructive">*</span>
@@ -136,15 +164,28 @@ export default function NewTeacherStudentProfileForm() {
                     <p className="text-destructive text-xs mt-1">{formErrors.last_name}</p>
                   )}
                 </div>
+
+                {/* 🆕 Class Dropdown using shadcn/ui Select */}
                 <div>
                   <Label className={formErrors.level ? "text-destructive" : ""}>
                     Class <span className="text-destructive">*</span>
                   </Label>
-                  <Input
+                  <Select
                     value={student.class_name}
-                    onChange={(e) => updateField("class_name", e.target.value)}
-                    placeholder="E.g. 7S"
-                  />
+                    onValueChange={(value) => updateField("class_name", value)}
+                    disabled={loadingClasses}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={loadingClasses ? "Loading classes..." : "Select a class"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((className) => (
+                        <SelectItem key={className} value={className}>
+                          {className}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {formErrors.level && (
                     <p className="text-destructive text-xs mt-1">{formErrors.level}</p>
                   )}
@@ -153,6 +194,7 @@ export default function NewTeacherStudentProfileForm() {
 
               <Separator />
 
+              {/* Textarea fields */}
               {[
                 { label: "Goals", key: "goals" },
                 { label: "Interests", key: "interests" },

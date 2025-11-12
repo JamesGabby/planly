@@ -158,10 +158,39 @@ export default function NewLessonFormStandard() {
     return Object.keys(errors).length === 0;
   }
 
+  async function insertClass() {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error("You must be logged in to create a lesson plan.");
+
+      const { error: insertError } = await supabase.from("classes").insert([
+        {
+          created_by: user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          class_name: lesson.class,
+        },
+      ]);
+
+      if (insertError) throw insertError;
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    insertClass();
 
     if (!validateForm()) {
       setSaving(false);
