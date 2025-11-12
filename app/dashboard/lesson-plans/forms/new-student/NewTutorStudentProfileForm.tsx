@@ -49,6 +49,7 @@ export default function NewTutorStudentProfileForm() {
     const errors: { [key: string]: string } = {};
     if (!student.first_name.trim()) errors.first_name = "First name is required.";
     if (!student.last_name.trim()) errors.last_name = "Last name is required.";
+    if (!student.level.trim()) errors.level = "Level is required.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -136,7 +137,9 @@ export default function NewTutorStudentProfileForm() {
                   )}
                 </div>
                 <div>
-                  <Label>Level</Label>
+                  <Label className={formErrors.level ? "text-destructive" : ""}>
+                    Level <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={student.level}
                     onValueChange={(value) => updateField("level", value)}
@@ -154,6 +157,9 @@ export default function NewTutorStudentProfileForm() {
                       <SelectItem value="Uknown">Unknown</SelectItem>
                     </SelectContent>
                   </Select>
+                  {formErrors.level && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.level}</p>
+                  )}
                 </div>
               </div>
 

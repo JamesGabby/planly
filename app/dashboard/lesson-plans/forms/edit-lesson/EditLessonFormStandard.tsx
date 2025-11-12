@@ -18,13 +18,11 @@ import { motion } from "framer-motion";
 
 import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
-import { FormSkeleton } from "../skeletons/FormSkeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { FormSkeleton } from "../../skeletons/FormSkeleton";
 
 const supabase = createClient();
 
-export default function EditLessonFormStudent() {
+export default function EditLessonFormStandard() {
   const { id } = useParams();
   const router = useRouter();
 
@@ -35,7 +33,6 @@ export default function EditLessonFormStudent() {
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-  // Scroll to top when errors occur
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -221,7 +218,7 @@ export default function EditLessonFormStudent() {
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan edited unsuccessfully.");
+      toast.error("Something went wrong.");
     } finally {
       setSaving(false);
     }
@@ -471,77 +468,18 @@ export default function EditLessonFormStudent() {
                 </div>
               </div>
 
-              {/* detailed Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Specialist Subject Knowledge Required</Label>
-                  <Textarea
-                    value={lesson.specialist_subject_knowledge_required || ""}
-                    onChange={(e) =>
-                      updateField(
-                        "specialist_subject_knowledge_required",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Knowledge Revisited</Label>
-                  <Textarea
-                    value={lesson.knowledge_revisited || ""}
-                    onChange={(e) =>
-                      updateField("knowledge_revisited", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Subject Pedagogies</Label>
-                  <Textarea
-                    value={lesson.subject_pedagogies || ""}
-                    onChange={(e) =>
-                      updateField("subject_pedagogies", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Literacy Opportunities</Label>
-                  <Textarea
-                    value={lesson.literacy_opportunities || ""}
-                    onChange={(e) =>
-                      updateField("literacy_opportunities", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Numeracy Opportunities</Label>
-                  <Textarea
-                    value={lesson.numeracy_opportunities || ""}
-                    onChange={(e) =>
-                      updateField("numeracy_opportunities", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Health and Safety Considerations</Label>
-                  <Textarea
-                    value={lesson.health_and_safety_considerations || ""}
-                    onChange={(e) =>
-                      updateField(
-                        "health_and_safety_considerations",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              </div>
-
               <Separator className="my-8" />
 
               {/* Lesson Structure */}
               <div>
-                <h3 className="text-lg font-semibold text-primary mb-3">
+                <h3 className="text-lg font-semibold mb-3 text-primary">
                   Lesson Structure
                 </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Define timing, teaching, learning, assessment, and adaptations
+                  for each stage.
+                </p>
+
                 <div className="space-y-5">
                   {stages.map((stage, i) => (
                     <div
@@ -550,15 +488,11 @@ export default function EditLessonFormStudent() {
                     >
                       <div className="flex justify-between items-center mb-3">
                         {["Starter", "Plenary"].includes(stage.stage) ? (
-                          <h4 className="font-semibold text-foreground">
-                            {stage.stage}
-                          </h4>
+                          <h4 className="font-semibold text-foreground">{stage.stage}</h4>
                         ) : (
                           <Input
                             value={stage.stage}
-                            onChange={(e) =>
-                              updateStage(i, "stage", e.target.value)
-                            }
+                            onChange={(e) => updateStage(i, "stage", e.target.value)}
                             className="font-semibold w-40"
                           />
                         )}
@@ -585,22 +519,8 @@ export default function EditLessonFormStudent() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        {/* Duration with tooltip */}
                         <div>
-                          <div className="flex items-center gap-1">
-                            <Label>Duration</Label>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs text-sm">
-                                  How long will each activity last and what
-                                  time will it be?
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
+                          <Label>Duration</Label>
                           <Input
                             value={stage.duration}
                             onChange={(e) =>
@@ -610,32 +530,11 @@ export default function EditLessonFormStudent() {
                           />
                         </div>
 
-                        {/* Teaching/Learning/Assessing/Adapting with tooltips */}
                         <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-3">
                           {["teaching", "learning", "assessing", "adapting"].map(
                             (field) => (
                               <div key={field}>
-                                <div className="flex items-center gap-1">
-                                  <Label className="capitalize">{field}</Label>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                                      </TooltipTrigger>
-                                      <TooltipContent className="max-w-xs text-sm">
-                                        {field === "teaching" &&
-                                          "Explain how you are planning / organising / structuring / adapting your placement school’s materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
-                                        {field === "learning" &&
-                                          "Detail pupil activity and clarify how pupils are engaged in learning at all times, during each phase of the lesson."}
-                                        {field === "assessing" &&
-                                          "Plot your learning checks to assess understanding and progress, including questioning sequences."}
-                                        {field === "adapting" &&
-                                          "Explain how you need to adapt learning for pupils who require support, guidance, LSA direction, and additional challenge."}
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-
+                                <Label className="capitalize">{field}</Label>
                                 <Textarea
                                   value={stage[field as keyof LessonStage] || ""}
                                   onChange={(e) =>
@@ -777,8 +676,12 @@ export default function EditLessonFormStudent() {
               )}
 
               <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save Lesson"}
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full sm:w-auto"
+                >
+                  {saving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </form>

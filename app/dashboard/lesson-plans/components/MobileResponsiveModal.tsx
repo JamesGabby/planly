@@ -6,7 +6,7 @@ import { TutorLessonPlan } from "../types/lesson_tutor";
 import { ExpandedLessonView } from "./expanded-lesson-card/ExpandedLessonView";
 import { useUserMode } from "@/components/UserModeContext";
 import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
-import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView ";
+import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView";
 
 /* --- MOBILE MODAL --- */
 export function MobileResponsiveModal({

@@ -4,36 +4,52 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { motion } from "framer-motion";
-
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
 import { LessonStage } from "@/components/lesson-structure-editor";
-import { FormSkeleton } from "../skeletons/FormSkeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { FormSkeleton } from "../../skeletons/FormSkeleton";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { TutorLessonPlan } from "../../types/lesson_tutor";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const supabase = createClient();
 
-export default function EditLessonFormDetailed() {
+export default function EditLessonFormTutor() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<Partial<LessonPlan> | null>(null);
   const [stages, setStages] = useState<LessonStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  
+  const [lesson, setLesson] = useState<Partial<TutorLessonPlan>>({
+    date_of_lesson: "",
+    time_of_lesson: "",
+    topic: "",
+    objectives: "",
+    outcomes: "",
+    resources: [],
+    homework: "",
+    evaluation: "",
+    notes: "",
+    first_name: "",
+    subject: "",
+  });
 
   // Scroll to top when errors occur
   const scrollToTop = () =>
@@ -52,7 +68,7 @@ export default function EditLessonFormDetailed() {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from("lesson_plans")
+        .from("tutor_lesson_plans")
         .select("*")
         .eq("id", id)
         .single();
@@ -64,15 +80,26 @@ export default function EditLessonFormDetailed() {
         ? data.lesson_structure
         : [];
 
+      const ensureStage = (name: string) => ({
+        stage: name,
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      });
+
       const hasStarter = structure.some((s) => s.stage === "Starter");
       const hasPlenary = structure.some((s) => s.stage === "Plenary");
 
-      if (!hasStarter) structure.unshift(blankStage("Starter"));
-      if (!hasPlenary) structure.push(blankStage("Plenary"));
+      if (!hasStarter) structure.unshift(ensureStage("Starter"));
+      if (!hasPlenary) structure.push(ensureStage("Plenary"));
 
       structure = [
         structure.find((s) => s.stage === "Starter")!,
-        ...structure.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary"),
+        ...structure.filter(
+          (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+        ),
         structure.find((s) => s.stage === "Plenary")!,
       ];
 
@@ -86,86 +113,108 @@ export default function EditLessonFormDetailed() {
     }
   }
 
-  function blankStage(name: string): LessonStage {
-    return {
-      stage: name,
-      duration: "",
-      teaching: "",
-      learning: "",
-      assessing: "",
-      adapting: "",
-    };
-  }
-
-  function updateField(field: keyof LessonPlan, value: string) {
+  function updateField(field: keyof TutorLessonPlan, value: string) {
     if (!lesson) return;
     setLesson((prev) => prev && { ...prev, [field]: value });
   }
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
+    if (
+      field === "stage" &&
+      !["Starter", "Plenary"].includes(updated[index].stage)
+    ) {
+      value = value.replace(/^stage\s*/i, "Stage ");
+    }
     updated[index][field] = value;
     setStages(updated);
   }
 
   function clearStage(index: number) {
+    const stageName = stages[index].stage;
+    const blankStage = {
+      stage: stageName,
+      duration: "",
+      teaching: "",
+      learning: "",
+      assessing: "",
+      adapting: "",
+    };
     const updated = [...stages];
-    updated[index] = blankStage(updated[index].stage);
+    updated[index] = blankStage;
     setStages(updated);
   }
 
   function addStage() {
     setStages((prev) => {
-      const middleStages = prev.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary");
+      const middleStages = prev.filter(
+        (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+      );
       const nextNumber = middleStages.length + 1;
-      const newStage = blankStage(`Stage ${nextNumber}`);
-      return [
+      const newStage = {
+        stage: `Stage ${nextNumber}`,
+        duration: "",
+        teaching: "",
+        learning: "",
+        assessing: "",
+        adapting: "",
+      };
+
+      const updated = [
         prev.find((s) => s.stage === "Starter")!,
         ...middleStages,
         newStage,
         prev.find((s) => s.stage === "Plenary")!,
       ];
+      return updated;
     });
   }
 
   function removeStage(index: number) {
     setStages((prev) => {
       const updated = [...prev];
-      if (["Starter", "Plenary"].includes(updated[index].stage)) return prev;
+      const target = updated[index];
+      if (["Starter", "Plenary"].includes(target.stage)) return prev;
       updated.splice(index, 1);
 
-      // Renumber middle stages
-      const middleStages = updated.filter((s) => !["Starter", "Plenary"].includes(s.stage));
-      middleStages.forEach((s, i) => (s.stage = `Stage ${i + 1}`));
+      const middleStages = updated.filter(
+        (s) => !["Starter", "Plenary"].includes(s.stage)
+      );
+      middleStages.forEach((s, i) => {
+        s.stage = `Stage ${i + 1}`;
+      });
 
       return [
-        updated.find((s) => s.stage === "Starter") || blankStage("Starter"),
+        updated.find((s) => s.stage === "Starter") || {
+          stage: "Starter",
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        },
         ...middleStages,
-        updated.find((s) => s.stage === "Plenary") || blankStage("Plenary"),
+        updated.find((s) => s.stage === "Plenary") || {
+          stage: "Plenary",
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        },
       ];
     });
   }
 
   function validateForm() {
-    if (!lesson) return false;
     const errors: { [key: string]: string } = {};
 
-    if (!lesson.class?.trim()) errors.class = "Class is required.";
-    if (!lesson.year_group?.trim()) errors.year_group = "Year group is required.";
+    if (!lesson.first_name?.trim()) errors.first_name = "Student is required.";
     if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
     if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
     if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
     if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
     if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
-
-    const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
-    const isGCSE = yearNum >= 10 && yearNum <= 11;
-    const isAlevel = yearNum >= 12 && yearNum <= 13;
-    const showExamBoard = isGCSE || isAlevel;
-
-    if (showExamBoard && !lesson.exam_board?.trim()) {
-      errors.exam_board = "Exam board is required for this year group.";
-    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -187,29 +236,17 @@ export default function EditLessonFormDetailed() {
       const formattedResources =
         Array.isArray(lesson.resources) && lesson.resources.length > 0
           ? lesson.resources.map((res: any) => ({
-              title: res.title || res.url || "",
+              title: res.name || res.title || res.url,
               url: res.url?.trim() || "",
             }))
           : [];
 
-      const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
-      const isGCSE = yearNum >= 10 && yearNum <= 11;
-      const isAlevel = yearNum >= 12 && yearNum <= 13;
-      const showExamBoard = isGCSE || isAlevel;
-
-      const finalExamBoard = showExamBoard
-        ? lesson.exam_board === "Other"
-          ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
-          : lesson.exam_board
-        : null;
-
       const { error: updateError } = await supabase
-        .from("lesson_plans")
+        .from("tutor_lesson_plans")
         .update({
           ...lesson,
           resources: formattedResources,
           lesson_structure: stages,
-          exam_board: finalExamBoard,
           updated_at: new Date().toISOString(),
         })
         .eq("id", lesson.id);
@@ -221,7 +258,7 @@ export default function EditLessonFormDetailed() {
     } catch (err: any) {
       console.error(err);
       setError(err.message);
-      toast.error("Lesson plan edited unsuccessfully.");
+      toast.error("Something went wrong.");
     } finally {
       setSaving(false);
     }
@@ -241,69 +278,50 @@ export default function EditLessonFormDetailed() {
 
   if (!lesson) return null;
 
-  const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
-  const isGCSE = yearNum >= 10 && yearNum <= 11;
-  const isAlevel = yearNum >= 12 && yearNum <= 13;
-  const showExamBoard = isGCSE || isAlevel;
-
-  const boardOptions = [
-    ...(isGCSE || isAlevel ? ["AQA", "OCR", "Edexcel", "WJEC", "Eduqas"] : []),
-    ...(isAlevel ? ["Cambridge", "IB"] : []),
-    "Other",
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Edit Lesson Plan</h1>
-          <p className="text-muted-foreground text-sm">
-            Update lesson objectives, structure, and notes
-          </p>
-        </div>
-
-        <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="text-xl font-semibold">Lesson Details</CardTitle>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-6 md:p-10">
+      <div className="max-w-5xl mx-auto">
+        <Card className="border shadow-md rounded-2xl bg-card/90 backdrop-blur-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl font-semibold text-primary">
+              Edit Lesson Plan
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Update every detail of your lesson plan, including structure and
+              detailed pedagogy fields.
+            </p>
           </CardHeader>
 
-          <CardContent className="pt-6 space-y-8">
+          <CardContent className="mt-4">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <Label className={formErrors.class ? "text-destructive" : ""}>
-                    Class <span className="text-destructive">*</span>
+                  <Label className={formErrors.first_name ? "text-destructive" : ""}>
+                    Student <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    value={lesson.class || ""}
-                    onChange={(e) => updateField("class", e.target.value)}
-                    placeholder="e.g. 7S"
-                    className={formErrors.class ? "border-destructive" : ""}
+                    value={lesson.first_name || ""}
+                    onChange={(e) => updateField("first_name", e.target.value)}
+                    placeholder="e.g. Marlene"
                   />
-                  {formErrors.class && <p className="text-destructive text-xs mt-1">{formErrors.class}</p>}
+                  {formErrors.first_name && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
+                  )}
                 </div>
-
                 <div>
-                  <Label className={formErrors.year_group ? "text-destructive" : ""}>
-                    Year Group <span className="text-destructive">*</span>
+                  <Label className={formErrors.topic ? "text-destructive" : ""}>
+                    Topic <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    value={lesson.year_group || ""}
-                    onValueChange={(value) => updateField("year_group", value)}
-                  >
-                    <SelectTrigger className={`mt-1 ${formErrors.year_group ? "border-destructive" : ""}`}>
-                      <SelectValue placeholder="Year..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 13 }).map((_, i) => (
-                        <SelectItem key={i} value={`Year ${i + 1}`}>Year {i + 1}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formErrors.year_group && <p className="text-destructive text-xs mt-1">{formErrors.year_group}</p>}
+                  <Input
+                    value={lesson.topic || ""}
+                    onChange={(e) => updateField("topic", e.target.value)}
+                    placeholder="Lesson topic..."
+                  />
+                  {formErrors.topic && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
+                  )}
                 </div>
-
                 <div>
                   <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
                     Date of Lesson <span className="text-destructive">*</span>
@@ -312,11 +330,11 @@ export default function EditLessonFormDetailed() {
                     type="date"
                     value={lesson.date_of_lesson || ""}
                     onChange={(e) => updateField("date_of_lesson", e.target.value)}
-                    className={formErrors.date_of_lesson ? "border-destructive" : ""}
                   />
-                  {formErrors.date_of_lesson && <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>}
+                  {formErrors.date_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
+                  )}
                 </div>
-
                 <div>
                   <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
                     Time of Lesson <span className="text-destructive">*</span>
@@ -328,28 +346,16 @@ export default function EditLessonFormDetailed() {
                       if (!lesson.time_of_lesson) {
                         const now = new Date();
                         const hours = String(now.getHours()).padStart(2, "0");
-                        updateField("time_of_lesson", `${hours}:00`);
+                        const defaultTime = `${hours}:00`;
+                        updateField("time_of_lesson", defaultTime);
                       }
                     }}
                     onChange={(e) => updateField("time_of_lesson", e.target.value)}
-                    className={formErrors.time_of_lesson ? "border-destructive" : ""}
                   />
-                  {formErrors.time_of_lesson && <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>}
+                  {formErrors.time_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                  )}
                 </div>
-
-                <div>
-                  <Label className={formErrors.topic ? "text-destructive" : ""}>
-                    Topic <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    value={lesson.topic || ""}
-                    onChange={(e) => updateField("topic", e.target.value)}
-                    placeholder="Lesson topic..."
-                    className={formErrors.topic ? "border-destructive" : ""}
-                  />
-                  {formErrors.topic && <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>}
-                </div>
-
                 <div>
                   <Label className={formErrors.subject ? "text-destructive" : ""}>
                     Subject <span className="text-destructive">*</span>
@@ -358,7 +364,7 @@ export default function EditLessonFormDetailed() {
                     value={lesson.subject || ""}
                     onValueChange={(value) => updateField("subject", value)}
                   >
-                    <SelectTrigger className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={`mt-1`}>
                       <SelectValue placeholder="Select subject..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -382,157 +388,106 @@ export default function EditLessonFormDetailed() {
                     <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
                   )}
                 </div>
-
-                {showExamBoard && (
-                  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="col-span-1 md:col-span-2">
-                    <Label className={formErrors.exam_board ? "text-destructive" : ""}>
-                      Exam Board <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={lesson.exam_board || ""}
-                      onValueChange={(value) => updateField("exam_board", value)}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select exam board..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {boardOptions.map((b) => (
-                          <SelectItem key={b} value={b}>{b}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {formErrors.exam_board && <p className="text-destructive text-xs mt-1">{formErrors.exam_board}</p>}
-                    {lesson.exam_board === "Other" && (
-                      <Input
-                        className="mt-2"
-                        placeholder="Enter exam board..."
-                        value={lesson.custom_exam_board || ""}
-                        onChange={(e) => updateField("custom_exam_board", e.target.value)}
-                      />
-                    )}
-                  </motion.div>
-                )}
               </div>
 
-              {/* Objectives & Outcomes */}
-              <Separator />
+              <Separator className="my-8" />
+
+              {/* Objectives & Outcomes with bullet points */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Objectives */}
                 <div>
-                  <Label className={formErrors.objectives ? "text-destructive" : ""}>Objectives <span className="text-destructive">*</span></Label>
+                  <Label className={formErrors.objectives ? "text-destructive" : ""}>
+                    Objectives <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => {
                       let value = e.target.value;
-                      if (!value.startsWith("• ")) value = "• " + value.replace(/^\s+/, "");
+                      // Ensure first bullet is always present
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
                       updateField("objectives", value);
                     }}
-                    onKeyDown={(e) => {
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                       const target = e.target as HTMLTextAreaElement;
                       const { selectionStart, selectionEnd, value } = target;
+
+                      // Enter → new bullet
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        const newValue = value.substring(0, selectionStart) + "\n• " + value.substring(selectionEnd);
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
                         updateField("objectives", newValue);
-                        setTimeout(() => { target.selectionStart = target.selectionEnd = selectionStart + 3; }, 0);
+                        // Restore cursor position after React state update
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
                       }
-                      if (e.key === "Backspace" && selectionStart >= 2 && value.substring(selectionStart - 2, selectionStart) === "• ") {
+
+                      // Backspace → remove bullet cleanly
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
                         e.preventDefault();
-                        const newValue = value.substring(0, selectionStart - 2) + value.substring(selectionEnd);
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
                         updateField("objectives", newValue);
                       }
                     }}
                     placeholder={"What you intend to teach or what students will learn during instruction"}
-                    className={formErrors.objectives ? "border-destructive" : ""}
                   />
-                  {formErrors.objectives && <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>}
+                  {formErrors.objectives && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>
+                  )}
                 </div>
 
+                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
                     value={lesson.outcomes || ""}
                     onChange={(e) => {
                       let value = e.target.value;
-                      if (!value.startsWith("• ")) value = "• " + value.replace(/^\s+/, "");
+                      if (!value.startsWith("• ")) {
+                        value = "• " + value.replace(/^\s+/, "");
+                      }
                       updateField("outcomes", value);
                     }}
-                    onKeyDown={(e) => {
+                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                       const target = e.target as HTMLTextAreaElement;
                       const { selectionStart, selectionEnd, value } = target;
+
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        const newValue = value.substring(0, selectionStart) + "\n• " + value.substring(selectionEnd);
+                        const newValue =
+                          value.substring(0, selectionStart) +
+                          "\n• " +
+                          value.substring(selectionEnd);
                         updateField("outcomes", newValue);
-                        setTimeout(() => { target.selectionStart = target.selectionEnd = selectionStart + 3; }, 0);
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = selectionStart + 3;
+                        }, 0);
+                      }
+
+                      if (
+                        e.key === "Backspace" &&
+                        selectionStart >= 2 &&
+                        value.substring(selectionStart - 2, selectionStart) === "• "
+                      ) {
+                        e.preventDefault();
+                        const newValue =
+                          value.substring(0, selectionStart - 2) +
+                          value.substring(selectionEnd);
+                        updateField("outcomes", newValue);
                       }
                     }}
                     placeholder={"What the students will be able to do independently after learning takes place"}
-                  />
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* detailed Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Specialist Subject Knowledge Required</Label>
-                  <Textarea
-                    value={lesson.specialist_subject_knowledge_required || ""}
-                    onChange={(e) =>
-                      updateField(
-                        "specialist_subject_knowledge_required",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Knowledge Revisited</Label>
-                  <Textarea
-                    value={lesson.knowledge_revisited || ""}
-                    onChange={(e) =>
-                      updateField("knowledge_revisited", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Subject Pedagogies</Label>
-                  <Textarea
-                    value={lesson.subject_pedagogies || ""}
-                    onChange={(e) =>
-                      updateField("subject_pedagogies", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Literacy Opportunities</Label>
-                  <Textarea
-                    value={lesson.literacy_opportunities || ""}
-                    onChange={(e) =>
-                      updateField("literacy_opportunities", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Numeracy Opportunities</Label>
-                  <Textarea
-                    value={lesson.numeracy_opportunities || ""}
-                    onChange={(e) =>
-                      updateField("numeracy_opportunities", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Health and Safety Considerations</Label>
-                  <Textarea
-                    value={lesson.health_and_safety_considerations || ""}
-                    onChange={(e) =>
-                      updateField(
-                        "health_and_safety_considerations",
-                        e.target.value
-                      )
-                    }
                   />
                 </div>
               </div>
@@ -750,7 +705,7 @@ export default function EditLessonFormDetailed() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  How will you measure student progress? What worked?
+                  How will you measure your first_name's progress? What worked?
                 </p>
                 <Textarea
                   placeholder="• Evaluation notes..."
