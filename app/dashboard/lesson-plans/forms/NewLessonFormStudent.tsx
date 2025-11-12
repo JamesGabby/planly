@@ -124,11 +124,15 @@ export default function NewLessonFormStandard() {
   }
 
   function removeStage(index: number) {
-    setStages((prev) =>
-      prev.filter(
-        (_, i) => i !== index && !["Starter", "Plenary"].includes(prev[i].stage)
-      )
-    );
+    setStages((prev) => {
+      // Don't allow removal of Starter or Plenary
+      if (["Starter", "Plenary"].includes(prev[index].stage)) {
+        return prev;
+      }
+
+      // Remove only the clicked stage
+      return prev.filter((_, i) => i !== index);
+    });
   }
 
   function validateForm() {
