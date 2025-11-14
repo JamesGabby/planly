@@ -1,21 +1,15 @@
 import { FocusTrap } from "focus-trap-react";
 import { useScroll, useTransform, AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
-import { LessonPlan } from "../types/lesson_teacher";
-import { TutorLessonPlan } from "../types/lesson_tutor";
-import { ExpandedLessonView } from "./expanded-lesson-card/ExpandedLessonView";
-import { useUserMode } from "@/components/UserModeContext";
-import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
-import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView";
 import { ExpandedStudentView } from "./expanded-lesson-card/ExpandedStudentView";
-import { StudentProfile } from "../types/student_profile_tutor";
+import { StudentProfileTutor } from "../types/student_profile_tutor";
 
 /* --- MOBILE MODAL --- */
 export function StudentMobileResponsiveModal({
   student,
   onClose,
 }: {
-  student: StudentProfile;
+  student: StudentProfileTutor;
   onClose: () => void;
 }) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;

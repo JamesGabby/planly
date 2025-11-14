@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "../types/lesson_teacher";
+import { StudentProfileTeacher } from "../types/student_profile_teacher";
 import { FiltersCard } from "../components/FiltersCard";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
@@ -16,13 +16,12 @@ import { StudentCardTeacher } from "../components/lesson-cards/StudentCardTeache
 const supabase = createClient();
 
 export default function StudentProfilesDashboard() {
-  const [lessons, setLessons] = useState<LessonPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   const ITEMS_PER_PAGE = 6;
@@ -54,7 +53,7 @@ export default function StudentProfilesDashboard() {
   }
   
   const filtered = useMemo(() => {
-    return students.filter((s) => {
+    return students.filter((s: StudentProfileTeacher) => {
       // Text search filter
       const matchesSearch =
         !search ||

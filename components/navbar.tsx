@@ -20,11 +20,21 @@ export function Navbar() {
   const { mode } = useUserMode();
   const pathname = usePathname();
 
-  const navLinks = [
+  const baseLinks = [
     { name: "Lessons", href: "/dashboard/lesson-plans" },
-    { name: "Students", href: "/dashboard/student-profiles"},
+    { name: "Students", href: "/dashboard/student-profiles" },
     { name: "Analytics", href: "/dashboard/analytics" },
   ];
+
+  // Insert "Classes" between Lessons (index 0) and Students (index 1)
+  const navLinks =
+    mode !== "tutor"
+      ? [
+          baseLinks[0], // Lessons
+          { name: "Classes", href: "/dashboard/classes" },
+          ...baseLinks.slice(1), // Students + Analytics
+        ]
+      : baseLinks;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md transition-colors">

@@ -16,24 +16,12 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-
-export type StudentProfile = {
-  student_id: number;
-  first_name: string | null;
-  last_name: string | null;
-  level: string | null;
-  goals: string | null;
-  interests: string | null;
-  learning_preferences: string | null;
-  strengths: string | null;
-  weaknesses: string | null;
-  notes: string | null;
-};
+import { StudentProfileTeacher } from "../../types/student_profile_teacher";
 
 export function StudentCardTeacher({
   student,
 }: {
-  student: StudentProfile;
+  student: StudentProfileTeacher;
 }) {
   const fullName =
     `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||
@@ -74,14 +62,12 @@ export function StudentCardTeacher({
             {student.goals}
           </p>
           
-
           {/* Interests */}
           <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
             <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
             {student.interests}
           </p>
           
-
           {/* Strengths */}
           <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
             <BicepsFlexed className="w-3.5 h-3.5 mt-1 shrink-0" />

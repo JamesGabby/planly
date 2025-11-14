@@ -173,7 +173,6 @@ export default function TutorStudentProfilesDashboard() {
                       />
                     </Link>
                   </motion.div>
-
                 ))}
               </motion.div>
 

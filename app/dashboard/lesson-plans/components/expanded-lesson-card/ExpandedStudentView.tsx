@@ -3,21 +3,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { Printer } from "lucide-react";
+import { StudentProfileTeacher } from "../../types/student_profile_teacher";
 
-export interface StudentProfile {
-  student_id: number;
-  first_name: string | null;
-  last_name: string | null;
-  level?: string | null;
-  goals?: string | null;
-  interests?: string | null;
-  learning_preferences?: string | null;
-  strengths?: string | null;
-  weaknesses?: string | null;
-  notes?: string | null;
-}
-
-export function ExpandedStudentView({ student }: { student: StudentProfile }) {
+export function ExpandedStudentView({ student }: { student: StudentProfileTeacher }) {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
