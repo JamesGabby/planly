@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
+import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
 import { useUserMode } from "@/components/UserModeContext";
-import { StudentProfile } from "../types/student_profile";
+import { StudentProfile } from "../types/student_profile_tutor";
 
 /* --- DELETE CONFIRM MODAL --- */
 export function DeleteConfirmModal({

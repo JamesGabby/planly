@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
+import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { FormSkeleton } from "../../skeletons/FormSkeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";

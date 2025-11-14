@@ -13,19 +13,19 @@ import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonCardTutor } from "../components/lesson-cards/LessonCardTutor";
-import { TutorLessonPlan } from "../types/lesson_tutor";
+import { LessonPlanTutor } from "../types/lesson_tutor";
 
 const supabase = createClient();
 
 export default function TutorLessonPlansDashboard() {
-  const [lessons, setLessons] = useState<TutorLessonPlan[]>([]);
+  const [lessons, setLessons] = useState<LessonPlanTutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<TutorLessonPlan | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<TutorLessonPlan | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<LessonPlanTutor | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<LessonPlanTutor | null>(null);
 
   const ITEMS_PER_PAGE = 6;
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -71,7 +71,7 @@ export default function TutorLessonPlansDashboard() {
   // Extract unique "classes" (students)
   const classes = useMemo(() => {
     const set = new Set<string>();
-    lessons.forEach((l) => {
+    lessons.forEach((l: LessonPlanTutor) => {
       const name = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
       if (name) set.add(name);
     });
@@ -137,7 +137,7 @@ export default function TutorLessonPlansDashboard() {
     }
   }
 
-  async function handleDuplicateLesson(lesson: TutorLessonPlan) {
+  async function handleDuplicateLesson(lesson: LessonPlanTutor) {
     try {
       // Remove fields Supabase auto-generates
       const { id, created_at, updated_at, ...copy } = lesson;
@@ -186,7 +186,7 @@ export default function TutorLessonPlansDashboard() {
       ? "scale-[0.987] blur-sm transition-all duration-300"
       : "transition-all duration-300";
 
-  const renderLessonCard = (lp: TutorLessonPlan) => {
+  const renderLessonCard = (lp: LessonPlanTutor) => {
     const commonProps = {
       onDelete: () => setConfirmDelete(lp),
       onDuplicate: () => handleDuplicateLesson(lp),

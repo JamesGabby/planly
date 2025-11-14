@@ -16,7 +16,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
+import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { prettyDate, prettyTime } from "../../utils/helpers";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";

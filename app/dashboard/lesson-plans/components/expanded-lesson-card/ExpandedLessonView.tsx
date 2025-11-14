@@ -1,6 +1,6 @@
 'use client'
 
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
+import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";

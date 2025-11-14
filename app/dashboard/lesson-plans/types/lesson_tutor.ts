@@ -9,7 +9,7 @@ type Resource = {
 };
 
 
-export type TutorLessonPlan = {
+export type LessonPlanTutor = {
   id: string; // UUID
   user_id: string; // UUID
   student_id: string 
@@ -39,5 +39,9 @@ export type TutorLessonPlan = {
   subject?: string;
   first_name?: string,
   last_name?: string,
+  student_profiles?: {
+    first_name?: string,
+    last_name?: string,
+  }
 };
 

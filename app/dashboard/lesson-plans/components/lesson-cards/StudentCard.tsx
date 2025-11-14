@@ -15,6 +15,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { StudentProfileTutor } from "../../types/student_profile_tutor";
 
 export type StudentProfile = {
   student_id: number;
@@ -32,7 +33,7 @@ export type StudentProfile = {
 export function StudentCard({
   student,
 }: {
-  student: StudentProfile;
+  student: StudentProfileTutor;
 }) {
   const fullName =
     `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||

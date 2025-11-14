@@ -8,8 +8,7 @@ type Resource = {
   url?: string;
 };
 
-
-export type LessonPlan = {
+export type LessonPlanTeacher = {
   student_profiles: any;
   id: string; // UUID
   user_id: string; // UUID

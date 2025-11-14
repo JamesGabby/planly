@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FiltersCard } from "../components/FiltersCard";
@@ -11,11 +11,12 @@ import { Pagination } from "@/components/pagination";
 import "react-toastify/dist/ReactToastify.css";
 import { StudentCard } from "../components/lesson-cards/StudentCard";
 import Link from "next/link";
+import { StudentProfileTutor } from "../types/student_profile_tutor";
 
 const supabase = createClient();
 
 export default function TutorStudentProfilesDashboard() {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<StudentProfileTutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -24,8 +25,6 @@ export default function TutorStudentProfilesDashboard() {
 
 
   const [error, setError] = useState<string | null>(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
@@ -58,7 +57,7 @@ export default function TutorStudentProfilesDashboard() {
   // Extract unique "classes" (students)
   const classes = useMemo(() => {
     const set = new Set<string>();
-    students.forEach((s) => {
+    students.forEach((s: StudentProfileTutor) => {
       const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
       if (name) set.add(name);
     });
@@ -67,13 +66,13 @@ export default function TutorStudentProfilesDashboard() {
 
   // Apply filters
   const filtered = useMemo(() => {
-    return students.filter((s) => {
+    return students.filter((s: StudentProfileTutor) => {
       const studentName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
 
       if (selectedClass && studentName !== selectedClass) return false;
 
       if (dateFilter) {
-        const createdDate = new Date(s.created_at).toISOString().split("T")[0];
+        const createdDate = new Date(s.created_at ?? "").toISOString().split("T")[0];
         if (createdDate !== dateFilter) return false;
       }
 
@@ -87,7 +86,6 @@ export default function TutorStudentProfilesDashboard() {
         (s.strengths ?? "").toLowerCase().includes(srch) ||
         (s.weaknesses ?? "").toLowerCase().includes(srch) ||
         (s.notes ?? "").toLowerCase().includes(srch) ||
-        (s.special_educational_needs ?? "").toLowerCase().includes(srch) ||
         (s.interests ?? "").toLowerCase().includes(srch) ||
         studentName.toLowerCase().includes(srch)
       );
@@ -99,15 +97,12 @@ export default function TutorStudentProfilesDashboard() {
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
 
-  const backgroundClass =
-    selectedStudent || confirmDelete
-      ? "scale-[0.987] blur-sm transition-all duration-300"
-      : "transition-all duration-300";
+  
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
-        <div className={backgroundClass}>
+        <div>
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
@@ -163,7 +158,7 @@ export default function TutorStudentProfilesDashboard() {
                 layout
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
               >
-                {paginated.map((student) => (
+                {paginated.map((student: StudentProfileTutor) => (
                   <motion.div
                     key={student.student_id}
                     whileHover={{ scale: 1.02 }}
@@ -175,10 +170,6 @@ export default function TutorStudentProfilesDashboard() {
                     >
                       <StudentCard
                         student={student}
-                        onDelete={(e) => {
-                          e.preventDefault(); // Prevent link click when deleting
-                          setConfirmDelete(student);
-                        }}
                       />
                     </Link>
                   </motion.div>

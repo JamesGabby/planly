@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "../types/lesson";
+import { LessonPlan } from "../types/lesson_teacher";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { LessonCard } from "../components/lesson-cards/LessonCard";
 import { MobileResponsiveModal } from "../components/MobileResponsiveModal";

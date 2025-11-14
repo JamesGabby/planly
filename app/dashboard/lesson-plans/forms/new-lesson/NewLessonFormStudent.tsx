@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson";
+import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
