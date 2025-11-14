@@ -1,5 +1,5 @@
 export type Class = {
-  id: string; // UUID
+  class_id: string; // UUID
   created_at?: string; // ISO timestamp
   updated_at?: string; // ISO timestamp
   created_by: string;

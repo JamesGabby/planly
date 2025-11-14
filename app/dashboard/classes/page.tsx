@@ -143,12 +143,12 @@ export default function ClassesDashboard() {
             >
               {paginated.map((cls) => (
                 <motion.div
-                  key={cls.class_id ?? cls.id}  // handles both naming styles
+                  key={cls.class_id}  // handles both naming styles
                   whileHover={{ scale: 1.02 }}
                   className="h-full"
                 >
                   <Link
-                    href={`/dashboard/classes/${cls.class_id ?? cls.id}`}
+                    href={`/dashboard/classes/${cls.class_id}`}
                     className="block cursor-pointer h-full"
                   >
                     <ClassCard class_data={cls} />

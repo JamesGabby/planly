@@ -12,10 +12,7 @@ import { cn } from "@/lib/utils";
 import { Class } from "../../types/class";
 
 export function ClassCard({ class_data }: { class_data: Class }) {
-  // Ensure students exists and is in the expected format:
-
-console.log(class_data.students);
-
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
