@@ -95,16 +95,42 @@ export default function NewTeacherStudentProfileForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a student profile.");
 
-      const { error: insertError } = await supabase.from("teacher_student_profiles").insert([
-        {
-          ...student,
-          created_by: user.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
+      // 1️⃣ INSERT STUDENT + RETURN ID
+      const { data: newStudent, error: insertError } = await supabase
+        .from("teacher_student_profiles")
+        .insert([
+          {
+            ...student,
+            created_by: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select("student_id")       // ⬅️ return new student_id !
+        .single();
 
       if (insertError) throw insertError;
+
+      // 2️⃣ GET THE CLASS ID BASED ON class_name
+      const { data: classRow, error: classError } = await supabase
+        .from("classes")
+        .select("class_id")
+        .eq("class_name", student.class_name)
+        .single();
+
+      if (classError) throw classError;
+
+      // 3️⃣ INSERT LINK INTO class_students
+      const { error: linkError } = await supabase
+        .from("class_students")
+        .insert([
+          {
+            class_id: classRow.class_id,
+            student_id: newStudent.student_id,
+          },
+        ]);
+
+      if (linkError) throw linkError;
 
       toast.success("Student profile created successfully!");
       router.push("/dashboard/student-profiles");

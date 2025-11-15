@@ -12,6 +12,7 @@ import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton
 import Link from "next/link";
 import { ClassCard } from "../lesson-plans/components/lesson-cards/ClassCard";
 import { Class } from "../lesson-plans/types/class";
+import { StudentProfileTeacher } from "../lesson-plans/types/student_profile_teacher";
 
 const supabase = createClient();
 
@@ -72,7 +73,7 @@ export default function ClassesDashboard() {
         !search ||
         c.class_name?.toLowerCase().includes(searchLower) ||
         c.year_group?.toLowerCase().includes(searchLower) ||
-        c.students?.some((s: any) => {
+        c.students?.some((s: StudentProfileTeacher) => {
           const first = s.first_name?.toLowerCase() || "";
           const last = s.last_name?.toLowerCase() || "";
           const full = `${first} ${last}`;
