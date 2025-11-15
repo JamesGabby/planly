@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FiltersCard } from "../lesson-plans/components/FiltersCard";
 import { FiltersCardNoDate } from "../lesson-plans/components/FiltersCardNoDate";
 import { Pagination } from "@/components/pagination";
 import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
@@ -19,7 +18,6 @@ const supabase = createClient();
 export default function ClassesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -118,9 +116,6 @@ export default function ClassesDashboard() {
           <div className="flex gap-2 shrink-0">
             <Button variant="outline" onClick={fetchClasses}>
               Refresh
-            </Button>
-            <Button asChild>
-              <a href="/dashboard/classes/new">Add Class</a>
             </Button>
           </div>
         </div>
