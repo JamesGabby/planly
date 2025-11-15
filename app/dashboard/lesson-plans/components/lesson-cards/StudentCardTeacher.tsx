@@ -50,7 +50,7 @@ export function StudentCardTeacher({
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <GraduationCap className="w-3.5 h-3.5" />
-            Class: {student.class_name}
+            Classes: {student.class_name}
           </div>
         </CardHeader>
 

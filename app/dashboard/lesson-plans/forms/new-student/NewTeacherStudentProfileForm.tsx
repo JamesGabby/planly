@@ -10,7 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -32,6 +39,7 @@ export default function NewTeacherStudentProfileForm() {
     notes: "",
   });
 
+  const [customClass, setCustomClass] = useState(""); // NEW
   const [classes, setClasses] = useState<string[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,7 +52,7 @@ export default function NewTeacherStudentProfileForm() {
     }
   }, [error, formErrors]);
 
-  // 🆕 Fetch class names from Supabase
+  // Fetch class list
   useEffect(() => {
     async function fetchClasses() {
       try {
@@ -91,11 +99,15 @@ export default function NewTeacherStudentProfileForm() {
     }
 
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a student profile.");
 
-      // 1️⃣ INSERT STUDENT + RETURN ID
+      // Insert student
       const { data: newStudent, error: insertError } = await supabase
         .from("teacher_student_profiles")
         .insert([
@@ -106,21 +118,32 @@ export default function NewTeacherStudentProfileForm() {
             updated_at: new Date().toISOString(),
           },
         ])
-        .select("student_id")       // ⬅️ return new student_id !
+        .select("student_id")
         .single();
 
       if (insertError) throw insertError;
 
-      // 2️⃣ GET THE CLASS ID BASED ON class_name
-      const { data: classRow, error: classError } = await supabase
+      // 1. Check if class already exists
+      let { data: classRow, error: classLookupError } = await supabase
         .from("classes")
         .select("class_id")
         .eq("class_name", student.class_name)
-        .single();
+        .maybeSingle(); // IMPORTANT: allows 0 rows without throwing
 
-      if (classError) throw classError;
+      // 2. If class doesn't exist, create it
+      if (!classRow) {
+        const { data: newClass, error: insertClassError } = await supabase
+          .from("classes")
+          .insert([{ class_name: student.class_name }])
+          .select("class_id")
+          .single();
 
-      // 3️⃣ INSERT LINK INTO class_students
+        if (insertClassError) throw insertClassError;
+
+        classRow = newClass; // now we have class_id
+      }
+
+      // Link class + student
       const { error: linkError } = await supabase
         .from("class_students")
         .insert([
@@ -172,7 +195,9 @@ export default function NewTeacherStudentProfileForm() {
                     placeholder="First Name"
                   />
                   {formErrors.first_name && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
+                    <p className="text-destructive text-xs mt-1">
+                      {formErrors.first_name}
+                    </p>
                   )}
                 </div>
 
@@ -187,33 +212,70 @@ export default function NewTeacherStudentProfileForm() {
                     placeholder="Last Name"
                   />
                   {formErrors.last_name && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.last_name}</p>
+                    <p className="text-destructive text-xs mt-1">
+                      {formErrors.last_name}
+                    </p>
                   )}
                 </div>
 
-                {/* 🆕 Class Dropdown using shadcn/ui Select */}
+                {/* Class Dropdown */}
                 <div>
                   <Label className={formErrors.level ? "text-destructive" : ""}>
                     Class <span className="text-destructive">*</span>
                   </Label>
+
                   <Select
-                    value={student.class_name}
-                    onValueChange={(value) => updateField("class_name", value)}
+                    value={
+                      classes.includes(student.class_name)
+                        ? student.class_name
+                        : "other"
+                    }
+                    onValueChange={(value) => {
+                      if (value === "other") {
+                        updateField("class_name", "");
+                        setCustomClass("");
+                      } else {
+                        updateField("class_name", value);
+                        setCustomClass("");
+                      }
+                    }}
                     disabled={loadingClasses}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={loadingClasses ? "Loading classes..." : "Select a class"} />
+                      <SelectValue
+                        placeholder={
+                          loadingClasses ? "Loading classes..." : "Select a class"
+                        }
+                      />
                     </SelectTrigger>
+
                     <SelectContent>
                       {classes.map((className) => (
                         <SelectItem key={className} value={className}>
                           {className}
                         </SelectItem>
                       ))}
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+
                   {formErrors.level && (
                     <p className="text-destructive text-xs mt-1">{formErrors.level}</p>
+                  )}
+
+                  {/* Custom Class Input */}
+                  {!classes.includes(student.class_name) && (
+                    <div className="mt-2">
+                      <Label>Custom Class Name</Label>
+                      <Input
+                        value={customClass}
+                        onChange={(e) => {
+                          setCustomClass(e.target.value);
+                          updateField("class_name", e.target.value);
+                        }}
+                        placeholder="Enter custom class name"
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -234,7 +296,9 @@ export default function NewTeacherStudentProfileForm() {
                   <Label>{label}</Label>
                   <Textarea
                     value={student[key as keyof typeof student] || ""}
-                    onChange={(e) => updateField(key as keyof typeof student, e.target.value)}
+                    onChange={(e) =>
+                      updateField(key as keyof typeof student, e.target.value)
+                    }
                     placeholder={`Enter ${label.toLowerCase()}...`}
                     className="min-h-[100px]"
                   />

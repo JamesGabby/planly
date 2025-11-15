@@ -23,9 +23,29 @@ export default function StudentProfilesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [classes, setClasses] = useState<string[]>([]);
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  async function fetchClasses() {
+    try {
+      const { data, error } = await supabase
+        .from("classes")
+        .select("class_name")
+        .order("class_name", { ascending: true });
+
+      if (error) throw error;
+
+      setClasses(data?.map((c) => c.class_name) || []);
+    } catch (err: any) {
+      console.error("Failed to load classes", err);
+    }
+  }
 
   useEffect(() => {
     fetchStudents();
@@ -90,12 +110,6 @@ export default function StudentProfilesDashboard() {
     selectedStudent 
       ? "scale-[0.987] blur-sm transition-all duration-300"
       : "transition-all duration-300";
-
-  const classes = useMemo(() => {
-    const set = new Set<string>();
-    students.forEach((l) => l.class_name && set.add(l.class_name));
-    return Array.from(set).sort();
-  }, [students]);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
