@@ -44,11 +44,24 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     async function fetchStudent() {
       const { data, error } = await supabase
         .from("teacher_student_profiles")
-        .select("*")
+        .select(`
+          *,
+          classes:class_students(
+            class:classes(class_name)
+          )
+        `)
         .eq("student_id", id)
         .single();
 
-      if (!error && data) setStudent(data);
+      if (!error && data) {
+        // Flatten classes to a string for display
+        const classNames = (data.classes ?? [])
+          .map((c: any) => c.class?.class_name)
+          .filter(Boolean)
+          .join(", ");
+        setStudent({ ...data, class_name: classNames });
+      }
+
       setLoading(false);
     }
     fetchStudent();
@@ -95,7 +108,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     );
 
   const fields = [
-    { label: "Class", key: "class_name", icon: <GraduationCap /> },
+    { label: "Classes", key: "class_name", icon: <GraduationCap />, readOnly: true },
     { label: "Goals", key: "goals", icon: <Target /> },
     { label: "Interests", key: "interests", icon: <Sparkles /> },
     { label: "Learning Preferences", key: "learning_preferences", icon: <BrainCircuit /> },
@@ -159,7 +172,11 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {editMode ? (
+                    {field.readOnly ? (
+                      <span className="whitespace-pre-wrap text-muted-foreground">
+                        {student[field.key] || <span className="italic opacity-60">Not provided</span>}
+                      </span>
+                    ) : editMode ? (
                       <Textarea
                         value={student[field.key] || ""}
                         onChange={(e) => handleChange(field.key, e.target.value)}
@@ -167,7 +184,9 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
                         className="resize-none w-full"
                       />
                     ) : student[field.key] ? (
-                      <span className="whitespace-pre-wrap">{student[field.key]}</span>
+                      <span className="whitespace-pre-wrap text-muted-foreground">
+                        {student[field.key]}
+                      </span>
                     ) : (
                       <span className="italic opacity-60">Not provided</span>
                     )}
@@ -197,7 +216,11 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
                   {field.icon} {field.label}
                 </div>
 
-                {editMode ? (
+                {field.readOnly ? (
+                  <span className="whitespace-pre-wrap text-muted-foreground">
+                    {student[field.key] || <span className="italic opacity-60">Not provided</span>}
+                  </span>
+                ) : editMode ? (
                   <Textarea
                     value={student[field.key] || ""}
                     onChange={(e) => handleChange(field.key, e.target.value)}
@@ -205,13 +228,11 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
                     className="resize-none w-full"
                   />
                 ) : student[field.key] ? (
-                  <p className="whitespace-pre-wrap text-muted-foreground">
+                  <span className="whitespace-pre-wrap text-muted-foreground">
                     {student[field.key]}
-                  </p>
+                  </span>
                 ) : (
-                  <p className="italic text-muted-foreground opacity-60">
-                    Not provided
-                  </p>
+                  <span className="italic opacity-60">Not provided</span>
                 )}
 
                 {/* Saving & timestamps */}
