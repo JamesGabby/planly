@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FiltersCard } from "../lesson-plans/components/FiltersCard";
+import { FiltersCardNoDate } from "../lesson-plans/components/FiltersCardNoDate";
 import { Pagination } from "@/components/pagination";
 import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
 import Link from "next/link";
@@ -20,9 +21,11 @@ export default function ClassesDashboard() {
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
   const [classes, setClasses] = useState<Class[]>([]);
+  const [selectedClass, setSelectedClass] = useState("");
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
+  console.log(classes);
 
   useEffect(() => {
     fetchClasses();
@@ -63,20 +66,36 @@ export default function ClassesDashboard() {
 
   const filtered = useMemo(() => {
     return classes.filter((c) => {
+      const searchLower = search.toLowerCase();
+
       const matchesSearch =
         !search ||
-        c.class_name?.toLowerCase().includes(search.toLowerCase()) ||
-        c.year_group?.toLowerCase().includes(search.toLowerCase());
+        c.class_name?.toLowerCase().includes(searchLower) ||
+        c.year_group?.toLowerCase().includes(searchLower) ||
+        c.students?.some((s: any) => {
+          const first = s.first_name?.toLowerCase() || "";
+          const last = s.last_name?.toLowerCase() || "";
+          const full = `${first} ${last}`;
 
-      const matchesDate =
-        !dateFilter ||
-        (c.created_at &&
-          new Date(c.created_at).toDateString() ===
-            new Date(dateFilter).toDateString());
+          return (
+            first.includes(searchLower) ||
+            last.includes(searchLower) ||
+            full.includes(searchLower)
+          );
+        });
 
-      return matchesSearch && matchesDate;
+      const matchesClass =
+        !selectedClass || c.class_name === selectedClass;
+
+      return matchesSearch && matchesClass;
     });
-  }, [classes, search, dateFilter]);
+  }, [classes, search, selectedClass]);
+
+  const filteredClasses = useMemo(() => {
+      const set = new Set<string>();
+      classes.forEach((l) => l.class_name && set.add(l.class_name));
+      return Array.from(set).sort();
+    }, [classes]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -108,14 +127,12 @@ export default function ClassesDashboard() {
         <Separator className="my-6" />
 
         {/* Filters */}
-        <FiltersCard
+        <FiltersCardNoDate
           search={search}
           setSearch={setSearch}
-          selectedClass=""
-          setSelectedClass={() => {}}
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-          classes={[]}
+          selectedClass={selectedClass}
+          setSelectedClass={setSelectedClass}
+          classes={filteredClasses}
         />
 
         <Separator className="my-6" />

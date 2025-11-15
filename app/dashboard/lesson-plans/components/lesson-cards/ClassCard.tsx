@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GraduationCap, Users } from "lucide-react";
+import { GraduationCap, User, Users } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -34,7 +34,7 @@ export function ClassCard({ class_data }: { class_data: Class }) {
           </CardTitle>
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <GraduationCap className="w-3.5 h-3.5" />
+            <Users className="w-3.5 h-3.5" />
             {class_data.students.length} student{class_data.students.length !== 1 ? "s" : ""}
           </div>
         </CardHeader>
@@ -52,7 +52,7 @@ export function ClassCard({ class_data }: { class_data: Class }) {
                   key={student.student_id}
                   className="text-sm text-foreground flex items-center gap-2"
                 >
-                  <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                  <User className="w-3.5 h-3.5 text-muted-foreground" />
                   {student.first_name} {student.last_name}
                 </div>
               ))}

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useUserMode } from "@/components/UserModeContext";
+import { generateKey } from "crypto";
 
 export function ClassSelect({
   classes,
