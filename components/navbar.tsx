@@ -59,7 +59,7 @@ export function Navbar() {
                   transition-all duration-300
                   ${isActive ? 
                     "text-primary font-semibold" : 
-                    "text-foreground/70 hover:text-foreground"
+                    "text-foreground/90 hover:text-foreground"
                   }
                   after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full 
                   after:scale-x-0 after:bg-primary after:rounded-full
@@ -100,7 +100,7 @@ export function Navbar() {
                   className={`
                     w-full py-2 relative
                     transition-all duration-300
-                    ${isActive ? "text-primary font-semibold" : "text-foreground/70 hover:text-foreground"}
+                    ${isActive ? "text-primary font-semibold" : "text-foreground/90 hover:text-foreground"}
                     after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full 
                     after:scale-x-0 after:bg-primary after:rounded-full
                     after:transition-transform after:duration-300
