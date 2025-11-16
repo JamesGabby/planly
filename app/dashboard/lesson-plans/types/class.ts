@@ -1,3 +1,5 @@
+import { StudentProfileTeacher } from "./student_profile_teacher";
+
 export type Class = {
   class_id: string; // UUID
   created_at?: string; // ISO timestamp
@@ -7,3 +9,11 @@ export type Class = {
   year_group: string;
   students: {};  
 };
+
+export interface ClassStudentJoin {
+  student: StudentProfileTeacher | null;
+}
+
+export interface ClassWithStudents extends Class {
+  students: StudentProfileTeacher[];
+}

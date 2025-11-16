@@ -10,6 +10,7 @@ import { LessonCardSkeleton } from "@/app/dashboard/lesson-plans/skeletons/Lesso
 import { Pagination } from "@/components/pagination";
 import Link from "next/link";
 import { StudentCardClass } from "../../lesson-plans/components/lesson-cards/StudentCardClass";
+import { ClassStudentJoin } from "../../lesson-plans/types/class";
 
 interface Props {
   params: Promise<{ id: string }>; // params is now a Promise
@@ -25,6 +26,7 @@ export default function ClassStudentsPage({ params }: Props) {
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
+
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
@@ -56,17 +58,20 @@ export default function ClassStudentsPage({ params }: Props) {
         .select(`
           student:teacher_student_profiles(*)
         `)
-        .eq("class_id", id);
+        .eq("class_id", id)
+        .returns<ClassStudentJoin[]>();  // ← FULL TYPE SAFETY
 
       if (error) throw error;
 
-      setStudents(
-        (data ?? [])
-          .map((row: any) => row.student)
-          .filter(Boolean)
-      );
-    } catch (err: any) {
-      setError(err.message);
+      const studentsClean = data
+        .map((row) => row.student)
+        .filter((s): s is StudentProfileTeacher => s !== null);
+
+      setStudents(studentsClean);
+
+    } catch (err) {
+      const errorObj = err as Error;
+      setError(errorObj.message);
     } finally {
       setLoading(false);
     }
@@ -121,7 +126,7 @@ export default function ClassStudentsPage({ params }: Props) {
               Refresh
             </Button>
             <Button asChild>
-              <a href="/dashboard/student-profiles/new">Add Student</a>
+              <Link href="/dashboard/student-profiles/new">Add Student</Link>
             </Button>
           </div>
         </div>
@@ -153,7 +158,7 @@ export default function ClassStudentsPage({ params }: Props) {
           <div className="text-center py-10">
             <p>No students found in this class.</p>
             <Button asChild className="mt-4">
-              <a href="/dashboard/student-profiles/new">Add Student</a>
+              <Link href="/dashboard/student-profiles/new">Add Student</Link>
             </Button>
           </div>
         ) : (

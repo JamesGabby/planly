@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Pagination } from "@/components/pagination";
 import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
 import Link from "next/link";
 import { ClassCard } from "../lesson-plans/components/lesson-cards/ClassCard";
-import { Class } from "../lesson-plans/types/class";
+import { Class, ClassStudentJoin, ClassWithStudents } from "../lesson-plans/types/class";
 import { StudentProfileTeacher } from "../lesson-plans/types/student_profile_teacher";
 import { useUserMode } from "@/components/UserModeContext";
 import { redirect } from "next/navigation";
@@ -30,42 +30,42 @@ export default function ClassesDashboard() {
   const { mode } = useUserMode();
   if (mode === 'tutor') redirect('/dashboard/student-profiles')
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  async function fetchClasses() {
+  const fetchClasses = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("classes")
         .select(`
           *,
           students:class_students(
             student:teacher_student_profiles(*)
           )
-        `);
+        `)
+        .returns<(Class & { students: ClassStudentJoin[] })[]>()
 
       if (error) throw error;
 
-      // 🔥 Ensure students format is always safe
-      const normalized = (data ?? []).map((cls) => ({
+      const normalized: ClassWithStudents[] = (data ?? []).map((cls) => ({
         ...cls,
-        students: Array.isArray(cls.students)
-          ? cls.students.map((s: any) => s?.student).filter(Boolean)
-          : [],
+        students: cls.students
+          .map((s) => s.student)
+          .filter((s): s is StudentProfileTeacher => s !== null),
       }));
 
       setClasses(normalized);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to load classes");
+    } catch (err) {
+      const errorObj = err as Error;
+      setError(errorObj.message);
     } finally {
       setLoading(false);
     }
-  }
+  }, []); // <-- NO DEPENDENCIES (fetches all classes, no params)
+
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
 
   const filtered = useMemo(() => {
     return classes.filter((c) => {
@@ -149,7 +149,7 @@ export default function ClassesDashboard() {
           <div className="text-center py-10">
             <p>No classes found.</p>
             <Button className="mt-4" asChild>
-              <a href="/dashboard/classes/new">Add Class</a>
+              <Link href="/dashboard/classes/new">Add Class</Link>
             </Button>
           </div>
         ) : (
