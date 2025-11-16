@@ -20,9 +20,10 @@ import {
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface Props {
-  params: Promise<{ id: string }>; // params is now a Promise
+  params: Promise<{ id: string }>;
 }
 
 export default function StudentDetailTableWithTimestamp({ params }: Props) {
@@ -36,7 +37,6 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
   const [lastSaved, setLastSaved] = useState<{ [key: string]: Date | null }>({});
 
-  // Store debounce timers
   const [debounceTimers, setDebounceTimers] = useState<{ [key: string]: NodeJS.Timeout }>({});
 
   // Fetch student
@@ -54,7 +54,6 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
         .single();
 
       if (!error && data) {
-        // Flatten classes to a string for display
         const classNames = (data.classes ?? [])
           .map((c: any) => c.class?.class_name)
           .filter(Boolean)
@@ -72,7 +71,6 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     if (!student) return;
     setStudent({ ...student, [field]: value });
 
-    // Clear previous timer
     if (debounceTimers[field]) clearTimeout(debounceTimers[field]);
 
     setSaving((prev) => ({ ...prev, [field]: true }));
@@ -86,7 +84,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
       setSaving((prev) => ({ ...prev, [field]: false }));
       if (!error) setLastSaved((prev) => ({ ...prev, [field]: new Date() }));
       if (error) console.error("Error saving field", field, error.message);
-    }, 800); // 800ms debounce
+    }, 800);
 
     setDebounceTimers((prev) => ({ ...prev, [field]: timer }));
   };
@@ -107,14 +105,15 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
       </div>
     );
 
+  // Move SEN above Goals
   const fields = [
     { label: "Classes", key: "class_name", icon: <GraduationCap />, readOnly: true },
+    { label: "Special Educational Needs", key: "special_educational_needs", icon: <AlertTriangle /> },
     { label: "Goals", key: "goals", icon: <Target /> },
     { label: "Interests", key: "interests", icon: <Sparkles /> },
     { label: "Learning Preferences", key: "learning_preferences", icon: <BrainCircuit /> },
     { label: "Strengths", key: "strengths", icon: <BicepsFlexed /> },
     { label: "Areas to Improve", key: "weaknesses", icon: <ChartLine /> },
-    { label: "Special Educational Needs", key: "special_educational_needs", icon: <AlertTriangle /> },
     { label: "Notes", key: "notes", icon: <FileText /> },
   ];
 
@@ -160,8 +159,8 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-lg border bg-card text-card-foreground shadow-sm">
-        {/* Responsive Table / Card Layout */}
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          {/* Desktop Table */}
           <table className="hidden md:table w-full table-fixed text-sm">
             <tbody className="divide-y">
               {fields.map((field) => (
@@ -171,24 +170,28 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
                       {field.icon} {field.label}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {field.readOnly ? (
-                      <span className="whitespace-pre-wrap text-muted-foreground">
-                        {student[field.key] || <span className="italic opacity-60">Not provided</span>}
-                      </span>
-                    ) : editMode ? (
+                  <td
+                    className={cn(
+                      "px-4 py-3 align-top",
+                      field.key === "special_educational_needs" ? "text-yellow-500 font-medium" : "text-muted-foreground"
+                    )}
+                  >
+                    {student[field.key] ? (
+                      <div className="inline-flex items-center gap-1.5">
+                        {student[field.key]}
+                      </div>
+                    ) : (
+                      <span className="italic opacity-60">Not provided</span>
+                    )}
+
+                    {/* Edit Mode */}
+                    {editMode && !field.readOnly && (
                       <Textarea
                         value={student[field.key] || ""}
                         onChange={(e) => handleChange(field.key, e.target.value)}
                         rows={field.key === "notes" ? 5 : 2}
-                        className="resize-none w-full"
+                        className="resize-none w-full mt-1"
                       />
-                    ) : student[field.key] ? (
-                      <span className="whitespace-pre-wrap text-muted-foreground">
-                        {student[field.key]}
-                      </span>
-                    ) : (
-                      <span className="italic opacity-60">Not provided</span>
                     )}
 
                     {/* Saving indicator */}
@@ -208,31 +211,39 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
             </tbody>
           </table>
 
-          {/* ✅ Mobile card version */}
+          {/* Mobile Card Version */}
           <div className="md:hidden divide-y">
             {fields.map((field) => (
-              <div key={field.key} className="p-4 space-y-2 hover:bg-accent transition-colors">
+              <div
+                key={field.key}
+                className="p-4 space-y-2 hover:bg-accent transition-colors"
+              >
                 <div className="flex items-center gap-2 font-semibold">
                   {field.icon} {field.label}
                 </div>
 
-                {field.readOnly ? (
-                  <span className="whitespace-pre-wrap text-muted-foreground">
-                    {student[field.key] || <span className="italic opacity-60">Not provided</span>}
-                  </span>
-                ) : editMode ? (
+                {student[field.key] ? (
+                  <div className={cn(
+                    "inline-flex items-center gap-1.5",
+                    field.key === "special_educational_needs" ? "text-yellow-500 font-medium" : "text-muted-foreground"
+                  )}>
+                    {student[field.key]}
+                    {field.key === "special_educational_needs" && (
+                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    )}
+                  </div>
+                ) : (
+                  <span className="italic opacity-60">Not provided</span>
+                )}
+
+                {/* Edit Mode */}
+                {editMode && !field.readOnly && (
                   <Textarea
                     value={student[field.key] || ""}
                     onChange={(e) => handleChange(field.key, e.target.value)}
                     rows={field.key === "notes" ? 5 : 2}
-                    className="resize-none w-full"
+                    className="resize-none w-full mt-1"
                   />
-                ) : student[field.key] ? (
-                  <span className="whitespace-pre-wrap text-muted-foreground">
-                    {student[field.key]}
-                  </span>
-                ) : (
-                  <span className="italic opacity-60">Not provided</span>
                 )}
 
                 {/* Saving & timestamps */}
