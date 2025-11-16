@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GraduationCap, User, Users, AlertTriangle } from "lucide-react";
+import { User, Users, AlertTriangle } from "lucide-react";
 import {
   Card,
   CardHeader,

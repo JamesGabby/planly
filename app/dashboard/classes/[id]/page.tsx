@@ -10,6 +10,7 @@ import { LessonCardSkeleton } from "@/app/dashboard/lesson-plans/skeletons/Lesso
 import { Pagination } from "@/components/pagination";
 import Link from "next/link";
 import { StudentCardTeacher } from "../../lesson-plans/components/lesson-cards/StudentCardTeacher";
+import { StudentCardClass } from "../../lesson-plans/components/lesson-cards/StudentCardClass";
 
 interface Props {
   params: Promise<{ id: string }>; // params is now a Promise
@@ -156,7 +157,7 @@ export default function ClassStudentsPage({ params }: Props) {
                     href={`/dashboard/student-profiles/teacher/${student.student_id}`}
                     className="block cursor-pointer h-full"
                   >
-                    <StudentCardTeacher student={student} />
+                    <StudentCardClass student={student} />
                   </Link>
                 </motion.div>
               ))}
