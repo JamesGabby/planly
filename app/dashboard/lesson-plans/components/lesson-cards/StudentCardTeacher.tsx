@@ -27,6 +27,13 @@ export function StudentCardTeacher({
     `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||
     "Unnamed Student";
 
+  const noData =
+    !student.special_educational_needs &&
+    !student.goals &&
+    !student.interests &&
+    !student.strengths &&
+    !student.weaknesses;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -56,29 +63,53 @@ export function StudentCardTeacher({
 
         {/* CONTENT */}
         <CardContent className="p-4 sm:p-5 space-y-3 flex-1 overflow-hidden">
-          {/* Goals */}
-          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-            <Target className="w-3.5 h-3.5 mt-1 shrink-0" />
-            {student.goals}
-          </p>
-          
-          {/* Interests */}
-          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
-            {student.interests}
-          </p>
-          
-          {/* Strengths */}
-          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-            <BicepsFlexed className="w-3.5 h-3.5 mt-1 shrink-0" />
-            {student.strengths}
-          </p>
+          {noData ? (
+            <div className="flex flex-col items-center justify-center text-center py-6 text-sm text-muted-foreground italic">
+              <span>No additional information has been provided for this student.</span>
+            </div>
+          ) : (
+            <>
+              {/* SEN */}
+              {student.special_educational_needs && (
+                <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5 text-yellow-500">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0 text-yellow-500" />
+                  {student.special_educational_needs}
+                </p>
+              )}
 
-          {/* Weaknesses */}
-          <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
-            {student.weaknesses}
-          </p>
+              {/* Goals */}
+              {student.goals && (
+                <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+                  <Target className="w-3.5 h-3.5 mt-1 shrink-0" />
+                  {student.goals}
+                </p>
+              )}
+
+              {/* Interests */}
+              {student.interests && (
+                <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 mt-1 shrink-0" />
+                  {student.interests}
+                </p>
+              )}
+
+              {/* Strengths */}
+              {student.strengths && (
+                <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+                  <BicepsFlexed className="w-3.5 h-3.5 mt-1 shrink-0" />
+                  {student.strengths}
+                </p>
+              )}
+
+              {/* Weaknesses */}
+              {student.weaknesses && (
+                <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
+                  {student.weaknesses}
+                </p>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
     </motion.div>
