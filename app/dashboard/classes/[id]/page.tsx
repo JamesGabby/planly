@@ -34,10 +34,6 @@ export default function ClassStudentsPage({ params }: Props) {
   const [className, setClassName] = useState<string | null>(null);
   const studentCount = students.length;
 
-  useEffect(() => {
-    fetchStudentsForClass(); // uses the external function
-  }, [id]);
-
   // Wrap it to avoid re-creation
   const fetchStudentsForClass = useCallback(async () => {
     setLoading(true);
@@ -59,7 +55,7 @@ export default function ClassStudentsPage({ params }: Props) {
           student:teacher_student_profiles(*)
         `)
         .eq("class_id", id)
-        .returns<ClassStudentJoin[]>();  // ← FULL TYPE SAFETY
+        .returns<ClassStudentJoin[]>();
 
       if (error) throw error;
 
@@ -75,7 +71,11 @@ export default function ClassStudentsPage({ params }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id]); 
+
+  useEffect(() => {
+    fetchStudentsForClass();
+  }, [fetchStudentsForClass]); 
 
   // Filters
   const filtered = useMemo(() => {
