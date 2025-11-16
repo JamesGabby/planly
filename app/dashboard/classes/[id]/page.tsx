@@ -9,7 +9,6 @@ import { StudentProfileTeacher } from "../../lesson-plans/types/student_profile_
 import { LessonCardSkeleton } from "@/app/dashboard/lesson-plans/skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import Link from "next/link";
-import { StudentCardTeacher } from "../../lesson-plans/components/lesson-cards/StudentCardTeacher";
 import { StudentCardClass } from "../../lesson-plans/components/lesson-cards/StudentCardClass";
 
 interface Props {
@@ -30,6 +29,9 @@ export default function ClassStudentsPage({ params }: Props) {
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
 
+  const [className, setClassName] = useState<string | null>(null);
+  const studentCount = students.length;
+
   useEffect(() => {
     fetchStudentsForClass();
   }, [id]);
@@ -39,7 +41,17 @@ export default function ClassStudentsPage({ params }: Props) {
     setError(null);
 
     try {
-      // Fetch students in this class_id
+      // Fetch class name
+      const { data: classData, error: classError } = await supabase
+        .from("classes")
+        .select("class_name")
+        .eq("class_id", id)
+        .single();
+
+      if (classError) throw classError;
+      setClassName(classData?.class_name || "Unnamed Class");
+
+      // Fetch students
       const { data, error } = await supabase
         .from("class_students")
         .select(`
@@ -49,7 +61,6 @@ export default function ClassStudentsPage({ params }: Props) {
 
       if (error) throw error;
 
-      // Normalize
       const result = (data ?? [])
         .map((row: any) => row.student)
         .filter(Boolean);
@@ -95,9 +106,15 @@ export default function ClassStudentsPage({ params }: Props) {
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Class Students</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {className ?? "Loading class..."}
+              {className && (
+                <span className="text-muted-foreground font-normal"> — {studentCount} student{studentCount !== 1 ? "s" : ""}</span>
+              )}
+            </h1>
+
             <p className="text-sm text-muted-foreground mt-1">
-              Viewing all students in this class
+              Viewing all students in {className ?? "this class"}
             </p>
           </div>
 
