@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StudentProfileTeacher } from "../types/student_profile_teacher";
-import { FiltersCard } from "../components/FiltersCard";
+import { FiltersCardNoDate } from "../components/FiltersCardNoDate";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,7 +19,6 @@ export default function StudentProfilesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
-  const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -89,16 +88,9 @@ export default function StudentProfilesDashboard() {
       // Class filter
       const matchesClass = !selectedClass || s.class_name === selectedClass;
 
-      // Date filter (example: check created_at date)
-      const matchesDate =
-        !dateFilter ||
-        (s.created_at &&
-          new Date(s.created_at).toDateString() ===
-            new Date(dateFilter).toDateString());
-
-      return matchesSearch && matchesClass && matchesDate;
+      return matchesSearch && matchesClass;
     });
-  }, [students, search, selectedClass, dateFilter]);
+  }, [students, search, selectedClass]);
 
   
   const paginated = useMemo(() => {
@@ -137,13 +129,11 @@ export default function StudentProfilesDashboard() {
           <Separator className="my-6" />
 
           {/* Filters */}
-          <FiltersCard
+          <FiltersCardNoDate
             search={search}
             setSearch={setSearch}
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
             classes={classes}
           />
 

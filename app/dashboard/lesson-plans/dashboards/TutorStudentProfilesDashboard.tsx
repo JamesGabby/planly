@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FiltersCard } from "../components/FiltersCard";
+import { FiltersCardNoDate } from "../components/FiltersCardNoDate";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import "react-toastify/dist/ReactToastify.css";
@@ -21,7 +21,6 @@ export default function TutorStudentProfilesDashboard() {
   const [search, setSearch] = useState("");
 
   const [selectedClass, setSelectedClass] = useState<string | "">("");
-  const [dateFilter, setDateFilter] = useState<string | "">("");
 
 
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +70,6 @@ export default function TutorStudentProfilesDashboard() {
 
       if (selectedClass && studentName !== selectedClass) return false;
 
-      if (dateFilter) {
-        const createdDate = new Date(s.created_at ?? "").toISOString().split("T")[0];
-        if (createdDate !== dateFilter) return false;
-      }
-
       if (!search) return true;
       const srch = search.toLowerCase();
 
@@ -90,7 +84,7 @@ export default function TutorStudentProfilesDashboard() {
         studentName.toLowerCase().includes(srch)
       );
     });
-  }, [students, search, selectedClass, dateFilter]);
+  }, [students, search, selectedClass]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -125,13 +119,11 @@ export default function TutorStudentProfilesDashboard() {
           <Separator className="my-6" />
 
           {/* Filters */}
-          <FiltersCard
+          <FiltersCardNoDate
             search={search}
             setSearch={setSearch}
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
             classes={classes}
           />
 
