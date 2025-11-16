@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -33,15 +33,15 @@ export default function ClassStudentsPage({ params }: Props) {
   const studentCount = students.length;
 
   useEffect(() => {
-    fetchStudentsForClass();
+    fetchStudentsForClass(); // uses the external function
   }, [id]);
 
-  async function fetchStudentsForClass() {
+  // Wrap it to avoid re-creation
+  const fetchStudentsForClass = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Fetch class name
       const { data: classData, error: classError } = await supabase
         .from("classes")
         .select("class_name")
@@ -51,7 +51,6 @@ export default function ClassStudentsPage({ params }: Props) {
       if (classError) throw classError;
       setClassName(classData?.class_name || "Unnamed Class");
 
-      // Fetch students
       const { data, error } = await supabase
         .from("class_students")
         .select(`
@@ -61,18 +60,17 @@ export default function ClassStudentsPage({ params }: Props) {
 
       if (error) throw error;
 
-      const result = (data ?? [])
-        .map((row: any) => row.student)
-        .filter(Boolean);
-
-      setStudents(result);
+      setStudents(
+        (data ?? [])
+          .map((row: any) => row.student)
+          .filter(Boolean)
+      );
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to load students");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
   // Filters
   const filtered = useMemo(() => {
