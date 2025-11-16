@@ -1,18 +1,18 @@
 "use client";
 
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
+import { LessonPlanTeacher } from "../../types/lesson_teacher";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 import { GraduationCap, Calendar, Clock, Printer } from "lucide-react";
 
-export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
+export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
   const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
   const [homework, setHomework] = useState(lesson.homework ?? "");
 
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const resources = parseResources(lesson.resources);
@@ -20,20 +20,28 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlan }) {
     ? lesson.lesson_structure
     : [];
 
-  async function handleSave(field: "notes" | "evaluation"  | "homework", value: string) {
+  async function handleSave(
+    field: "notes" | "evaluation" | "homework",
+    value: string
+  ) {
     setSaving(true);
     setMessage(null);
+
     try {
       const { error } = await supabase
         .from("lesson_plans")
         .update({ [field]: value })
         .eq("id", lesson.id);
+
       if (error) throw error;
+
       setMessage("Saved!");
       setTimeout(() => setMessage(null), 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {      // ← fixed
       console.error(err);
-      setMessage("Error saving changes");
+      const message =
+        err instanceof Error ? err.message : "Error saving changes";
+      setMessage(message);
     } finally {
       setSaving(false);
     }

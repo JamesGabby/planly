@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import {
-  GraduationCap,
   User,
   Users,
   AlertTriangle,
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Class } from "../../types/class";
+import { StudentProfileTeacher } from "../../types/student_profile_teacher";
 
 export function ClassCard({ class_data }: { class_data: Class }) {
   
@@ -87,9 +87,9 @@ export function ClassCard({ class_data }: { class_data: Class }) {
             </p>
           ) : (
             <div className="space-y-1 overflow-y-auto max-h-[160px] pr-1">
-              {sortedStudents.map((student: any) => {
-                const hasSEN =
-                  student.special_educational_needs?.trim()?.length > 0;
+              {sortedStudents.map((student: StudentProfileTeacher) => {
+                const sen = student.special_educational_needs;
+                const hasSEN = typeof sen === "string" && sen.trim().length > 0;
 
                 return (
                   <TooltipProvider key={student.student_id}>
