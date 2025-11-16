@@ -1,19 +1,18 @@
 import { FocusTrap } from "focus-trap-react";
 import { useScroll, useTransform, AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
-import { LessonPlan } from "../types/lesson_teacher";
-import { TutorLessonPlan } from "../types/lesson_tutor";
 import { ExpandedLessonView } from "./expanded-lesson-card/ExpandedLessonView";
 import { useUserMode } from "@/components/UserModeContext";
 import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
 import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView";
+import { LessonPlanTeacher } from "../types/lesson_teacher";
 
 /* --- MOBILE MODAL --- */
 export function MobileResponsiveModal({
   lesson,
   onClose,
 }: {
-  lesson: LessonPlan;
+  lesson: LessonPlanTeacher;
   onClose: () => void;
 }) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -21,8 +20,9 @@ export function MobileResponsiveModal({
   const { scrollYProgress } = useScroll({ container: scrollRef });
   const progressColor = useTransform(scrollYProgress, [0, 1], ["#3b82f6", "#22c55e"]);
 
-  function renderExpandedLessonView(lesson: LessonPlan | TutorLessonPlan) {
-    const { mode } = useUserMode();
+  const { mode } = useUserMode();
+
+  function renderExpandedLessonView(lesson: LessonPlanTeacher) {
 
     switch (mode) {
       case "detailed":
