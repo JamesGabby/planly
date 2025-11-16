@@ -54,11 +54,18 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`transition-colors ${
-                  isActive
-                    ? "text-primary font-semibold"
-                    : "text-foreground/80 hover:text-primary"
-                }`}
+                className={`
+                  relative px-1 py-0.5
+                  transition-all duration-300
+                  ${isActive ? 
+                    "text-primary font-semibold" : 
+                    "text-foreground/70 hover:text-foreground"
+                  }
+                  after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full 
+                  after:scale-x-0 after:bg-primary after:rounded-full
+                  after:transition-transform after:duration-300
+                  hover:after:scale-x-100
+                `}
               >
                 {link.name}
               </Link>
@@ -90,11 +97,15 @@ export function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className={`w-full py-2 transition-colors ${
-                    isActive
-                      ? "text-primary font-semibold"
-                      : "text-foreground/80 hover:text-primary"
-                  }`}
+                  className={`
+                    w-full py-2 relative
+                    transition-all duration-300
+                    ${isActive ? "text-primary font-semibold" : "text-foreground/70 hover:text-foreground"}
+                    after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full 
+                    after:scale-x-0 after:bg-primary after:rounded-full
+                    after:transition-transform after:duration-300
+                    hover:after:scale-x-100
+                  `}
                 >
                   {link.name}
                 </Link>
