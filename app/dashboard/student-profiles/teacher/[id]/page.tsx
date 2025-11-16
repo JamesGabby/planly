@@ -108,12 +108,12 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   // Move SEN above Goals
   const fields = [
     { label: "Classes", key: "class_name", icon: <GraduationCap />, readOnly: true },
-    { label: "Special Educational Needs", key: "special_educational_needs", icon: <AlertTriangle /> },
+    { label: "Special Educational Needs (SEN)", key: "special_educational_needs", icon: <AlertTriangle /> },
+    { label: "Areas to Improve", key: "weaknesses", icon: <ChartLine /> },
     { label: "Goals", key: "goals", icon: <Target /> },
     { label: "Interests", key: "interests", icon: <Sparkles /> },
     { label: "Learning Preferences", key: "learning_preferences", icon: <BrainCircuit /> },
     { label: "Strengths", key: "strengths", icon: <BicepsFlexed /> },
-    { label: "Areas to Improve", key: "weaknesses", icon: <ChartLine /> },
     { label: "Notes", key: "notes", icon: <FileText /> },
   ];
 
