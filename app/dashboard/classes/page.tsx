@@ -12,6 +12,8 @@ import Link from "next/link";
 import { ClassCard } from "../lesson-plans/components/lesson-cards/ClassCard";
 import { Class } from "../lesson-plans/types/class";
 import { StudentProfileTeacher } from "../lesson-plans/types/student_profile_teacher";
+import { useUserMode } from "@/components/UserModeContext";
+import { redirect } from "next/navigation";
 
 const supabase = createClient();
 
@@ -24,7 +26,9 @@ export default function ClassesDashboard() {
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
-  console.log(classes);
+
+  const { mode } = useUserMode();
+  if (mode === 'tutor') redirect('/dashboard/student-profiles')
 
   useEffect(() => {
     fetchClasses();
