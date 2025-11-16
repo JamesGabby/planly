@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GraduationCap, User, Users } from "lucide-react";
+import { GraduationCap, User, Users, AlertTriangle } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -13,6 +13,14 @@ import { Class } from "../../types/class";
 
 export function ClassCard({ class_data }: { class_data: Class }) {
   
+  // 🟡 1. Sort students: SEN first
+  const sortedStudents = [...class_data.students].sort((a, b) => {
+    const aHasSEN = a.special_educational_needs?.trim()?.length > 0;
+    const bHasSEN = b.special_educational_needs?.trim()?.length > 0;
+
+    return Number(bHasSEN) - Number(aHasSEN);
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -35,7 +43,8 @@ export function ClassCard({ class_data }: { class_data: Class }) {
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Users className="w-3.5 h-3.5" />
-            {class_data.students.length} student{class_data.students.length !== 1 ? "s" : ""}
+            {class_data.students.length} student
+            {class_data.students.length !== 1 ? "s" : ""}
           </div>
         </CardHeader>
 
@@ -47,15 +56,27 @@ export function ClassCard({ class_data }: { class_data: Class }) {
             </p>
           ) : (
             <div className="space-y-1 overflow-y-auto max-h-[160px] pr-1">
-              {class_data.students.map((student: any) => (
-                <div
-                  key={student.student_id}
-                  className="text-sm text-foreground flex items-center gap-2"
-                >
-                  <User className="w-3.5 h-3.5 text-muted-foreground" />
-                  {student.first_name} {student.last_name}
-                </div>
-              ))}
+              {sortedStudents.map((student: any) => {
+                const hasSEN = student.special_educational_needs?.trim()?.length > 0;
+
+                return (
+                  <div
+                    key={student.student_id}
+                    className={cn(
+                      "text-sm flex items-center gap-2",
+                      hasSEN ? "text-yellow-500 font-medium" : "text-foreground"
+                    )}
+                  >
+                    {hasSEN ? (
+                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    ) : (
+                      <User className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+
+                    {student.first_name} {student.last_name}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
