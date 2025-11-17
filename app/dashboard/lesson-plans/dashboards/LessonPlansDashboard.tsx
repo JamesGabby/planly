@@ -142,9 +142,9 @@ export default function LessonPlansDashboard() {
       };
 
       // Explicitly remove fields not allowed during insert
-      delete (copy as any).id;
-      delete (copy as any).created_at; // replace with new timestamp above
-      delete (copy as any).updated_at;
+      delete (copy).id;
+      delete (copy).created_at; // replace with new timestamp above
+      delete (copy).updated_at;
 
       const { data, error } = await supabase
         .from("lesson_plans")

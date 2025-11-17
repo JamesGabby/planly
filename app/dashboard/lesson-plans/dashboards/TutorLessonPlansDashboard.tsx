@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonCardTutor } from "../components/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
+import Link from "next/link";
 
 const supabase = createClient();
 
@@ -235,7 +236,7 @@ export default function TutorLessonPlansDashboard() {
                 Refresh
               </Button>
               <Button asChild>
-                <a href="/dashboard/lesson-plans/new">New Plan</a>
+                <Link href="/dashboard/lesson-plans/new">New Plan</Link>
               </Button>
             </div>
           </div>
