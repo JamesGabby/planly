@@ -728,7 +728,7 @@ export default function EditLessonFormDetailed() {
                       updateField("resources", [
                         ...(lesson.resources || []),
                         { title: "", url: "" },
-                      ] as any)
+                      ] as Resource[])
                     }
                   >
                     + Add Resource
