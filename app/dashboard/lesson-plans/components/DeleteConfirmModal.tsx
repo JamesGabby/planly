@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
+import { LessonPlanTeacher } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
 import { useUserMode } from "@/components/UserModeContext";
-import { StudentProfile } from "../types/student_profile_tutor";
+import { StudentProfileTutor } from "../types/student_profile_tutor";
 
 /* --- DELETE CONFIRM MODAL --- */
 export function DeleteConfirmModal({
@@ -14,7 +14,7 @@ export function DeleteConfirmModal({
 }: {
   onCancel: () => void;
   onConfirm: () => void;
-  data: LessonPlan & StudentProfile;
+  data: LessonPlanTeacher & StudentProfileTutor;
 }) {
   const { mode } = useUserMode();
   const cancelRef = useRef<HTMLButtonElement>(null);
