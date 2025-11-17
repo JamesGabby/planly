@@ -7,7 +7,6 @@ export type Class = {
   created_by: string;
   class_name: string;
   year_group: string;
-  students: {};  
 };
 
 export interface ClassStudentJoin {

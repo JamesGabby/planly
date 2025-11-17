@@ -4,7 +4,6 @@ export type Resource = {
 };
 
 export type LessonPlanTeacher = {
-  student_profiles: any;
   id: string; // UUID
   user_id: string; // UUID
   class?: string;

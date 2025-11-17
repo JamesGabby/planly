@@ -40,11 +40,16 @@ export default function StudentProfilesDashboard() {
 
       if (error) throw error;
 
-      setClasses(data?.map((c) => c.class_name) || []);
-    } catch (err: unknown) {      // ← fixed
-        console.error(err);
-        const message = err instanceof Error ? err.message : "Error fetching classes";
-        setError(message);
+      // CLEAN THE ARRAY — remove empty/null values
+      const cleaned = (data ?? [])
+        .map(c => c.class_name)
+        .filter(name => name && name.trim().length > 0);
+
+      setClasses(cleaned);
+    } catch (err: unknown) {
+      console.error(err);
+      const message = err instanceof Error ? err.message : "Error fetching classes";
+      setError(message);
     }
   }
 

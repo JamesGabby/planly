@@ -20,6 +20,7 @@ import {
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Class } from "../../types/class";
 
 const supabase = createClient();
 
@@ -62,8 +63,8 @@ export default function NewTeacherStudentProfileForm() {
           .order("class_name", { ascending: true });
 
         if (error) throw error;
-        setClasses(data?.map((c: any) => c.class_name) || []);
-      } catch (err: any) {
+        setClasses(data?.map((c) => c.class_name) || []);
+      } catch (err) {
         console.error("Error loading classes:", err);
         toast.error("Failed to load class list.");
       } finally {
@@ -130,6 +131,8 @@ export default function NewTeacherStudentProfileForm() {
         .eq("class_name", student.class_name)
         .maybeSingle(); // IMPORTANT: allows 0 rows without throwing
 
+      if (classLookupError) throw classLookupError;
+
       // 2. If class doesn't exist, create it
       if (!classRow) {
         const { data: newClass, error: insertClassError } = await supabase
@@ -157,9 +160,9 @@ export default function NewTeacherStudentProfileForm() {
 
       toast.success("Student profile created successfully!");
       router.push("/dashboard/student-profiles");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
       toast.error("Failed to create student profile.");
     } finally {
       setSaving(false);

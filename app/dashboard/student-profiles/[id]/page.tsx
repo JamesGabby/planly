@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,6 +18,7 @@ import {
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { StudentProfileTutor } from "../../lesson-plans/types/student_profile_tutor";
 
 interface Props {
   params: Promise<{ id: string }>; // params is now a Promise
@@ -28,7 +29,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   const { id } = paramsObj;
   const supabase = createClient();
 
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<StudentProfileTutor>();
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
@@ -92,7 +93,13 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
       </div>
     );
 
-  const fields = [
+  type TutorField = {
+    key: keyof StudentProfileTutor;
+    label: string;
+    icon: ReactNode;
+  };
+
+  const fields: TutorField[] = [
     { label: "Level", key: "level", icon: <BarChart3 /> },
     { label: "Goals", key: "goals", icon: <Target /> },
     { label: "Interests", key: "interests", icon: <Sparkles /> },

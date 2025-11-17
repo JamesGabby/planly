@@ -83,9 +83,9 @@ export default function NewTutorStudentProfileForm() {
 
       toast.success("Student profile created successfully!");
       router.push("/dashboard/student-profiles");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
       toast.error("Failed to create student profile.");
     } finally {
       setSaving(false);
