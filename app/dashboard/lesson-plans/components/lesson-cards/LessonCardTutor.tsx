@@ -16,7 +16,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { TutorLessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_tutor";
+import { LessonPlanTutor } from "@/app/dashboard/lesson-plans/types/lesson_tutor";
 import { prettyDate, prettyTime } from "../../utils/helpers";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -29,7 +29,7 @@ export function LessonCardTutor({
   onDelete,
   onDuplicate,
 }: {
-  lesson: TutorLessonPlan;
+  lesson: LessonPlanTutor;
   onDelete: () => void;
   onDuplicate: () => void;
 }) {
