@@ -6,13 +6,14 @@ import { useUserMode } from "@/components/UserModeContext";
 import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
 import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView";
 import { LessonPlanTeacher } from "../types/lesson_teacher";
+import { LessonPlanTutor } from "../types/lesson_tutor";
 
 /* --- MOBILE MODAL --- */
 export function MobileResponsiveModal({
   lesson,
   onClose,
 }: {
-  lesson: LessonPlanTeacher;
+  lesson: LessonPlanTeacher & LessonPlanTutor;
   onClose: () => void;
 }) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -22,7 +23,7 @@ export function MobileResponsiveModal({
 
   const { mode } = useUserMode();
 
-  function renderExpandedLessonView(lesson: LessonPlanTeacher) {
+  function renderExpandedLessonView(lesson: LessonPlanTeacher & LessonPlanTutor) {
 
     switch (mode) {
       case "detailed":
