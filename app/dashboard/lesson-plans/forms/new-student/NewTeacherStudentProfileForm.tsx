@@ -20,7 +20,6 @@ import {
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Class } from "../../types/class";
 
 const supabase = createClient();
 
@@ -125,13 +124,11 @@ export default function NewTeacherStudentProfileForm() {
       if (insertError) throw insertError;
 
       // 1. Check if class already exists
-      let { data: classRow, error: classLookupError } = await supabase
+      let { data: classRow } = await supabase
         .from("classes")
         .select("class_id")
         .eq("class_name", student.class_name)
         .maybeSingle(); // IMPORTANT: allows 0 rows without throwing
-
-      if (classLookupError) throw classLookupError;
 
       // 2. If class doesn't exist, create it
       if (!classRow) {
