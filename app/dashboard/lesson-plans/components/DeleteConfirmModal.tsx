@@ -3,7 +3,6 @@ import { LessonPlanTeacher } from "@/app/dashboard/lesson-plans/types/lesson_tea
 import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
-import { useUserMode } from "@/components/UserModeContext";
 import { StudentProfileTutor } from "../types/student_profile_tutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
 
@@ -17,9 +16,28 @@ export function DeleteConfirmModal({
   onConfirm: () => void;
   data: LessonPlanTeacher | LessonPlanTutor | StudentProfileTutor;
 }) {
-  const { mode } = useUserMode();
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => cancelRef.current?.focus(), []);
+
+  // Type guards
+  const isLesson = (d: typeof data): d is LessonPlanTeacher | LessonPlanTutor => {
+    return 'topic' in d;
+  };
+
+  const isStudent = (d: typeof data): d is StudentProfileTutor => {
+    return 'first_name' in d && !('topic' in d);
+  };
+
+  // Get display name based on type
+  const getDisplayName = () => {
+    if (isStudent(data)) {
+      return data.first_name || "Unnamed Student";
+    }
+    if (isLesson(data)) {
+      return data.topic || "Untitled";
+    }
+    return "this item";
+  };
 
   return (
     <motion.div
@@ -44,11 +62,11 @@ export function DeleteConfirmModal({
           transition={{ type: 'spring', stiffness: 200, damping: 25 }}
         >
           <h2 className="text-xl font-semibold mb-2 text-foreground">
-            Delete this lesson plan?
+            {isStudent(data) ? "Delete this student?" : "Delete this lesson plan?"}
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
             Are you sure you want to delete{" "}
-            <b className="text-foreground">{mode !== 'tutor' ? data.topic || "Untitled" : data.first_name || data.topic || "Unnamed Student"}</b>? This
+            <b className="text-foreground">{getDisplayName()}</b>? This
             action cannot be undone.
           </p>
 
