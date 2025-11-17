@@ -45,9 +45,10 @@ export default function TutorStudentProfilesDashboard() {
       if (error) throw error;
 
       setStudents(data ?? []);
-    } catch (err: any) {
+     } catch (err: unknown) {      // ← fixed
       console.error(err);
-      setError(err.message || "Failed to load students");
+      const message = err instanceof Error ? err.message : "Failed to load students";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -111,7 +112,7 @@ export default function TutorStudentProfilesDashboard() {
                 Refresh
               </Button>
               <Button asChild>
-                <a href="/dashboard/student-profiles/new">Add Student</a>
+                <Link href="/dashboard/student-profiles/new">Add Student</Link>
               </Button>
             </div>
           </div>
@@ -141,7 +142,7 @@ export default function TutorStudentProfilesDashboard() {
             <div className="text-center py-10">
               <p>No students found.</p>
               <Button className="mt-4" asChild>
-                <a href="/dashboard/students/new">Add Student</a>
+                <Link href="/dashboard/students/new">Add Student</Link>
               </Button>
             </div>
           ) : (
