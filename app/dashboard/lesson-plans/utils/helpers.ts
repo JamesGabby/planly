@@ -1,3 +1,5 @@
+import { Resource } from "../types/lesson_teacher";
+
 /* --- HELPERS --- */
 export function prettyDate(d?: string | null) {
   if (!d) return "—";
@@ -30,11 +32,8 @@ export function prettyTime(t?: string | null) {
   }
 }
 
-export function parseResources(res: object): { title: string; url: string }[] {
-  if (!res) return [];
-  try {
-    if (Array.isArray(res)) return res;
-    if (typeof res === "string") return JSON.parse(res);
-  } catch {}
-  return [];
+// In your utils/helpers file
+export function parseResources(resources: Resource[] | null | undefined): Resource[] {
+  if (!resources || !Array.isArray(resources)) return [];
+  return resources;
 }

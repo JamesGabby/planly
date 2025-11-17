@@ -37,7 +37,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
 
       setMessage("Saved!");
       setTimeout(() => setMessage(null), 2000);
-    } catch (err: unknown) {      // ← fixed
+    } catch (err: unknown) {
       console.error(err);
       const message =
         err instanceof Error ? err.message : "Error saving changes";
