@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
 import { useUserMode } from "@/components/UserModeContext";
 import { StudentProfileTutor } from "../types/student_profile_tutor";
+import { LessonPlanTutor } from "../types/lesson_tutor";
 
 /* --- DELETE CONFIRM MODAL --- */
 export function DeleteConfirmModal({
@@ -14,7 +15,7 @@ export function DeleteConfirmModal({
 }: {
   onCancel: () => void;
   onConfirm: () => void;
-  data: LessonPlanTeacher & StudentProfileTutor;
+  data: LessonPlanTeacher | LessonPlanTutor | StudentProfileTutor;
 }) {
   const { mode } = useUserMode();
   const cancelRef = useRef<HTMLButtonElement>(null);

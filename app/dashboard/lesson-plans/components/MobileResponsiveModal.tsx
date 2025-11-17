@@ -13,7 +13,7 @@ export function MobileResponsiveModal({
   lesson,
   onClose,
 }: {
-  lesson: LessonPlanTeacher & LessonPlanTutor;
+  lesson: LessonPlanTeacher | LessonPlanTutor;
   onClose: () => void;
 }) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -23,16 +23,19 @@ export function MobileResponsiveModal({
 
   const { mode } = useUserMode();
 
-  function renderExpandedLessonView(lesson: LessonPlanTeacher & LessonPlanTutor) {
+  function renderExpandedLessonView(lesson: LessonPlanTeacher | LessonPlanTutor) {
+    if (mode === "tutor") {
+      return <TutorExpandedLessonView lesson={lesson as LessonPlanTutor} />;
+    }
 
+    const teacherLesson = lesson as LessonPlanTeacher;
+    
     switch (mode) {
       case "detailed":
       case "student":
-        return <DetailedExpandedLessonView lesson={lesson} />;
-      case "tutor":
-        return <TutorExpandedLessonView lesson={lesson} />;
+        return <DetailedExpandedLessonView lesson={teacherLesson} />;
       default:
-        return <ExpandedLessonView lesson={lesson} />;
+        return <ExpandedLessonView lesson={teacherLesson} />;
     }
   }
 

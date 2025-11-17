@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonCardStudent } from "../components/lesson-cards/LessonCardStudent";
 import { LessonCardTutor } from "../components/lesson-cards/LessonCardTutor";
+import { LessonPlanTutor } from "../types/lesson_tutor";
 
 const supabase = createClient();
 
@@ -28,7 +29,7 @@ export default function LessonPlansDashboard() {
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<LessonPlanTeacher | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<LessonPlanTeacher | LessonPlanTutor | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LessonPlanTeacher | null>(null);
 
   const ITEMS_PER_PAGE = 6;
@@ -184,21 +185,25 @@ export default function LessonPlansDashboard() {
 
   const { mode } = useUserMode();
 
-  const renderLessonCard = (lp: LessonPlanTeacher) => {
+  const renderLessonCard = (lp: LessonPlanTeacher | LessonPlanTutor) => {
     const commonProps = {
       onDelete: () => setConfirmDelete(lp),
       onDuplicate: () => handleDuplicateLesson(lp),
     };
 
+    if (mode === "tutor") {
+      return <LessonCardTutor lesson={lp as LessonPlanTutor} {...commonProps} />;
+    }
+
+    const teacherLesson = lp as LessonPlanTeacher;
+    
     switch (mode) {
       case "detailed":
-        return <LessonCardAdvanced lesson={lp} {...commonProps} />;
+        return <LessonCardAdvanced lesson={teacherLesson} {...commonProps} />;
       case "student":
-        return <LessonCardStudent lesson={lp} {...commonProps} />;
-      case "tutor":
-        return <LessonCardTutor lesson={lp} {...commonProps} />;
+        return <LessonCardStudent lesson={teacherLesson} {...commonProps} />;
       default:
-        return <LessonCard lesson={lp} {...commonProps} />;
+        return <LessonCard lesson={teacherLesson} {...commonProps} />;
     }
   };
 
