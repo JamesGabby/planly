@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { TutorLessonPlan } from "../types/lesson_tutor";
+import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const supabase = createClient();
@@ -21,7 +21,7 @@ const supabase = createClient();
 export default function NewLessonFormTutor() {
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<Partial<TutorLessonPlan>>({
+  const [lesson, setLesson] = useState<Partial<LessonPlanTutor>>({
     date_of_lesson: "",
     time_of_lesson: "",
     topic: "",
@@ -66,9 +66,12 @@ export default function NewLessonFormTutor() {
     }
   }, [error, formErrors]);
 
-  function updateField(field: keyof TutorLessonPlan, value: string) {
-    setLesson((prev) => ({ ...prev, [field]: value }));
-  }
+   const updateField = <K extends keyof LessonPlanTutor>(
+      key: K,
+      value: LessonPlanTutor[K]
+    ) => {
+      setLesson((prev) => ({ ...prev, [key]: value }));
+    };
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
@@ -172,7 +175,7 @@ export default function NewLessonFormTutor() {
 
       const formattedResources =
         Array.isArray(lesson.resources) && lesson.resources.length > 0
-          ? lesson.resources.map((res: any) => ({
+          ? lesson.resources.map((res: Resource) => ({
               title: res.title || res.url || "",
               url: res.url?.trim() || "",
             }))
@@ -194,9 +197,9 @@ export default function NewLessonFormTutor() {
 
       router.push(`/dashboard/lesson-plans`);
       toast.success("Lesson plan created successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
       toast.error("Lesson plan creation failed.");
     } finally {
       setSaving(false);
@@ -517,7 +520,7 @@ export default function NewLessonFormTutor() {
                 </p>
 
                 <div className="space-y-3">
-                  {(lesson.resources || []).map((res: any, index: number) => (
+                  {(lesson.resources || []).map((res: Resource, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
                       {/* Title */}
                       <Input
@@ -526,7 +529,7 @@ export default function NewLessonFormTutor() {
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
                           updated[index].title = e.target.value;
-                          updateField("resources", updated as any);
+                          updateField("resources", updated as Resource[]);
                         }}
                       />
 
@@ -537,7 +540,7 @@ export default function NewLessonFormTutor() {
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
                           updated[index].url = e.target.value;
-                          updateField("resources", updated as any);
+                          updateField("resources", updated as Resource[]);
                         }}
                       />
 
@@ -548,7 +551,7 @@ export default function NewLessonFormTutor() {
                         onClick={() =>
                           updateField(
                             "resources",
-                            (lesson.resources || []).filter((_, i) => i !== index) as any
+                            (lesson.resources || []).filter((_, i) => i !== index) as Resource[]
                           )
                         }
                       >
@@ -564,7 +567,7 @@ export default function NewLessonFormTutor() {
                       updateField("resources", [
                         ...(lesson.resources || []),
                         { title: "", url: "" },
-                      ] as any)
+                      ] as Resource[])
                     }
                   >
                     + Add Resource
@@ -591,7 +594,7 @@ export default function NewLessonFormTutor() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
                 <Textarea
-                  placeholder="• Reflection on students’ progress..."
+                  placeholder="• Reflection on students' progress..."
                   value={lesson.evaluation || ""}
                   onChange={(e) => updateField("evaluation", e.target.value)}
                   className="min-h-[120px]"
@@ -604,7 +607,7 @@ export default function NewLessonFormTutor() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
                 <Textarea
-                  placeholder="Any additional comments or reminders..."
+                  placeholder="Resource additional comments or reminders..."
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                   className="min-h-[120px]"
