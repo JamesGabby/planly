@@ -20,10 +20,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Class } from "../../types/class";
+import { ClassWithStudents } from "../../types/class";
 import { StudentProfileTeacher } from "../../types/student_profile_teacher";
 
-export function ClassCard({ class_data }: { class_data: Class }) {
+export function ClassCard({ class_data }: { class_data: ClassWithStudents }) {
   
   // 🟡 1. Identify SEN students
   const studentsWithSEN = class_data.students.filter(
@@ -33,8 +33,8 @@ export function ClassCard({ class_data }: { class_data: Class }) {
 
   // 🟡 2. Sort students: SEN first
   const sortedStudents = [...class_data.students].sort((a, b) => {
-    const aHas = a.special_educational_needs?.trim()?.length > 0;
-    const bHas = b.special_educational_needs?.trim()?.length > 0;
+    const aHas = Boolean(a.special_educational_needs?.trim());
+    const bHas = Boolean(b.special_educational_needs?.trim());
     return Number(bHas) - Number(aHas);
   });
 
