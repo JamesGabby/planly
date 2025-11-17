@@ -131,21 +131,24 @@ export default function LessonPlansDashboard() {
 
   async function handleDuplicateLesson(lesson: LessonPlanTeacher) {
     try {
-      // Remove fields Supabase auto-generates
-      const { id, ...copy } = lesson;
-      console.log(id);
-
-      const newLesson = {
-        ...copy,
+      // Create a copy without ID fields (Supabase auto-generates these)
+      const copy: Partial<LessonPlanTeacher> = {
+        ...lesson,
         topic: `${lesson.topic} (Copy)`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        // keep original lesson date
         date_of_lesson: lesson.date_of_lesson,
       };
 
+      // Explicitly remove fields not allowed during insert
+      delete (copy as any).id;
+      delete (copy as any).created_at; // replace with new timestamp above
+      delete (copy as any).updated_at;
+
       const { data, error } = await supabase
         .from("lesson_plans")
-        .insert([newLesson])
+        .insert([copy])
         .select()
         .single();
 
@@ -156,11 +159,11 @@ export default function LessonPlansDashboard() {
     } catch (err) {
       console.error("Duplicate error:", err);
 
-      if (err instanceof Error) {
-        toast.error("Failed to duplicate lesson: " + err.message);
-      } else {
-        toast.error("Failed to duplicate lesson: Unknown error");
-      }
+      toast.error(
+        err instanceof Error
+          ? "Failed to duplicate lesson: " + err.message
+          : "Failed to duplicate lesson: Unknown error"
+      );
     }
   }
 
@@ -266,7 +269,7 @@ export default function LessonPlansDashboard() {
                   {/* Today */}
                   {todayLessons.length > 0 && (
                     <>
-                      <h2 className="text-2xl font-semibold mb-3">Today's Lessons</h2>
+                      <h2 className="text-2xl font-semibold mb-3">{"Today's Lessons"}</h2>
                       <motion.div
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
@@ -294,7 +297,7 @@ export default function LessonPlansDashboard() {
                   {/* Tomorrow */}
                   {tomorrowLessons.length > 0 && (
                     <>
-                      <h2 className="text-2xl font-semibold mb-3">Tomorrow's Lessons</h2>
+                      <h2 className="text-2xl font-semibold mb-3">{"Tomorrow's Lessons"}</h2>
                       <motion.div
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"

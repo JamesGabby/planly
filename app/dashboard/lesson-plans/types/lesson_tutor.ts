@@ -40,8 +40,9 @@ export type LessonPlanTutor = {
   first_name?: string,
   last_name?: string,
   student_profiles?: {
-    first_name?: string,
-    last_name?: string,
-  }
+  first_name?: string,
+  last_name?: string,
+  },
+  exam_board?: string,
 };
 

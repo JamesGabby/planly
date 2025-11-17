@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StudentProfileTeacher } from "../types/student_profile_teacher";
@@ -21,7 +21,7 @@ export default function StudentProfilesDashboard() {
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudent, ] = useState(null);
   const [classes, setClasses] = useState<string[]>([]);
 
   const ITEMS_PER_PAGE = 6;
@@ -41,8 +41,10 @@ export default function StudentProfilesDashboard() {
       if (error) throw error;
 
       setClasses(data?.map((c) => c.class_name) || []);
-    } catch (err: any) {
-      console.error("Failed to load classes", err);
+    } catch (err: unknown) {      // ← fixed
+        console.error(err);
+        const message = err instanceof Error ? err.message : "Error fetching classes";
+        setError(message);
     }
   }
 
@@ -63,9 +65,10 @@ export default function StudentProfilesDashboard() {
       if (error) throw error;
 
       setStudents(data ?? []);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to load students");
+     } catch (err: unknown) {      // ← fixed
+        console.error(err);
+        const message = err instanceof Error ? err.message : "Error fetching students";
+        setError(message);
     } finally {
       setLoading(false);
     }
@@ -121,7 +124,7 @@ export default function StudentProfilesDashboard() {
                 Refresh
               </Button>
               <Button asChild>
-                <a href="/dashboard/student-profiles/new">Add Student</a>
+                <Link href="/dashboard/student-profiles/new">Add Student</Link>
               </Button>
             </div>
           </div>

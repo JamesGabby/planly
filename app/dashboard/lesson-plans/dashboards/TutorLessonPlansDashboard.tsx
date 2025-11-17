@@ -98,21 +98,25 @@ export default function TutorLessonPlansDashboard() {
   }, [lessons, search, selectedClass, dateFilter]);
 
   const today = new Date().toISOString().split("T")[0];
+
   const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {
-  const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
-  const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
-  const upcoming = filtered
-    .filter(
-      (l) =>
-        l.date_of_lesson &&
-        l.date_of_lesson > tomorrowStr
-    )
-    .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
-  const previous = filtered
-    .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
-    .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
-  return { todayLessons, tomorrowLessons, upcoming, previous };
-}, [filtered]);
+    const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
+    const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
+
+    const upcoming = filtered
+      .filter(
+        (l) =>
+          l.date_of_lesson &&
+          l.date_of_lesson > tomorrowStr
+      )
+      .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
+
+    const previous = filtered
+      .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
+      .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
+
+    return { todayLessons, tomorrowLessons, upcoming, previous };
+  }, [filtered, today, tomorrowStr]);  // <-- FIXED
 
   async function handleDeleteConfirm() {
     if (!confirmDelete) return;
@@ -139,35 +143,53 @@ export default function TutorLessonPlansDashboard() {
 
   async function handleDuplicateLesson(lesson: LessonPlanTutor) {
     try {
-      // Remove fields Supabase auto-generates
-      const { id, created_at, updated_at, ...copy } = lesson;
-
       const newLesson = {
-        ...copy,
+        user_id: lesson.user_id,
+        student_id: lesson.student_id,
+        first_name: lesson.first_name,
+        last_name: lesson.last_name,
+
+        date_of_lesson: lesson.date_of_lesson,
+        time_of_lesson: lesson.time_of_lesson,
+
         topic: `${lesson.topic} (Copy)`,
+        objectives: lesson.objectives,
+        outcomes: lesson.outcomes,
+        resources: lesson.resources,
+        homework: lesson.homework,
+        knowledge_revisited: lesson.knowledge_revisited,
+        subject_pedagogies: lesson.subject_pedagogies,
+        literacy_opportunities: lesson.literacy_opportunities,
+        numeracy_opportunities: lesson.numeracy_opportunities,
+        timing: lesson.timing,
+        teaching: lesson.teaching,
+        learning: lesson.learning,
+        assessing: lesson.assessing,
+        adapting: lesson.adapting,
+        evaluation: lesson.evaluation,
+        lesson_structure: lesson.lesson_structure,
+        notes: lesson.notes,
+        exam_board: lesson.exam_board,
+        subject: lesson.subject,
+
+        // new timestamps
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        date_of_lesson: lesson.date_of_lesson,
       };
 
       const { data, error } = await supabase
         .from("tutor_lesson_plans")
-        .insert([newLesson])
+        .insert(newLesson)
         .select()
         .single();
 
       if (error) throw error;
 
-      setLessons((prev) => [data, ...prev]);
-      toast.success("Lesson duplicated successfully!");
+      setLessons(prev => [data, ...prev]);
+      toast.success("Tutor lesson duplicated successfully!");
     } catch (err) {
       console.error("Duplicate error:", err);
-
-      if (err instanceof Error) {
-        toast.error("Failed to duplicate lesson: " + err.message);
-      } else {
-        toast.error("Failed to duplicate lesson: Unknown error");
-      }
+      toast.error("Failed to duplicate tutor lesson.");
     }
   }
 
