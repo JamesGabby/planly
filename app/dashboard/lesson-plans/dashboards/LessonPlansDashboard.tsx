@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlan } from "../types/lesson_teacher";
+import { LessonPlanTeacher } from "../types/lesson_teacher";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { LessonCard } from "../components/lesson-cards/LessonCard";
 import { MobileResponsiveModal } from "../components/MobileResponsiveModal";
@@ -22,14 +22,14 @@ import { LessonCardTutor } from "../components/lesson-cards/LessonCardTutor";
 const supabase = createClient();
 
 export default function LessonPlansDashboard() {
-  const [lessons, setLessons] = useState<LessonPlan[]>([]);
+  const [lessons, setLessons] = useState<LessonPlanTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<LessonPlan | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<LessonPlan | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<LessonPlanTeacher | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<LessonPlanTeacher | null>(null);
 
   const ITEMS_PER_PAGE = 6;
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -61,16 +61,21 @@ export default function LessonPlansDashboard() {
     }
   }
 
+  // --- Compute dates OUTSIDE memos ---
+  const today = new Date().toISOString().split("T")[0];
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
+  // --- Memo for classes ---
   const classes = useMemo(() => {
     const set = new Set<string>();
     lessons.forEach((l) => l.class && set.add(l.class));
     return Array.from(set).sort();
   }, [lessons]);
 
+  // --- Filtered lessons ---
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
       if (selectedClass && l.class !== selectedClass) return false;
@@ -85,22 +90,21 @@ export default function LessonPlansDashboard() {
     });
   }, [lessons, search, selectedClass, dateFilter]);
 
-  const today = new Date().toISOString().split("T")[0];
+  // --- Memo using today + tomorrowStr ---
   const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {
-  const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
-  const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
-  const upcoming = filtered
-    .filter(
-      (l) =>
-        l.date_of_lesson &&
-        l.date_of_lesson > tomorrowStr
-    )
-    .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
-  const previous = filtered
-    .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
-    .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
-  return { todayLessons, tomorrowLessons, upcoming, previous };
-}, [filtered]);
+    const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
+    const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
+
+    const upcoming = filtered
+      .filter((l) => l.date_of_lesson && l.date_of_lesson > tomorrowStr)
+      .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
+
+    const previous = filtered
+      .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
+      .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
+
+    return { todayLessons, tomorrowLessons, upcoming, previous };
+  }, [filtered, today, tomorrowStr]);
 
   async function handleDeleteConfirm() {
     if (!confirmDelete) return;
@@ -125,10 +129,11 @@ export default function LessonPlansDashboard() {
     }
   }
 
-  async function handleDuplicateLesson(lesson: LessonPlan) {
+  async function handleDuplicateLesson(lesson: LessonPlanTeacher) {
     try {
       // Remove fields Supabase auto-generates
-      const { id, created_at, updated_at, ...copy } = lesson;
+      const { id, ...copy } = lesson;
+      console.log(id);
 
       const newLesson = {
         ...copy,
@@ -176,7 +181,7 @@ export default function LessonPlansDashboard() {
 
   const { mode } = useUserMode();
 
-  const renderLessonCard = (lp: LessonPlan) => {
+  const renderLessonCard = (lp: LessonPlanTeacher) => {
     const commonProps = {
       onDelete: () => setConfirmDelete(lp),
       onDuplicate: () => handleDuplicateLesson(lp),
@@ -261,7 +266,7 @@ export default function LessonPlansDashboard() {
                   {/* Today */}
                   {todayLessons.length > 0 && (
                     <>
-                      <h2 className="text-2xl font-semibold mb-3">Today’s Lessons</h2>
+                      <h2 className="text-2xl font-semibold mb-3">Today's Lessons</h2>
                       <motion.div
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
@@ -289,7 +294,7 @@ export default function LessonPlansDashboard() {
                   {/* Tomorrow */}
                   {tomorrowLessons.length > 0 && (
                     <>
-                      <h2 className="text-2xl font-semibold mb-3">Tomorrow’s Lessons</h2>
+                      <h2 className="text-2xl font-semibold mb-3">Tomorrow's Lessons</h2>
                       <motion.div
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
