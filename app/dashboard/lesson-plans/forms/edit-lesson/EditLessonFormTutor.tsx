@@ -705,7 +705,7 @@ export default function EditLessonFormTutor() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  How will you measure your first_name's progress? What worked?
+                  {"How will you measure your first_name's progress? What worked?"}
                 </p>
                 <Textarea
                   placeholder="• Evaluation notes..."
