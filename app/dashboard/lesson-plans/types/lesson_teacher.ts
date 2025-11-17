@@ -1,11 +1,6 @@
-export interface LessonResource {
-  name?: string;
+export type Resource = {
   url?: string;
-}
-
-type Resource = {
-  title: string;
-  url?: string;
+  title?: string;
 };
 
 export type LessonPlanTeacher = {
@@ -18,7 +13,7 @@ export type LessonPlanTeacher = {
   topic?: string | null;
   objectives?: string | null;
   outcomes?: string | null;
-  resources: Resource[]
+  resources?: Resource[];
   homework?: string | null;
   specialist_subject_knowledge_required?: string | null;
   knowledge_revisited?: string | null;

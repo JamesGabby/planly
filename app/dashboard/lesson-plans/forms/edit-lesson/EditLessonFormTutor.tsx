@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
-import { TutorLessonPlan } from "../../types/lesson_tutor";
+import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const supabase = createClient();
@@ -37,7 +37,7 @@ export default function EditLessonFormTutor() {
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   
-  const [lesson, setLesson] = useState<Partial<TutorLessonPlan>>({
+  const [lesson, setLesson] = useState<Partial<LessonPlanTutor>>({
     date_of_lesson: "",
     time_of_lesson: "",
     topic: "",
@@ -59,11 +59,7 @@ export default function EditLessonFormTutor() {
     if (error || Object.keys(formErrors).length > 0) scrollToTop();
   }, [error, formErrors]);
 
-  useEffect(() => {
-    if (id) fetchLesson();
-  }, [id]);
-
-  async function fetchLesson() {
+  const fetchLesson = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -97,26 +93,30 @@ export default function EditLessonFormTutor() {
 
       structure = [
         structure.find((s) => s.stage === "Starter")!,
-        ...structure.filter(
-          (s) => s.stage !== "Starter" && s.stage !== "Plenary"
-        ),
+        ...structure.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary"),
         structure.find((s) => s.stage === "Plenary")!,
       ];
 
       setLesson(data);
       setStages(structure);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
-  function updateField(field: keyof TutorLessonPlan, value: string) {
-    if (!lesson) return;
-    setLesson((prev) => prev && { ...prev, [field]: value });
-  }
+  useEffect(() => {
+    if (id) fetchLesson();
+  }, [id, fetchLesson]);
+
+   const updateField = <K extends keyof LessonPlanTutor>(
+    key: K,
+    value: LessonPlanTutor[K]
+  ) => {
+    setLesson((prev) => ({ ...prev, [key]: value }));
+  };
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
@@ -235,8 +235,8 @@ export default function EditLessonFormTutor() {
     try {
       const formattedResources =
         Array.isArray(lesson.resources) && lesson.resources.length > 0
-          ? lesson.resources.map((res: any) => ({
-              title: res.name || res.title || res.url,
+          ? lesson.resources.map((res: Resource) => ({
+              title: res.title || res.url,
               url: res.url?.trim() || "",
             }))
           : [];
@@ -255,9 +255,9 @@ export default function EditLessonFormTutor() {
 
       router.push("/dashboard/lesson-plans");
       toast.success("Lesson plan edited successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
       toast.error("Something went wrong.");
     } finally {
       setSaving(false);
@@ -633,7 +633,7 @@ export default function EditLessonFormTutor() {
                 </p>
 
                 <div className="space-y-3">
-                  {(lesson.resources || []).map((res: any, index: number) => (
+                  {(lesson.resources || []).map((res: Resource, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
                       {/* Title */}
                       <Input
@@ -642,7 +642,7 @@ export default function EditLessonFormTutor() {
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
                           updated[index].title = e.target.value;
-                          updateField("resources", updated as any);
+                          updateField("resources", updated as Resource[]);
                         }}
                       />
 
@@ -653,7 +653,7 @@ export default function EditLessonFormTutor() {
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
                           updated[index].url = e.target.value;
-                          updateField("resources", updated as any);
+                          updateField("resources", updated as Resource[]);
                         }}
                       />
 
@@ -664,7 +664,7 @@ export default function EditLessonFormTutor() {
                         onClick={() =>
                           updateField(
                             "resources",
-                            (lesson.resources || []).filter((_, i) => i !== index) as any
+                            (lesson.resources || []).filter((_, i) => i !== index) as Resource[]
                           )
                         }
                       >
@@ -680,7 +680,7 @@ export default function EditLessonFormTutor() {
                       updateField("resources", [
                         ...(lesson.resources || []),
                         { title: "", url: "" },
-                      ] as any)
+                      ] as Resource[])
                     }
                   >
                     + Add Resource

@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 
-import { LessonPlan } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
+import { LessonPlanTeacher, Resource } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { LessonStage } from "@/components/lesson-structure-editor";
 import { FormSkeleton } from "../../skeletons/FormSkeleton";
 
@@ -26,7 +26,7 @@ export default function EditLessonFormStandard() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [lesson, setLesson] = useState<Partial<LessonPlan> | null>(null);
+  const [lesson, setLesson] = useState<Partial<LessonPlanTeacher> | null>(null);
   const [stages, setStages] = useState<LessonStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,11 +40,7 @@ export default function EditLessonFormStandard() {
     if (error || Object.keys(formErrors).length > 0) scrollToTop();
   }, [error, formErrors]);
 
-  useEffect(() => {
-    if (id) fetchLesson();
-  }, [id]);
-
-  async function fetchLesson() {
+  const fetchLesson = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -75,13 +71,17 @@ export default function EditLessonFormStandard() {
 
       setLesson(data);
       setStages(structure);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) fetchLesson();
+  }, [id, fetchLesson]);
 
   function blankStage(name: string): LessonStage {
     return {
@@ -94,10 +94,12 @@ export default function EditLessonFormStandard() {
     };
   }
 
-  function updateField(field: keyof LessonPlan, value: string) {
-    if (!lesson) return;
-    setLesson((prev) => prev && { ...prev, [field]: value });
-  }
+  const updateField = <K extends keyof LessonPlanTeacher>(
+    key: K,
+    value: LessonPlanTeacher[K]
+  ) => {
+    setLesson((prev) => ({ ...prev, [key]: value }));
+  };
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
@@ -183,7 +185,7 @@ export default function EditLessonFormStandard() {
     try {
       const formattedResources =
         Array.isArray(lesson.resources) && lesson.resources.length > 0
-          ? lesson.resources.map((res: any) => ({
+          ? lesson.resources.map((res: Resource) => ({
               title: res.title || res.url || "",
               url: res.url?.trim() || "",
             }))
@@ -215,9 +217,9 @@ export default function EditLessonFormStandard() {
 
       router.push("/dashboard/lesson-plans");
       toast.success("Lesson plan edited successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
       toast.error("Something went wrong.");
     } finally {
       setSaving(false);
@@ -575,7 +577,7 @@ export default function EditLessonFormStandard() {
                 </p>
 
                 <div className="space-y-3">
-                  {(lesson.resources || []).map((res: any, index: number) => (
+                  {(lesson.resources || []).map((res: Resource, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
                       {/* Title */}
                       <Input
@@ -584,7 +586,7 @@ export default function EditLessonFormStandard() {
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
                           updated[index].title = e.target.value;
-                          updateField("resources", updated as any);
+                          updateField("resources", updated as Resource[]);
                         }}
                       />
 
@@ -595,7 +597,7 @@ export default function EditLessonFormStandard() {
                         onChange={(e) => {
                           const updated = [...(lesson.resources || [])];
                           updated[index].url = e.target.value;
-                          updateField("resources", updated as any);
+                          updateField("resources", updated as Resource[]);
                         }}
                       />
 
@@ -606,7 +608,7 @@ export default function EditLessonFormStandard() {
                         onClick={() =>
                           updateField(
                             "resources",
-                            (lesson.resources || []).filter((_, i) => i !== index) as any
+                            (lesson.resources || []).filter((_, i) => i !== index) as Resource[]
                           )
                         }
                       >
@@ -622,7 +624,7 @@ export default function EditLessonFormStandard() {
                       updateField("resources", [
                         ...(lesson.resources || []),
                         { title: "", url: "" },
-                      ] as any)
+                      ] as Resource[])
                     }
                   >
                     + Add Resource

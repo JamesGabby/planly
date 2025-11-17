@@ -1,13 +1,7 @@
-export interface LessonResource {
-  name?: string;
-  url?: string;
-}
-
-type Resource = {
+export type Resource = {
   title: string;
   url?: string;
 };
-
 
 export type LessonPlanTutor = {
   id: string; // UUID
@@ -18,7 +12,7 @@ export type LessonPlanTutor = {
   topic?: string | null;
   objectives?: string | null;
   outcomes?: string | null;
-  resources: Resource[]
+  resources: Resource[];
   homework?: string | null;
   specialist_subject_knowledge_required?: string | null;
   knowledge_revisited?: string | null;
@@ -40,8 +34,8 @@ export type LessonPlanTutor = {
   first_name?: string,
   last_name?: string,
   student_profiles?: {
-  first_name?: string,
-  last_name?: string,
+    first_name?: string,
+    last_name?: string,
   },
   exam_board?: string,
 };
