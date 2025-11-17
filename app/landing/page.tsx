@@ -74,7 +74,7 @@ export default function LandingPage() {
         </p>
         <Button size="lg" variant="secondary" className="text-lg px-8 py-6 gap-2" asChild>
           <Link href="/dashboard/lesson-plans">
-            Start Now — It's Free! <ArrowRight className="w-5 h-5" />
+            {"Start Now — It's Free!"} <ArrowRight className="w-5 h-5" />
           </Link>
         </Button>
       </section>
