@@ -21,7 +21,7 @@ export default function ClassesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [classes, setClasses] = useState<Class[]>([]);
+  const [classes, setClasses] = useState<ClassWithStudents[]>([]); // ✅ Changed from Class[]
   const [selectedClass, setSelectedClass] = useState("");
 
   const ITEMS_PER_PAGE = 6;
@@ -61,7 +61,7 @@ export default function ClassesDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []); // <-- NO DEPENDENCIES (fetches all classes, no params)
+  }, []);
 
   useEffect(() => {
     fetchClasses();
@@ -160,7 +160,7 @@ export default function ClassesDashboard() {
             >
               {paginated.map((cls) => (
                 <motion.div
-                  key={cls.class_id}  // handles both naming styles
+                  key={cls.class_id}
                   whileHover={{ scale: 1.02 }}
                   className="h-full"
                 >
