@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { StudentProfileTeacher } from "@/app/dashboard/lesson-plans/types/student_profile_teacher";
-import { Class } from "@/app/dashboard/lesson-plans/types/class";
 
 interface Props {
   params: Promise<{ id: string }>;
