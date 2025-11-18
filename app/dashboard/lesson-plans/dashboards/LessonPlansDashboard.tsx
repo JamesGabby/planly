@@ -26,6 +26,7 @@ export default function LessonPlansDashboard() {
   const [lessons, setLessons] = useState<LessonPlanTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [userId, setUserId] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
@@ -37,26 +38,40 @@ export default function LessonPlansDashboard() {
   const [previousPage, setPreviousPage] = useState(1);
 
   useEffect(() => {
-    fetchLessonPlans();
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+      setUserId(user.id)
+      fetchLessonPlans(user.id);
+    }
+
+    load();
   }, []);
 
-  async function fetchLessonPlans() {
+  async function fetchLessonPlans(userId: string) {
     setLoading(true);
     setError(null);
+
     try {
       const { data, error } = await supabase
         .from("lesson_plans")
         .select("*")
+        .eq("user_id", userId)
         .order("date_of_lesson", { ascending: true });
+
       if (error) throw error;
+
       setLessons(data ?? []);
     } catch (err) {
       console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to load lesson plans");
-      }
+      setError(err instanceof Error ? err.message : "Failed to load lesson plans");
     } finally {
       setLoading(false);
     }
@@ -221,7 +236,7 @@ export default function LessonPlansDashboard() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" onClick={() => fetchLessonPlans()}>
+              <Button variant="outline" onClick={() => fetchLessonPlans(userId)}>
                 Refresh
               </Button>
               <Button asChild>
