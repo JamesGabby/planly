@@ -20,7 +20,7 @@ export function CustomToastContainer() {
       draggable={false}
       role="alert"
       theme={theme === "dark" ? "dark" : "light"}
-      className="z-[9999] fixed pointer-events-none"
+      className="z-[9999] fixed pointer-events-none !m-0 !p-0"
       toastClassName={() =>
         [
           "pointer-events-auto relative flex items-center gap-2",
@@ -29,7 +29,6 @@ export function CustomToastContainer() {
           "!pr-8" // 👈 adds space for the close button
         ].join(" ")
       }
-      bodyClassName="!m-0 !p-0"
       progressClassName="!bg-primary/40"
       closeButton={({ closeToast }) => (
   <button
