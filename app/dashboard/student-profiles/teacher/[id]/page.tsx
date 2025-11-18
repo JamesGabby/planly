@@ -39,12 +39,35 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
   const [lastSaved, setLastSaved] = useState<{ [key: string]: Date | null }>({});
+  const [error, setError] = useState("")
 
   const [debounceTimers, setDebounceTimers] = useState<{ [key: string]: NodeJS.Timeout }>({});
 
   // Fetch student
   useEffect(() => {
-    async function fetchStudent() {
+    async function load() {
+      // 1. Get the current authenticated user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+
+      console.log(error);
+
+      // 2. Fetch student WITH user_id filter (required for RLS)
+      await fetchStudent(user.id);
+    }
+
+    load();
+  }, [id]); // supabase does NOT need to be in deps
+
+  async function fetchStudent(userId: string) {
+    try {
       const { data, error } = await supabase
         .from("teacher_student_profiles")
         .select(`
@@ -53,21 +76,26 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
             class:classes(class_name)
           )
         `)
-        .eq("student_id", id)
+        .eq("student_id", id)        // still filter by the student page you're viewing
+        .eq("user_id", userId)       // ← REQUIRED for production (RLS)
         .single();
 
-      if (!error && data) {
+      if (error) throw error;
+
+      if (data) {
         const classNames = (data.classes ?? [])
           .map((c: { class: { class_name: string } | null }) => c.class?.class_name)
           .filter(Boolean)
           .join(", ");
+
         setStudent({ ...data, class_name: classNames });
       }
-
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load student");
+    } finally {
       setLoading(false);
     }
-    fetchStudent();
-  }, [id, supabase]);
+  }
 
   // Handle input change with debounce
   const handleChange = (field: StudentFieldKey, value: string) => {
