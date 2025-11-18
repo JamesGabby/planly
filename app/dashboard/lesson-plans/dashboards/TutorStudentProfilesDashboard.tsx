@@ -19,9 +19,9 @@ export default function TutorStudentProfilesDashboard() {
   const [students, setStudents] = useState<StudentProfileTutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [userId, setUserId] = useState("");
 
   const [selectedClass, setSelectedClass] = useState<string | "">("");
-
 
   const [error, setError] = useState<string | null>(null);
 
@@ -29,10 +29,32 @@ export default function TutorStudentProfilesDashboard() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetchStudents();
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+
+      setUserId(user.id);
+      fetchStudents(user.id);
+    }
+
+    load();
   }, []);
 
-  async function fetchStudents() {
+
+  // ---------------------------
+  // FETCH STUDENTS (RLS safe)
+  // ---------------------------
+
+  async function fetchStudents(userId: string) {
     setLoading(true);
     setError(null);
 
@@ -40,14 +62,16 @@ export default function TutorStudentProfilesDashboard() {
       const { data, error } = await supabase
         .from("student_profiles")
         .select("*")
+        .eq("user_id", userId)                 // ← REQUIRED for production
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       setStudents(data ?? []);
-     } catch (err: unknown) {      // ← fixed
+    } catch (err: unknown) {
       console.error(err);
-      const message = err instanceof Error ? err.message : "Failed to load students";
+      const message =
+        err instanceof Error ? err.message : "Failed to load students";
       setError(message);
     } finally {
       setLoading(false);
@@ -108,7 +132,7 @@ export default function TutorStudentProfilesDashboard() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" onClick={() => fetchStudents()}>
+              <Button variant="outline" onClick={() => fetchStudents(userId)}>
                 Refresh
               </Button>
               <Button asChild>
