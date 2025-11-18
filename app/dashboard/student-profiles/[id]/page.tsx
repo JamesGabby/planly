@@ -34,24 +34,54 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
   const [lastSaved, setLastSaved] = useState<{ [key: string]: Date | null }>({});
+  const [error, setError] = useState("")
 
   // Store debounce timers
   const [debounceTimers, setDebounceTimers] = useState<{ [key: string]: NodeJS.Timeout }>({});
 
   // Fetch student
   useEffect(() => {
-    async function fetchStudent() {
+    async function load() {
+      // 1. Get the current authenticated user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+
+      console.log(error);
+
+      // 2. Fetch the student with user_id filter (required for RLS)
+      await fetchStudent(user.id);
+    }
+
+    load();
+  }, [id]);  // supabase does NOT need to be a dependency
+
+  async function fetchStudent(userId: string) {
+    try {
       const { data, error } = await supabase
         .from("student_profiles")
         .select("*")
-        .eq("student_id", id)
+        .eq("student_id", id)     // filter by this student
+        .eq("user_id", userId)    // REQUIRED for RLS in production
         .single();
 
-      if (!error && data) setStudent(data);
+      if (error) throw error;
+
+      if (data) {
+        setStudent(data);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load student");
+    } finally {
       setLoading(false);
     }
-    fetchStudent();
-  }, [id, supabase]);
+  }
 
   // Handle input change with debounce
   const handleChange = (field: string, value: string) => {
