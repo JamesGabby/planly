@@ -23,6 +23,7 @@ export default function TutorLessonPlansDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | "">("");
+  const [userId, setUserId] = useState("");
   const [dateFilter, setDateFilter] = useState<string | "">("");
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonPlanTutor | null>(null);
@@ -33,33 +34,40 @@ export default function TutorLessonPlansDashboard() {
   const [previousPage, setPreviousPage] = useState(1);
 
   useEffect(() => {
-    fetchTutorLessonPlans();
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+      setUserId(user.id)
+      fetchTutorLessonPlans(user.id);
+    }
+
+    load();
   }, []);
 
-  async function fetchTutorLessonPlans() {
+  async function fetchTutorLessonPlans(userId: string) {
     setLoading(true);
     setError(null);
+
     try {
       const { data, error } = await supabase
         .from("tutor_lesson_plans")
-        .select(`
-          *,
-          student_profiles:student_id (
-            student_id,
-            first_name,
-            last_name
-          )
-        `)
+        .select("*")
+        .eq("user_id", userId)
         .order("date_of_lesson", { ascending: true });
+
       if (error) throw error;
+
       setLessons(data ?? []);
     } catch (err) {
       console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to load lesson plans");
-      }
+      setError(err instanceof Error ? err.message : "Failed to load lesson plans");
     } finally {
       setLoading(false);
     }
@@ -232,7 +240,7 @@ export default function TutorLessonPlansDashboard() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" onClick={() => fetchTutorLessonPlans()}>
+              <Button variant="outline" onClick={() => fetchTutorLessonPlans(userId)}>
                 Refresh
               </Button>
               <Button asChild>
