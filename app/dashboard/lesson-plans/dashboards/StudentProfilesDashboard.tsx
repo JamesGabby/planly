@@ -23,24 +23,49 @@ export default function StudentProfilesDashboard() {
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
   const [selectedStudent, ] = useState(null);
   const [classes, setClasses] = useState<string[]>([]);
+  const [userId, setUserId] = useState("");
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetchClasses();
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+
+      // Store userId if you want to reuse it elsewhere
+      setUserId(user.id);
+
+      // Fetch all user-specific data
+      fetchClasses(user.id);
+      fetchStudents(user.id);
+    }
+
+    load();
   }, []);
 
-  async function fetchClasses() {
+
+  // ---------------------------
+  // FETCH CLASSES
+  // ---------------------------
+
+  async function fetchClasses(userId: string) {
     try {
       const { data, error } = await supabase
         .from("classes")
         .select("class_name")
+        .eq("user_id", userId)                 // ← same logic as lesson plans
         .order("class_name", { ascending: true });
 
       if (error) throw error;
 
-      // CLEAN THE ARRAY — remove empty/null values
       const cleaned = (data ?? [])
         .map(c => c.class_name)
         .filter(name => name && name.trim().length > 0);
@@ -48,16 +73,18 @@ export default function StudentProfilesDashboard() {
       setClasses(cleaned);
     } catch (err: unknown) {
       console.error(err);
-      const message = err instanceof Error ? err.message : "Error fetching classes";
+      const message =
+        err instanceof Error ? err.message : "Error fetching classes";
       setError(message);
     }
   }
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-  
-  async function fetchStudents() {
+
+  // ---------------------------
+  // FETCH STUDENTS
+  // ---------------------------
+
+  async function fetchStudents(userId: string) {
     setLoading(true);
     setError(null);
 
@@ -65,15 +92,17 @@ export default function StudentProfilesDashboard() {
       const { data, error } = await supabase
         .from("teacher_student_profiles")
         .select("*")
+        .eq("user_id", userId)                // ← same fix here
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       setStudents(data ?? []);
-     } catch (err: unknown) {      // ← fixed
-        console.error(err);
-        const message = err instanceof Error ? err.message : "Error fetching students";
-        setError(message);
+    } catch (err: unknown) {
+      console.error(err);
+      const message =
+        err instanceof Error ? err.message : "Error fetching students";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -125,7 +154,7 @@ export default function StudentProfilesDashboard() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" onClick={() => fetchStudents()}>
+              <Button variant="outline" onClick={() => fetchStudents(userId)}>
                 Refresh
               </Button>
               <Button asChild>

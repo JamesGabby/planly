@@ -23,6 +23,7 @@ export default function ClassesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [classes, setClasses] = useState<ClassWithStudents[]>([]); // ✅ Changed from Class[]
   const [selectedClass, setSelectedClass] = useState("");
+  const [userId, setUserId] = useState("");
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
@@ -30,42 +31,66 @@ export default function ClassesDashboard() {
   const { mode } = useUserMode();
   if (mode === 'tutor') redirect('/dashboard/student-profiles')
 
-  const fetchClasses = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    try {
-      const { data, error } = await supabase
-        .from("classes")
-        .select(`
-          *,
-          students:class_students(
-            student:teacher_student_profiles(*)
-          )
-        `)
-        .returns<(Class & { students: ClassStudentJoin[] })[]>()
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
 
-      if (error) throw error;
-
-      const normalized: ClassWithStudents[] = (data ?? []).map((cls) => ({
-        ...cls,
-        students: cls.students
-          .map((s) => s.student)
-          .filter((s): s is StudentProfileTeacher => s !== null),
-      }));
-
-      setClasses(normalized);
-    } catch (err) {
-      const errorObj = err as Error;
-      setError(errorObj.message);
-    } finally {
-      setLoading(false);
+      setUserId(user.id);
+      fetchClasses(user.id);
     }
+
+    load();
   }, []);
 
-  useEffect(() => {
-    fetchClasses();
-  }, [fetchClasses]);
+  // ---------------------------
+  // FETCH CLASSES (RLS safe)
+  // ---------------------------
+
+  const fetchClasses = useCallback(
+    async (userId: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data, error } = await supabase
+          .from("classes")
+          .select(`
+            *,
+            students:class_students(
+              student:teacher_student_profiles(*)
+            )
+          `)
+          .eq("user_id", userId) // ← REQUIRED for production
+          .returns<(Class & { students: ClassStudentJoin[] })[]>();
+
+        if (error) throw error;
+
+        const normalized: ClassWithStudents[] =
+          (data ?? []).map((cls) => ({
+            ...cls,
+            students: cls.students
+              .map(s => s.student)
+              .filter((s): s is StudentProfileTeacher => s !== null),
+          }));
+
+        setClasses(normalized);
+      } catch (err) {
+        const errorObj = err as Error;
+        setError(errorObj.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const filtered = useMemo(() => {
     return classes.filter((c) => {
@@ -118,7 +143,7 @@ export default function ClassesDashboard() {
           </div>
 
           <div className="flex gap-2 shrink-0">
-            <Button variant="outline" onClick={fetchClasses}>
+            <Button variant="outline" onClick={() => fetchClasses(userId)}>
               Refresh
             </Button>
           </div>
