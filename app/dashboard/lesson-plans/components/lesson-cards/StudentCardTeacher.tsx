@@ -6,7 +6,8 @@ import {
   BicepsFlexed,
   Target,
   AlertTriangle,
-  GraduationCap
+  GraduationCap,
+  LineChart
 } from "lucide-react";
 import {
   Card,
@@ -119,7 +120,7 @@ export function StudentCardTeacher({
               {/* Weaknesses */}
               {student.weaknesses && (
                 <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
+                  <LineChart className="w-3.5 h-3.5 mt-1 shrink-0" />
                   {student.weaknesses}
                 </p>
               )}

@@ -12,5 +12,6 @@ export type StudentProfileTutor = {
   learning_preferences?: string;
   strengths?: string;
   weaknesses: string;
+  sen?: string;
 };
 
