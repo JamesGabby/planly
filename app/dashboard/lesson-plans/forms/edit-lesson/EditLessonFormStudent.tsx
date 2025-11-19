@@ -43,48 +43,68 @@ export default function EditLessonFormStudent() {
     if (error || Object.keys(formErrors).length > 0) scrollToTop();
   }, [error, formErrors]);
 
-  const fetchLesson = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from("lesson_plans")
-        .select("*")
-        .eq("id", id)
-        .single();
+  useEffect(() => {
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (error) throw error;
-      if (!data) throw new Error("Lesson plan not found");
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
 
-      let structure: LessonStage[] = Array.isArray(data.lesson_structure)
-        ? data.lesson_structure
-        : [];
-
-      const hasStarter = structure.some((s) => s.stage === "Starter");
-      const hasPlenary = structure.some((s) => s.stage === "Plenary");
-
-      if (!hasStarter) structure.unshift(blankStage("Starter"));
-      if (!hasPlenary) structure.push(blankStage("Plenary"));
-
-      structure = [
-        structure.find((s) => s.stage === "Starter")!,
-        ...structure.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary"),
-        structure.find((s) => s.stage === "Plenary")!,
-      ];
-
-      setLesson(data);
-      setStages(structure);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
+      fetchLesson(user.id);
     }
+
+    load();
   }, [id]);
 
-  useEffect(() => {
-    if (id) fetchLesson();
-  }, [id, fetchLesson]);
+  const fetchLesson = React.useCallback(
+    async (userId: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data, error } = await supabase
+          .from("lesson_plans")
+          .select("*")
+          .eq("id", id)
+          .eq("user_id", userId)       // ← REQUIRED FOR PRODUCTION
+          .single();
+
+        if (error) throw error;
+        if (!data) throw new Error("Lesson plan not found");
+
+        let structure: LessonStage[] = Array.isArray(data.lesson_structure)
+          ? data.lesson_structure
+          : [];
+
+        // ensure Starter and Plenary exist
+        const hasStarter = structure.some((s) => s.stage === "Starter");
+        const hasPlenary = structure.some((s) => s.stage === "Plenary");
+
+        if (!hasStarter) structure.unshift(blankStage("Starter"));
+        if (!hasPlenary) structure.push(blankStage("Plenary"));
+
+        structure = [
+          structure.find((s) => s.stage === "Starter")!,
+          ...structure.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary"),
+          structure.find((s) => s.stage === "Plenary")!,
+        ];
+
+        setLesson(data);
+        setStages(structure);
+      } catch (err) {
+        console.error(err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   function blankStage(name: string): LessonStage {
     return {

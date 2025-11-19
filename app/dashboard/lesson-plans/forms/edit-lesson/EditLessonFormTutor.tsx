@@ -59,57 +59,78 @@ export default function EditLessonFormTutor() {
     if (error || Object.keys(formErrors).length > 0) scrollToTop();
   }, [error, formErrors]);
 
-  const fetchLesson = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from("tutor_lesson_plans")
-        .select("*")
-        .eq("id", id)
-        .single();
+  const fetchLesson = React.useCallback(
+    async (userId: string) => {
+      setLoading(true);
+      setError(null);
 
-      if (error) throw error;
-      if (!data) throw new Error("Lesson plan not found");
+      try {
+        const { data, error } = await supabase
+          .from("tutor_lesson_plans")
+          .select("*")
+          .eq("id", id)
+          .eq("user_id", userId)         // 🔥 REQUIRED FOR PRODUCTION
+          .single();
 
-      let structure: LessonStage[] = Array.isArray(data.lesson_structure)
-        ? data.lesson_structure
-        : [];
+        if (error) throw error;
+        if (!data) throw new Error("Lesson plan not found");
 
-      const ensureStage = (name: string) => ({
-        stage: name,
-        duration: "",
-        teaching: "",
-        learning: "",
-        assessing: "",
-        adapting: "",
-      });
+        let structure: LessonStage[] = Array.isArray(data.lesson_structure)
+          ? data.lesson_structure
+          : [];
 
-      const hasStarter = structure.some((s) => s.stage === "Starter");
-      const hasPlenary = structure.some((s) => s.stage === "Plenary");
+        const ensureStage = (name: string) => ({
+          stage: name,
+          duration: "",
+          teaching: "",
+          learning: "",
+          assessing: "",
+          adapting: "",
+        });
 
-      if (!hasStarter) structure.unshift(ensureStage("Starter"));
-      if (!hasPlenary) structure.push(ensureStage("Plenary"));
+        const hasStarter = structure.some((s) => s.stage === "Starter");
+        const hasPlenary = structure.some((s) => s.stage === "Plenary");
 
-      structure = [
-        structure.find((s) => s.stage === "Starter")!,
-        ...structure.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary"),
-        structure.find((s) => s.stage === "Plenary")!,
-      ];
+        if (!hasStarter) structure.unshift(ensureStage("Starter"));
+        if (!hasPlenary) structure.push(ensureStage("Plenary"));
 
-      setLesson(data);
-      setStages(structure);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+        structure = [
+          structure.find((s) => s.stage === "Starter")!,
+          ...structure.filter(
+            (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+          ),
+          structure.find((s) => s.stage === "Plenary")!,
+        ];
+
+        setLesson(data);
+        setStages(structure);
+      } catch (err) {
+        console.error(err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   useEffect(() => {
-    if (id) fetchLesson();
-  }, [id, fetchLesson]);
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+
+      fetchLesson(user.id);
+    }
+
+    load();
+  }, [id]);
 
    const updateField = <K extends keyof LessonPlanTutor>(
     key: K,
