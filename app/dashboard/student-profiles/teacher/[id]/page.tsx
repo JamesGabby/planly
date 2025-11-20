@@ -46,7 +46,6 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   // Fetch student
   useEffect(() => {
     async function load() {
-      // 1. Get the current authenticated user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -59,12 +58,11 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
       console.log(error);
 
-      // 2. Fetch student WITH user_id filter (required for RLS)
       await fetchStudent(user.id);
     }
 
     load();
-  }, [id]); // supabase does NOT need to be in deps
+  }, [id]);
 
   async function fetchStudent(userId: string) {
     try {

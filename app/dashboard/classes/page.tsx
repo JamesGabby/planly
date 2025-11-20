@@ -31,6 +31,43 @@ export default function ClassesDashboard() {
   const { mode } = useUserMode();
   if (mode === 'tutor') redirect('/dashboard/student-profiles')
 
+  
+      // Inline fetchClasses so it's NOT a dependency
+  const fetchClasses = useCallback(async (userId: string) => {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const { data, error } = await supabase
+      .from("classes")
+      .select(`
+        *,
+        students:class_students(
+          student:teacher_student_profiles(*)
+        )
+      `)
+      .eq("user_id", userId) // safe: always a string
+      .returns<(Class & { students: ClassStudentJoin[] })[]>();
+
+    if (error) throw error;
+
+    const normalized: ClassWithStudents[] =
+      (data ?? []).map((cls) => ({
+        ...cls,
+        students: cls.students
+          .map((s) => s.student)
+          .filter((s): s is StudentProfileTeacher => s !== null),
+      }));
+
+      setClasses(normalized);
+    } catch (err) {
+      const errorObj = err as Error;
+      setError(errorObj.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     async function load() {
       const {
@@ -44,53 +81,12 @@ export default function ClassesDashboard() {
       }
 
       setUserId(user.id);
-      fetchClasses(user.id);
+
+      await fetchClasses(user.id); // safe
     }
 
     load();
-  }, []);
-
-  // ---------------------------
-  // FETCH CLASSES (RLS safe)
-  // ---------------------------
-
-  const fetchClasses = useCallback(
-    async (userId: string) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const { data, error } = await supabase
-          .from("classes")
-          .select(`
-            *,
-            students:class_students(
-              student:teacher_student_profiles(*)
-            )
-          `)
-          .eq("user_id", userId) // ← REQUIRED for production
-          .returns<(Class & { students: ClassStudentJoin[] })[]>();
-
-        if (error) throw error;
-
-        const normalized: ClassWithStudents[] =
-          (data ?? []).map((cls) => ({
-            ...cls,
-            students: cls.students
-              .map(s => s.student)
-              .filter((s): s is StudentProfileTeacher => s !== null),
-          }));
-
-        setClasses(normalized);
-      } catch (err) {
-        const errorObj = err as Error;
-        setError(errorObj.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+  }, [fetchClasses]);
 
   const filtered = useMemo(() => {
     return classes.filter((c) => {

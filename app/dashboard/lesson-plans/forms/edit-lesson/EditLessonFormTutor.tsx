@@ -69,7 +69,7 @@ export default function EditLessonFormTutor() {
           .from("tutor_lesson_plans")
           .select("*")
           .eq("id", id)
-          .eq("user_id", userId)         // 🔥 REQUIRED FOR PRODUCTION
+          .eq("user_id", userId) // ✔ safe, always a string
           .single();
 
         if (error) throw error;
@@ -111,7 +111,7 @@ export default function EditLessonFormTutor() {
         setLoading(false);
       }
     },
-    [id]
+    [id] // only depends on id
   );
 
   useEffect(() => {
@@ -126,13 +126,13 @@ export default function EditLessonFormTutor() {
         return;
       }
 
-      fetchLesson(user.id);
+      await fetchLesson(user.id); // ✔ user.id is always a string here
     }
 
     load();
-  }, [id]);
+  }, [fetchLesson]); // ✔ correct dependency
 
-   const updateField = <K extends keyof LessonPlanTutor>(
+  const updateField = <K extends keyof LessonPlanTutor>(
     key: K,
     value: LessonPlanTutor[K]
   ) => {

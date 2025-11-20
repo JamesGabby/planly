@@ -43,25 +43,6 @@ export default function EditLessonFormDetailed() {
     if (error || Object.keys(formErrors).length > 0) scrollToTop();
   }, [error, formErrors]);
 
-  useEffect(() => {
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setError("Not logged in");
-        setLoading(false);
-        return;
-      }
-
-      fetchLesson(user.id);
-    }
-
-    load();
-  }, [id]);
-
-
   const fetchLesson = React.useCallback(
     async (userId: string) => {
       setLoading(true);
@@ -72,7 +53,7 @@ export default function EditLessonFormDetailed() {
           .from("lesson_plans")
           .select("*")
           .eq("id", id)
-          .eq("user_id", userId)       // ← REQUIRED FOR PRODUCTION
+          .eq("user_id", userId) // always safe
           .single();
 
         if (error) throw error;
@@ -89,9 +70,12 @@ export default function EditLessonFormDetailed() {
         if (!hasStarter) structure.unshift(blankStage("Starter"));
         if (!hasPlenary) structure.push(blankStage("Plenary"));
 
+        // reorder
         structure = [
           structure.find((s) => s.stage === "Starter")!,
-          ...structure.filter((s) => s.stage !== "Starter" && s.stage !== "Plenary"),
+          ...structure.filter(
+            (s) => s.stage !== "Starter" && s.stage !== "Plenary"
+          ),
           structure.find((s) => s.stage === "Plenary")!,
         ];
 
@@ -106,6 +90,24 @@ export default function EditLessonFormDetailed() {
     },
     [id]
   );
+
+  useEffect(() => {
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Not logged in");
+        setLoading(false);
+        return;
+      }
+
+      await fetchLesson(user.id); // now always a string
+    }
+
+    load();
+  }, [fetchLesson]); // include fetchLesson in deps
 
   function blankStage(name: string): LessonStage {
     return {

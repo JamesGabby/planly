@@ -47,6 +47,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
       if (!user) {
         setError("Not logged in");
+        console.log(error);
         setLoading(false);
         return;
       }
@@ -70,6 +71,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
       if (data) setStudent(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load student");
+      console.log(error);
     } finally {
       setLoading(false);
     }
