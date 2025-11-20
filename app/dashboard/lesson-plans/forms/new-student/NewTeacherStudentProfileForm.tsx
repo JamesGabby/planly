@@ -114,6 +114,7 @@ export default function NewTeacherStudentProfileForm() {
           {
             ...student,
             created_by: user.id,
+            user_id: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -226,13 +227,15 @@ export default function NewTeacherStudentProfileForm() {
 
                   <Select
                     value={
-                      classes.includes(student.class_name)
+                      student.class_name && classes.includes(student.class_name)
                         ? student.class_name
-                        : "other"
+                        : student.class_name && !classes.includes(student.class_name)
+                        ? "other"
+                        : ""
                     }
                     onValueChange={(value) => {
                       if (value === "other") {
-                        updateField("class_name", "");
+                        updateField("class_name", "_custom");
                         setCustomClass("");
                       } else {
                         updateField("class_name", value);
@@ -243,18 +246,18 @@ export default function NewTeacherStudentProfileForm() {
                   >
                     <SelectTrigger>
                       <SelectValue
-                        placeholder={
-                          loadingClasses ? "Loading classes..." : "Select a class"
-                        }
+                        placeholder={loadingClasses ? "Loading classes..." : "Select a class"}
                       />
                     </SelectTrigger>
 
                     <SelectContent>
-                      {classes.map((className) => (
-                        <SelectItem key={className} value={className}>
-                          {className}
-                        </SelectItem>
-                      ))}
+                      {classes
+                        .filter((name) => name.trim() !== "")
+                        .map((className) => (
+                          <SelectItem key={className} value={className}>
+                            {className}
+                          </SelectItem>
+                        ))}
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>

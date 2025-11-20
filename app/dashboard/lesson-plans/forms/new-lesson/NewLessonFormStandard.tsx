@@ -161,31 +161,27 @@ export default function NewLessonFormStandard() {
     return Object.keys(errors).length === 0;
   }
 
-  async function insertClass() {
+  async function insertClass(className: string, userId: string) {
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from("classes")
+        .insert([
+          {
+            class_name: className,
+            created_by: userId,
+            user_id: userId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select("*")
+        .single();
 
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to create a lesson plan.");
-
-      const { error: insertError } = await supabase.from("classes").insert([
-        {
-          created_by: user.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          class_name: lesson.class,
-        },
-      ]);
-
-      if (insertError) throw insertError;
+      if (error) throw error;
+      return data; // return new row for linking if needed
     } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setSaving(false);
+      setError(err instanceof Error ? err.message : "Unknown class insert error");
+      throw err; // important so handleSubmit stops
     }
   }
 
@@ -193,8 +189,8 @@ export default function NewLessonFormStandard() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    insertClass();
 
+    // ✅ Validate BEFORE async work
     if (!validateForm()) {
       setSaving(false);
       toast.error("Please fill in all required fields before saving.");
@@ -202,49 +198,57 @@ export default function NewLessonFormStandard() {
     }
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
+      // ✅ Fetch user ONCE
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
+      // OPTIONAL: if you only insert class when not already existing
+      if (!lesson.class) {
+        throw new Error("Class name is missing.");
+      }
+
+      await insertClass(lesson.class, user.id);
+
+      // Format resources
       const formattedResources =
-        Array.isArray(lesson.resources) && lesson.resources.length > 0
+        Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
               title: res.title || res.url || "",
               url: res.url?.trim() || "",
             }))
           : [];
 
-      const finalExamBoard =
-        showExamBoard
-          ? (lesson.exam_board === "Other"
-              ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
-              : lesson.exam_board)
-          : null;
+      const finalExamBoard = showExamBoard
+        ? (lesson.exam_board === "Other"
+            ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
+            : lesson.exam_board)
+        : null;
 
-      const { error: insertError } = await supabase.from("lesson_plans").insert([
-        {
-          ...lesson,
-          user_id: user.id,
-          resources: formattedResources,
-          lesson_structure: stages,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          exam_board: finalExamBoard,
-        },
-      ]);
+      // Insert lesson plan
+      const { error: insertError } = await supabase
+        .from("lesson_plans")
+        .insert([
+          {
+            ...lesson,
+            user_id: user.id,
+            resources: formattedResources,
+            lesson_structure: stages,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            exam_board: finalExamBoard,
+          },
+        ]);
 
       if (insertError) throw insertError;
 
-      router.push(`/dashboard/lesson-plans`);
-      toast.success("Lesson plan created successfully!")
+      toast.success("Lesson plan created successfully!");
+      router.push("/dashboard/lesson-plans");
+
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unknown error");
-      toast.error("Lesson plan created unsuccessfully.")
+      toast.error("Lesson plan creation failed.");
     } finally {
       setSaving(false);
     }

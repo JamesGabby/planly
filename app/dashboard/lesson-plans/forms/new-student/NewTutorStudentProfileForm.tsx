@@ -74,6 +74,7 @@ export default function NewTutorStudentProfileForm() {
         {
           ...student,
           created_by: user.id,
+          user_id: user.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },

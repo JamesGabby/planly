@@ -137,22 +137,42 @@ export default function NewLessonFormTutor() {
     return Object.keys(errors).length === 0;
   }
 
-  async function createStudentProfile(): Promise<string> {
+ async function createStudentProfile(
+    firstName?: string,
+    lastName?: string
+  ): Promise<string> {
+    if (!firstName?.trim() || !lastName?.trim()) {
+      throw new Error("Student first and last name are required.");
+    }
+
+    // Get the logged-in user
     const {
-      data: studentData,
-      error: insertError,
-    } = await supabase.from("student_profiles").insert([
-      {
-        first_name: lesson.first_name,
-        last_name: lesson.last_name,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    ]).select("student_id").single(); // <- important: get the generated student_id
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-    if (insertError) throw insertError;
+    if (userError) throw userError;
+    if (!user) throw new Error("You must be logged in to create a student profile.");
 
-    return studentData.student_id;
+    const timestamp = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("student_profiles")
+      .insert([
+        {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          user_id: user.id,          // <-- Insert user_id here
+          created_at: timestamp,
+          updated_at: timestamp,
+        },
+      ])
+      .select("student_id")
+      .single();
+
+    if (error) throw error;
+
+    return data.student_id;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -167,36 +187,48 @@ export default function NewLessonFormTutor() {
     }
 
     try {
-      const student_id = await createStudentProfile(); // <-- get the new student_id
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
+
+      const user = userData?.user;
       if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
+      // 1️⃣ Create student profile
+      const studentId = await createStudentProfile(
+        lesson.first_name,
+        lesson.last_name
+      );
+
+      // 2️⃣ Prepare resources
       const formattedResources =
-        Array.isArray(lesson.resources) && lesson.resources.length > 0
+        Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
               title: res.title || res.url || "",
               url: res.url?.trim() || "",
             }))
           : [];
 
-      const { error: insertError } = await supabase.from("tutor_lesson_plans").insert([
-        {
-          ...lesson,
-          user_id: user.id,
-          student_id, // <-- attach the foreign key here
-          resources: formattedResources,
-          lesson_structure: stages,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
+      const timestamp = new Date().toISOString();
+
+      // 3️⃣ Insert lesson plan
+      const { error: insertError } = await supabase
+        .from("tutor_lesson_plans")
+        .insert([
+          {
+            ...lesson,
+            user_id: user.id,
+            student_id: studentId,
+            resources: formattedResources,
+            lesson_structure: stages,
+            created_at: timestamp,
+            updated_at: timestamp,
+          },
+        ]);
 
       if (insertError) throw insertError;
 
-      router.push(`/dashboard/lesson-plans`);
       toast.success("Lesson plan created successfully!");
+      router.push(`/dashboard/lesson-plans`);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unknown error");
