@@ -49,7 +49,6 @@ export default function TutorStudentProfilesDashboard() {
     load();
   }, []);
 
-
   // ---------------------------
   // FETCH STUDENTS (RLS safe)
   // ---------------------------
@@ -115,8 +114,6 @@ export default function TutorStudentProfilesDashboard() {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
-
-  
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">

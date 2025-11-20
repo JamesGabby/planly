@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { SlidersHorizontal, X } from "lucide-react"
-import { ClassSelect } from "./ClassSelect"
+import { StudentSelect } from "./StudentSelect"
 import { ModeSwitcher } from "@/components/ModeSwitcher"
 
 export function FiltersCardNoDate({
@@ -63,7 +63,7 @@ export function FiltersCardNoDate({
           </div>
 
           {/* Class Dropdown */}
-          <ClassSelect
+          <StudentSelect
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
             classes={classes}

@@ -108,26 +108,38 @@ export default function StudentProfilesDashboard() {
     }
   }
   
-  const filtered = useMemo(() => {
-    return students.filter((s: StudentProfileTeacher) => {
-      // Text search filter
-      const matchesSearch =
-        !search ||
-        (s.first_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.last_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.goals ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.strengths ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.weaknesses ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.notes ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.special_educational_needs ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (s.interests ?? "").toLowerCase().includes(search.toLowerCase());
-
-      // Class filter
-      const matchesClass = !selectedClass || s.class_name === selectedClass;
-
-      return matchesSearch && matchesClass;
-    });
-  }, [students, search, selectedClass]);
+  // Extract unique "classes" (students)
+    const extractedClasses = useMemo(() => {
+      const set = new Set<string>();
+      students.forEach((s: StudentProfileTeacher) => {
+        const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+        if (name) set.add(name);
+      });
+      return Array.from(set).sort();
+    }, [students]);
+  
+    // Apply filters
+    const filtered = useMemo(() => {
+      return students.filter((s: StudentProfileTeacher) => {
+        const studentName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+  
+        if (selectedClass && studentName !== selectedClass) return false;
+  
+        if (!search) return true;
+        const srch = search.toLowerCase();
+  
+        return (
+          (s.first_name ?? "").toLowerCase().includes(srch) ||
+          (s.last_name ?? "").toLowerCase().includes(srch) ||
+          (s.goals ?? "").toLowerCase().includes(srch) ||
+          (s.strengths ?? "").toLowerCase().includes(srch) ||
+          (s.weaknesses ?? "").toLowerCase().includes(srch) ||
+          (s.notes ?? "").toLowerCase().includes(srch) ||
+          (s.interests ?? "").toLowerCase().includes(srch) ||
+          studentName.toLowerCase().includes(srch)
+        );
+      });
+    }, [students, search, selectedClass]);
 
   
   const paginated = useMemo(() => {
@@ -171,7 +183,7 @@ export default function StudentProfilesDashboard() {
             setSearch={setSearch}
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
-            classes={classes}
+            classes={extractedClasses}
           />
 
           <Separator className="my-6" />

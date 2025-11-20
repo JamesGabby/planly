@@ -11,7 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useUserMode } from "@/components/UserModeContext";
 
-export function ClassSelect({
+export function StudentSelect({
   classes,
   selectedClass,
   setSelectedClass,
@@ -33,7 +33,7 @@ export function ClassSelect({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor="class-select">Class</Label>
+      <Label htmlFor="class-select">Student</Label>
 
       {isMobile ? (
         // ✅ Native select for mobile
