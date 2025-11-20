@@ -21,7 +21,6 @@ export function ClassSelect({
   setSelectedClass: (val: string) => void;
 }) {
   const [isMobile, setIsMobile] = useState(false);
-  const mode = useUserMode();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);

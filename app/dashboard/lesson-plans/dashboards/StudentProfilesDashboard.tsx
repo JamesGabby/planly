@@ -22,7 +22,6 @@ export default function StudentProfilesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
   const [selectedStudent, ] = useState(null);
-  const [classes, setClasses] = useState<string[]>([]);
   const [userId, setUserId] = useState("");
 
   const ITEMS_PER_PAGE = 6;
@@ -43,41 +42,11 @@ export default function StudentProfilesDashboard() {
       // Store userId if you want to reuse it elsewhere
       setUserId(user.id);
 
-      // Fetch all user-specific data
-      fetchClasses(user.id);
       fetchStudents(user.id);
     }
 
     load();
   }, []);
-
-
-  // ---------------------------
-  // FETCH CLASSES
-  // ---------------------------
-
-  async function fetchClasses(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from("classes")
-        .select("class_name")
-        .eq("user_id", userId)                 // ← same logic as lesson plans
-        .order("class_name", { ascending: true });
-
-      if (error) throw error;
-
-      const cleaned = (data ?? [])
-        .map(c => c.class_name)
-        .filter(name => name && name.trim().length > 0);
-
-      setClasses(cleaned);
-    } catch (err: unknown) {
-      console.error(err);
-      const message =
-        err instanceof Error ? err.message : "Error fetching classes";
-      setError(message);
-    }
-  }
 
 
   // ---------------------------
