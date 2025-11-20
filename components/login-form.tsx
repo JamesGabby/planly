@@ -13,8 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { redirect } from "next/navigation";
+import { useState } from "react";
 
 export function LoginForm({
   className,
@@ -24,67 +24,27 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
-  const supabase = createClient();
-
-  // Auto-redirect if already logged in
-  useEffect(() => {
-    async function checkAuth() {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        console.error("Error checking session:", sessionError.message);
-        return;
-      }
-      if (sessionData.session) {
-        router.replace("/dashboard/lesson-plans");
-      }
-    }
-    checkAuth();
-  }, [router, supabase]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
     try {
-      const supabase = createClient();
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      if (signInError) throw signInError;
-
-      // 🚀 KEY FIX — wait for Supabase to write the session
-      const { data: listener } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          if (event === "SIGNED_IN" && session) {
-            router.push("/dashboard/lesson-plans");
-          }
-        }
-      );
-
-      // optional cleanup
-      return () => {
-        listener.subscription.unsubscribe();
-      };
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      if (error) throw error;
+      // Update this route to redirect to an authenticated route. The user already has an active session.
+      redirect("/dashboard/lesson-plans")
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    async function checkAuth() {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) router.replace("/dashboard/lesson-plans");
-    }
-    checkAuth();
-  }, []);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -103,7 +63,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="joebloggs@example.com"
+                  placeholder="example@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
