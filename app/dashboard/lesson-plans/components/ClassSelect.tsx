@@ -9,7 +9,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useUserMode } from "@/components/UserModeContext";
 
 export function ClassSelect({
   classes,
