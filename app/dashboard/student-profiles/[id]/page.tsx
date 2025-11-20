@@ -103,12 +103,18 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     return (
       <div className="max-w-xl mx-auto p-8 text-center">
         <div className="mb-6">
-          <Button asChild variant="ghost" className="flex items-center gap-2 pl-0">
-            <Link href="/dashboard/student-profiles">
-              <ArrowLeft className="h-4 w-4" />
-              Go to Student Profiles
-            </Link>
-          </Button>
+          <div className="mb-4">
+            <Button
+              asChild
+              variant="ghost"
+              className="inline-flex items-center gap-1 px-2 py-1 text-sm w-auto"
+            >
+              <Link href="/dashboard/student-profiles">
+                <ArrowLeft className="h-3 w-3" />
+                Back
+              </Link>
+            </Button>
+          </div>
         </div>
         <h2 className="text-xl font-bold text-destructive">Student Not Found</h2>
       </div>
@@ -142,16 +148,20 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-6">
-      <div className="mb-6">
-        <Button asChild variant="ghost" className="flex items-center gap-2 pl-0">
+      <div className="mb-4">
+        <Button
+          asChild
+          variant="ghost"
+          className="inline-flex items-center gap-1 px-2 py-1 text-sm w-auto"
+        >
           <Link href="/dashboard/student-profiles">
-            <ArrowLeft className="h-4 w-4" />
-            Go to Student Profiles
+            <ArrowLeft className="h-3 w-3" />
+            Back
           </Link>
         </Button>
       </div>
 
-      <h1 className="text-3xl font-bold tracking-tight">
+      <h1 className="text-3xl font-bold tracking-tight text-center">
         {student.first_name} {student.last_name}
       </h1>
 
