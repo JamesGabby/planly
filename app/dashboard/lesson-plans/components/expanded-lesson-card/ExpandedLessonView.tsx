@@ -275,14 +275,14 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
         )}
       </section>
       <div className="flex justify-between items-center mt-4">
-        <span className="text-xs text-muted-foreground">
-          Created: {new Date(lesson.created_at).toLocaleString()} • Updated:{" "}
-          {new Date(lesson.updated_at).toLocaleString()}
+        <span className="text-xs text-muted-foreground flex flex-col md:flex-row md:items-center md:gap-2">
+          <span>Created: {new Date(lesson.created_at).toLocaleString()}</span>
+          <span>Updated: {new Date(lesson.updated_at).toLocaleString()}</span>
         </span>
 
         <button
           onClick={handlePrint}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/80 transition"
+          className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/80 transition"
         >
           <Printer size={18} />
           Print / Export PDF
