@@ -54,7 +54,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       if (!data.session) throw new Error("No session returned");
 
       // Redirect to dashboard after successful login
-      router.replace("/dashboard/lesson-plans");
+      router.replace("/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
