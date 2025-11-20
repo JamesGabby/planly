@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/auth") || pathname.startsWith("/login");
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard/lesson-plans";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
