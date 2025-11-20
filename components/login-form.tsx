@@ -49,6 +49,8 @@ export function LoginForm({
     setError(null);
 
     try {
+      const supabase = createClient();
+
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -56,18 +58,33 @@ export function LoginForm({
 
       if (signInError) throw signInError;
 
-      // Confirm session exists
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      if (!sessionData.session) throw new Error("No session returned from Supabase");
+      // 🚀 KEY FIX — wait for Supabase to write the session
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          if (event === "SIGNED_IN" && session) {
+            router.push("/dashboard/lesson-plans");
+          }
+        }
+      );
 
-      router.push("/dashboard/lesson-plans");
+      // optional cleanup
+      return () => {
+        listener.subscription.unsubscribe();
+      };
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) router.replace("/dashboard/lesson-plans");
+    }
+    checkAuth();
+  }, []);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
