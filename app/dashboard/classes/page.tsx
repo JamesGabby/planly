@@ -169,9 +169,6 @@ export default function ClassesDashboard() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-10">
             <p>No classes found.</p>
-            <Button className="mt-4" asChild>
-              <Link href="/dashboard/classes/new">Add Class</Link>
-            </Button>
           </div>
         ) : (
           <>
