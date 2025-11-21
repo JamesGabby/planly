@@ -19,7 +19,7 @@ import { motion } from "framer-motion";
 
 const supabase = createClient();
 
-export default function NewLessonFormStandard() {
+export default function NewLessonFormDetailed() {
   const router = useRouter();
 
   const [lesson, setLesson] = useState<Partial<LessonPlanTeacher>>({
