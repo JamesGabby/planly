@@ -28,6 +28,7 @@ export default function NewTutorStudentProfileForm() {
     learning_preferences: "",
     strengths: "",
     weaknesses: "",
+    sen: "",
     notes: "",
   });
 
@@ -172,6 +173,7 @@ export default function NewTutorStudentProfileForm() {
                 { label: "Learning Preferences", key: "learning_preferences" },
                 { label: "Strengths", key: "strengths" },
                 { label: "Weaknesses", key: "weaknesses" },
+                { label: "Special Educational Needs", key: "sen" },
                 { label: "Notes", key: "notes" },
               ].map(({ label, key }) => (
                 <div key={key}>
