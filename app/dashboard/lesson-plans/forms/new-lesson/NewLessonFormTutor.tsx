@@ -1,4 +1,4 @@
-"use client";
+              "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Sparkles } from "lucide-react";
 
 const supabase = createClient();
 
@@ -56,22 +57,22 @@ export default function NewLessonFormTutor() {
   ]);
 
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-  // Scroll to top when errors occur
   useEffect(() => {
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [error, formErrors]);
 
-   const updateField = <K extends keyof LessonPlanTutor>(
-      key: K,
-      value: LessonPlanTutor[K]
-    ) => {
-      setLesson((prev) => ({ ...prev, [key]: value }));
-    };
+  const updateField = <K extends keyof LessonPlanTutor>(
+    key: K,
+    value: LessonPlanTutor[K]
+  ) => {
+    setLesson((prev) => ({ ...prev, [key]: value }));
+  };
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
@@ -104,7 +105,6 @@ export default function NewLessonFormTutor() {
         assessing: "",
         adapting: "",
       };
-      // Insert new stage before the last (Plenary)
       const updated = [...prev];
       updated.splice(prev.length - 1, 0, newStage);
       return updated;
@@ -113,14 +113,20 @@ export default function NewLessonFormTutor() {
 
   function removeStage(index: number) {
     setStages((prev) => {
-      // Don't allow removal of Starter or Plenary
       if (["Starter", "Plenary"].includes(prev[index].stage)) {
         return prev;
       }
-
-      // Remove only the clicked stage
       return prev.filter((_, i) => i !== index);
     });
+  }
+
+  function validateBasicFields() {
+    const errors: { [key: string]: string } = {};
+    if (!lesson.first_name?.trim()) errors.first_name = "Student first name is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function validateForm() {
@@ -137,7 +143,73 @@ export default function NewLessonFormTutor() {
     return Object.keys(errors).length === 0;
   }
 
- async function createStudentProfile(
+  async function generateLessonPlan() {
+    if (!validateBasicFields()) {
+      toast.error("Please fill in Student Name, Subject, and Topic before generating.");
+      return;
+    }
+
+    setGenerating(true);
+    setError(null);
+
+    try {
+      const studentName = `${lesson.first_name || ""} ${lesson.last_name || ""}`.trim();
+
+      const response = await fetch("/api/generate-lesson", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planType: "tutor",
+          topic: lesson.topic,
+          subject: lesson.subject,
+          student_name: studentName,
+          objectives: lesson.objectives,
+          outcomes: lesson.outcomes,
+          duration: "60 minutes",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate lesson plan");
+      }
+
+      const generatedPlan = await response.json();
+
+      // Update form fields with AI-generated content
+      updateField("objectives", generatedPlan.objectives || lesson.objectives);
+      updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
+      updateField("homework", generatedPlan.homework || "");
+      updateField("evaluation", generatedPlan.evaluation || "");
+      updateField("notes", generatedPlan.notes || "");
+
+      if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
+        updateField("resources", generatedPlan.resources);
+      }
+
+      if (generatedPlan.lesson_structure && Array.isArray(generatedPlan.lesson_structure)) {
+        setStages(generatedPlan.lesson_structure);
+      }
+
+      toast.success("✨ Tutoring session plan generated successfully! Review and personalize as needed.");
+
+      setTimeout(() => {
+        window.scrollTo({ top: 400, behavior: "smooth" });
+      }, 500);
+
+    } catch (err) {
+      console.error("Generation error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate lesson plan";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function createStudentProfile(
     firstName?: string,
     lastName?: string
   ): Promise<string> {
@@ -145,7 +217,6 @@ export default function NewLessonFormTutor() {
       throw new Error("Student first and last name are required.");
     }
 
-    // Get the logged-in user
     const {
       data: { user },
       error: userError,
@@ -162,7 +233,7 @@ export default function NewLessonFormTutor() {
         {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          user_id: user.id,          // <-- Insert user_id here
+          user_id: user.id,
           created_at: timestamp,
           updated_at: timestamp,
         },
@@ -193,13 +264,11 @@ export default function NewLessonFormTutor() {
       const user = userData?.user;
       if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
-      // 1️⃣ Create student profile
       const studentId = await createStudentProfile(
         lesson.first_name,
         lesson.last_name
       );
 
-      // 2️⃣ Prepare resources
       const formattedResources =
         Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
@@ -210,7 +279,6 @@ export default function NewLessonFormTutor() {
 
       const timestamp = new Date().toISOString();
 
-      // 3️⃣ Insert lesson plan
       const { error: insertError } = await supabase
         .from("tutor_lesson_plans")
         .insert([
@@ -227,7 +295,7 @@ export default function NewLessonFormTutor() {
 
       if (insertError) throw insertError;
 
-      toast.success("Lesson plan created successfully!");
+      toast.success("Tutoring lesson plan created successfully!");
       router.push(`/dashboard/lesson-plans`);
     } catch (err) {
       console.error(err);
@@ -242,38 +310,44 @@ export default function NewLessonFormTutor() {
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">New Tutoring Session Plan</h1>
           <p className="text-muted-foreground text-sm">
-            Create a structured and detailed lesson plan.
+            Create a personalized 1-on-1 tutoring session plan, or let AI help you generate one.
           </p>
         </div>
 
         <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
           <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="text-xl font-semibold">Lesson Details</CardTitle>
+            <CardTitle className="text-xl font-semibold">Session Details</CardTitle>
           </CardHeader>
 
           <CardContent className="pt-6 space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Error Display */}
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <p className="text-destructive text-sm font-medium">{error}</p>
+                </div>
+              )}
+
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className={formErrors.first_name ? "text-destructive" : ""}>
-                    First Name <span className="text-destructive">*</span>
+                    Student First Name <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     value={lesson.first_name || ""}
                     onChange={(e) => updateField("first_name", e.target.value)}
                     placeholder="e.g. Marlene"
+                    className={formErrors.first_name ? "border-destructive" : ""}
                   />
-                  {formErrors.student && (
+                  {formErrors.first_name && (
                     <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
                   )}
                 </div>
                 <div>
-                  <Label>
-                    Last Name 
-                  </Label>
+                  <Label>Student Last Name</Label>
                   <Input
                     value={lesson.last_name || ""}
                     onChange={(e) => updateField("last_name", e.target.value)}
@@ -287,44 +361,11 @@ export default function NewLessonFormTutor() {
                   <Input
                     value={lesson.topic || ""}
                     onChange={(e) => updateField("topic", e.target.value)}
-                    placeholder="Lesson topic..."
+                    placeholder="Session topic..."
+                    className={formErrors.topic ? "border-destructive" : ""}
                   />
                   {formErrors.topic && (
                     <p className="text-destructive text-xs mt-1">{formErrors.topic}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
-                    Date of Lesson <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    type="date"
-                    value={lesson.date_of_lesson || ""}
-                    onChange={(e) => updateField("date_of_lesson", e.target.value)}
-                  />
-                  {formErrors.date_of_lesson && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
-                    Time of Lesson <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    type="time"
-                    value={lesson.time_of_lesson || ""}
-                    onFocus={() => {
-                      if (!lesson.time_of_lesson) {
-                        const now = new Date();
-                        const hours = String(now.getHours()).padStart(2, "0");
-                        const defaultTime = `${hours}:00`;
-                        updateField("time_of_lesson", defaultTime);
-                      }
-                    }}
-                    onChange={(e) => updateField("time_of_lesson", e.target.value)}
-                  />
-                  {formErrors.time_of_lesson && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
                   )}
                 </div>
                 <div>
@@ -335,7 +376,7 @@ export default function NewLessonFormTutor() {
                     value={lesson.subject || ""}
                     onValueChange={(value) => updateField("subject", value)}
                   >
-                    <SelectTrigger className={`mt-1`}>
+                    <SelectTrigger className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select subject..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -359,22 +400,79 @@ export default function NewLessonFormTutor() {
                     <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
                   )}
                 </div>
+                <div>
+                  <Label className={formErrors.date_of_lesson ? "text-destructive" : ""}>
+                    Date of Session <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={lesson.date_of_lesson || ""}
+                    onChange={(e) => updateField("date_of_lesson", e.target.value)}
+                    className={formErrors.date_of_lesson ? "border-destructive" : ""}
+                  />
+                  {formErrors.date_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.date_of_lesson}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className={formErrors.time_of_lesson ? "text-destructive" : ""}>
+                    Time of Session <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="time"
+                    value={lesson.time_of_lesson || ""}
+                    onFocus={() => {
+                      if (!lesson.time_of_lesson) {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, "0");
+                        const defaultTime = `${hours}:00`;
+                        updateField("time_of_lesson", defaultTime);
+                      }
+                    }}
+                    onChange={(e) => updateField("time_of_lesson", e.target.value)}
+                    className={formErrors.time_of_lesson ? "border-destructive" : ""}
+                  />
+                  {formErrors.time_of_lesson && (
+                    <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* AI GENERATE BUTTON */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  onClick={generateLessonPlan}
+                  disabled={generating}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  size="lg"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Generating Tutoring Plan...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generate Tutoring Session with AI
+                    </>
+                  )}
+                </Button>
               </div>
 
               <Separator />
 
-              {/* Objectives & Outcomes with bullet points */}
+              {/* Objectives & Outcomes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Objectives */}
                 <div>
                   <Label className={formErrors.objectives ? "text-destructive" : ""}>
-                    Objectives <span className="text-destructive">*</span>
+                    Session Objectives <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     value={lesson.objectives || ""}
                     onChange={(e) => {
                       let value = e.target.value;
-                      // Ensure first bullet is always present
                       if (!value.startsWith("• ")) {
                         value = "• " + value.replace(/^\s+/, "");
                       }
@@ -384,7 +482,6 @@ export default function NewLessonFormTutor() {
                       const target = e.target as HTMLTextAreaElement;
                       const { selectionStart, selectionEnd, value } = target;
 
-                      // Enter → new bullet
                       if (e.key === "Enter") {
                         e.preventDefault();
                         const newValue =
@@ -392,13 +489,11 @@ export default function NewLessonFormTutor() {
                           "\n• " +
                           value.substring(selectionEnd);
                         updateField("objectives", newValue);
-                        // Restore cursor position after React state update
                         setTimeout(() => {
                           target.selectionStart = target.selectionEnd = selectionStart + 3;
                         }, 0);
                       }
 
-                      // Backspace → remove bullet cleanly
                       if (
                         e.key === "Backspace" &&
                         selectionStart >= 2 &&
@@ -411,14 +506,14 @@ export default function NewLessonFormTutor() {
                         updateField("objectives", newValue);
                       }
                     }}
-                    placeholder={"What you intend to teach or what students will learn during instruction"}
+                    placeholder="What you want the student to achieve in this session"
+                    className={formErrors.objectives ? "border-destructive" : ""}
                   />
                   {formErrors.objectives && (
                     <p className="text-destructive text-xs mt-1">{formErrors.objectives}</p>
                   )}
                 </div>
 
-                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
@@ -458,18 +553,18 @@ export default function NewLessonFormTutor() {
                         updateField("outcomes", newValue);
                       }
                     }}
-                    placeholder={"What the students will be able to do independently after learning takes place"}
+                    placeholder="What the student will be able to do by the end"
                   />
                 </div>
               </div>
 
               <Separator />
-
+              
               {/* Lesson Structure */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Lesson Structure</h3>
+                <h3 className="text-lg font-semibold mb-3">Session Structure</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Define each stage of your lesson, including timing and learning strategies.
+                  Plan each phase of your tutoring session with personalized support.
                 </p>
 
                 <div className="space-y-5">
@@ -516,7 +611,12 @@ export default function NewLessonFormTutor() {
                           {["teaching", "learning", "assessing", "adapting"].map(
                             (field) => (
                               <div key={field}>
-                                <Label className="capitalize">{field}</Label>
+                                <Label className="capitalize">
+                                  {field === "teaching" ? "Tutor Does" : 
+                                   field === "learning" ? "Student Does" :
+                                   field === "assessing" ? "Check Understanding" :
+                                   "Adapt/Support"}
+                                </Label>
                                 <Textarea
                                   value={stage[field as keyof LessonStage] || ""}
                                   onChange={(e) =>
@@ -526,7 +626,12 @@ export default function NewLessonFormTutor() {
                                       e.target.value
                                     )
                                   }
-                                  placeholder={`${field} details...`}
+                                  placeholder={
+                                    field === "teaching" ? "What you'll do..." :
+                                    field === "learning" ? "What student does..." :
+                                    field === "assessing" ? "How to check progress..." :
+                                    "If struggling/excelling..."
+                                  }
                                 />
                               </div>
                             )
@@ -537,7 +642,7 @@ export default function NewLessonFormTutor() {
                   ))}
 
                   <Button type="button" variant="secondary" onClick={addStage}>
-                    + Add Stage
+                    + Add Phase
                   </Button>
                 </div>
               </div>
@@ -548,13 +653,12 @@ export default function NewLessonFormTutor() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Resources</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Add links or names of teaching materials used during the lesson.
+                  Add materials, worksheets, or helpful links for this session.
                 </p>
 
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: Resource, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-                      {/* Title */}
                       <Input
                         placeholder="Resource title"
                         value={res.title || ""}
@@ -565,7 +669,6 @@ export default function NewLessonFormTutor() {
                         }}
                       />
 
-                      {/* URL */}
                       <Input
                         placeholder="https://example.com"
                         value={res.url || ""}
@@ -611,9 +714,12 @@ export default function NewLessonFormTutor() {
 
               {/* Homework */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Homework</h3>
+                <h3 className="text-lg font-semibold mb-2">Practice/Homework</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Optional practice task for the student to complete independently.
+                </p>
                 <Textarea
-                  placeholder="• Task students must complete at home..."
+                  placeholder="• Practice task for the student..."
                   value={lesson.homework || ""}
                   onChange={(e) => updateField("homework", e.target.value)}
                   className="min-h-[120px]"
@@ -624,9 +730,12 @@ export default function NewLessonFormTutor() {
 
               {/* Evaluation */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
+                <h3 className="text-lg font-semibold mb-2">Session Evaluation</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Reflect on the student's progress and what worked well.
+                </p>
                 <Textarea
-                  placeholder="• Reflection on students' progress..."
+                  placeholder="• How did the student respond?&#10;• What progress was made?&#10;• Areas to focus on next time..."
                   value={lesson.evaluation || ""}
                   onChange={(e) => updateField("evaluation", e.target.value)}
                   className="min-h-[120px]"
@@ -637,22 +746,29 @@ export default function NewLessonFormTutor() {
 
               {/* Notes */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
+                <h3 className="text-lg font-semibold mb-2">Session Notes</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Important observations, parent communication, or reminders for next time.
+                </p>
                 <Textarea
-                  placeholder="Resource additional comments or reminders..."
+                  placeholder="• Observations about student engagement&#10;• What to tell parents&#10;• Prep for next session..."
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                   className="min-h-[120px]"
                 />
               </div>
 
-              {error && (
-                <p className="text-destructive text-sm font-medium">{error}</p>
-              )}
-
-              <div className="flex justify-end">
+              {/* Submit Button */}
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/lesson-plans")}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Create Lesson Plan"}
+                  {saving ? "Saving..." : "Create Tutoring Session Plan"}
                 </Button>
               </div>
             </form>

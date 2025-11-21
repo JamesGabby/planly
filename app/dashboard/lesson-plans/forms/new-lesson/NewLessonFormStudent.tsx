@@ -1,4 +1,4 @@
-"use client";
+              "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, Loader2, Sparkles } from "lucide-react";
 
 const supabase = createClient();
 
@@ -38,6 +38,12 @@ export default function NewLessonFormStudent() {
     exam_board: "",
     subject: "",
     year_group: "",
+    specialist_subject_knowledge_required: "",
+    knowledge_revisited: "",
+    numeracy_opportunities: "",
+    literacy_opportunities: "",
+    subject_pedagogies: "",
+    health_and_safety_considerations: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -60,10 +66,10 @@ export default function NewLessonFormStudent() {
   ]);
 
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-  // Scroll to top when errors occur
   useEffect(() => {
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -81,12 +87,12 @@ export default function NewLessonFormStudent() {
     "Other"
   ];
 
-   const updateField = <K extends keyof LessonPlanTeacher>(
-      key: K,
-      value: LessonPlanTeacher[K]
-    ) => {
-      setLesson((prev) => ({ ...prev, [key]: value }));
-    };
+  const updateField = <K extends keyof LessonPlanTeacher>(
+    key: K,
+    value: LessonPlanTeacher[K]
+  ) => {
+    setLesson((prev) => ({ ...prev, [key]: value }));
+  };
 
   function updateStage(index: number, field: keyof LessonStage, value: string) {
     const updated = [...stages];
@@ -119,7 +125,6 @@ export default function NewLessonFormStudent() {
         assessing: "",
         adapting: "",
       };
-      // Insert new stage before the last (Plenary)
       const updated = [...prev];
       updated.splice(prev.length - 1, 0, newStage);
       return updated;
@@ -128,14 +133,21 @@ export default function NewLessonFormStudent() {
 
   function removeStage(index: number) {
     setStages((prev) => {
-      // Don't allow removal of Starter or Plenary
       if (["Starter", "Plenary"].includes(prev[index].stage)) {
         return prev;
       }
-
-      // Remove only the clicked stage
       return prev.filter((_, i) => i !== index);
     });
+  }
+
+  function validateBasicFields() {
+    const errors: { [key: string]: string } = {};
+    if (!lesson.class?.trim()) errors.class = "Class is required.";
+    if (!lesson.year_group?.trim()) errors.year_group = "Year group is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function validateForm() {
@@ -149,7 +161,6 @@ export default function NewLessonFormStudent() {
     if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
     if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
 
-    // Exam board required if GCSE or A-Level
     const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
     const isGCSE = yearNum >= 10 && yearNum <= 11;
     const isAlevel = yearNum >= 12 && yearNum <= 13;
@@ -161,6 +172,86 @@ export default function NewLessonFormStudent() {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  }
+
+  async function generateLessonPlan() {
+    if (!validateBasicFields()) {
+      toast.error("Please fill in Class, Year Group, Subject, and Topic before generating.");
+      return;
+    }
+
+    setGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/generate-lesson", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planType: "detailed", // Student form uses detailed plan structure
+          topic: lesson.topic,
+          subject: lesson.subject,
+          year_group: lesson.year_group,
+          class: lesson.class,
+          exam_board: lesson.exam_board === "Other" ? lesson.custom_exam_board : lesson.exam_board,
+          objectives: lesson.objectives,
+          outcomes: lesson.outcomes,
+          specialist_subject_knowledge_required: lesson.specialist_subject_knowledge_required,
+          knowledge_revisited: lesson.knowledge_revisited,
+          numeracy_opportunities: lesson.numeracy_opportunities,
+          literacy_opportunities: lesson.literacy_opportunities,
+          subject_pedagogies: lesson.subject_pedagogies,
+          health_and_safety_considerations: lesson.health_and_safety_considerations,
+          duration: "60 minutes",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate lesson plan");
+      }
+
+      const generatedPlan = await response.json();
+
+      // Update form fields with AI-generated content
+      updateField("objectives", generatedPlan.objectives || lesson.objectives);
+      updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
+      updateField("homework", generatedPlan.homework || "");
+      updateField("evaluation", generatedPlan.evaluation || "");
+      updateField("notes", generatedPlan.notes || "");
+      
+      // Update pedagogical fields
+      updateField("specialist_subject_knowledge_required", generatedPlan.specialist_subject_knowledge_required || "");
+      updateField("knowledge_revisited", generatedPlan.knowledge_revisited || "");
+      updateField("numeracy_opportunities", generatedPlan.numeracy_opportunities || "");
+      updateField("literacy_opportunities", generatedPlan.literacy_opportunities || "");
+      updateField("subject_pedagogies", generatedPlan.subject_pedagogies || "");
+      updateField("health_and_safety_considerations", generatedPlan.health_and_safety_considerations || "");
+
+      if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
+        updateField("resources", generatedPlan.resources);
+      }
+
+      if (generatedPlan.lesson_structure && Array.isArray(generatedPlan.lesson_structure)) {
+        setStages(generatedPlan.lesson_structure);
+      }
+
+      toast.success("✨ Lesson plan generated successfully! Review and edit as needed.");
+      
+      setTimeout(() => {
+        window.scrollTo({ top: 400, behavior: "smooth" });
+      }, 500);
+      
+    } catch (err) {
+      console.error("Generation error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate lesson plan";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function insertClass(className: string, userId: string) {
@@ -180,10 +271,10 @@ export default function NewLessonFormStudent() {
         .single();
 
       if (error) throw error;
-      return data; // return new row for linking if needed
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown class insert error");
-      throw err; // important so handleSubmit stops
+      throw err;
     }
   }
 
@@ -192,7 +283,6 @@ export default function NewLessonFormStudent() {
     setSaving(true);
     setError(null);
 
-    // ✅ Validate BEFORE async work
     if (!validateForm()) {
       setSaving(false);
       toast.error("Please fill in all required fields before saving.");
@@ -200,19 +290,16 @@ export default function NewLessonFormStudent() {
     }
 
     try {
-      // ✅ Fetch user ONCE
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
-      // OPTIONAL: if you only insert class when not already existing
       if (!lesson.class) {
         throw new Error("Class name is missing.");
       }
 
       await insertClass(lesson.class, user.id);
 
-      // Format resources
       const formattedResources =
         Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
@@ -227,7 +314,6 @@ export default function NewLessonFormStudent() {
             : lesson.exam_board)
         : null;
 
-      // Insert lesson plan
       const { error: insertError } = await supabase
         .from("lesson_plans")
         .insert([
@@ -260,9 +346,9 @@ export default function NewLessonFormStudent() {
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan (Student Teacher)</h1>
           <p className="text-muted-foreground text-sm">
-            Create a structured and detailed lesson plan.
+            Create a comprehensive lesson plan with pedagogical details, or let AI help you generate one.
           </p>
         </div>
 
@@ -273,6 +359,13 @@ export default function NewLessonFormStudent() {
 
           <CardContent className="pt-6 space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Error Display */}
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <p className="text-destructive text-sm font-medium">{error}</p>
+                </div>
+              )}
+
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -438,6 +531,29 @@ export default function NewLessonFormStudent() {
                   </motion.div>
                 )}
               </div>
+              
+              {/* AI GENERATE BUTTON */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  onClick={generateLessonPlan}
+                  disabled={generating}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  size="lg"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Generating Detailed Plan...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generate Lesson Plan with AI
+                    </>
+                  )}
+                </Button>
+              </div>
 
               <Separator />
 
@@ -563,138 +679,155 @@ export default function NewLessonFormStudent() {
               <Separator />
               
               {/* Pedagogical Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div className={`flex items-center gap-1`}>
-                    <Label>Specialist Subject Knowledge</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          What you must know in advance.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Pedagogical Details</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Detailed teaching considerations and subject-specific information.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className={`flex items-center gap-1`}>
+                      <Label>Specialist Subject Knowledge</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-sm">
+                            What you must know in advance.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      value={lesson.specialist_subject_knowledge_required || ""}
+                      onChange={(e) =>
+                        updateField("specialist_subject_knowledge_required", e.target.value)
+                      }
+                      placeholder="Knowledge needed before teaching..."
+                      className="min-h-[100px]"
+                    />
                   </div>
-                  <Textarea
-                    value={lesson.specialist_subject_knowledge_required || ""}
-                    onChange={(e) =>
-                      updateField("specialist_subject_knowledge_required", e.target.value)
-                    }
-                    placeholder="Knowledge needed before teaching..."
-                  />
-                </div>
-                <div>
-                  <div className={`flex items-center gap-1`}>
-                    <Label>Knowledge Revisited</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          Prior learning being built upon.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div>
+                    <div className={`flex items-center gap-1`}>
+                      <Label>Knowledge Revisited</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-sm">
+                            Prior learning being built upon.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      value={lesson.knowledge_revisited || ""}
+                      onChange={(e) => updateField("knowledge_revisited", e.target.value)}
+                      placeholder="What prior learning is being built upon?"
+                      className="min-h-[100px]"
+                    />
                   </div>
-                  <Textarea
-                    value={lesson.knowledge_revisited || ""}
-                    onChange={(e) => updateField("knowledge_revisited", e.target.value)}
-                    placeholder="What prior learning is being built upon?"
-                  />
-                </div>
-                <div>
-                  <div className={`flex items-center gap-1`}>
-                    <Label>Numeracy Opportunities</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          Embedded maths skills in lesson
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div>
+                    <div className={`flex items-center gap-1`}>
+                      <Label>Numeracy Opportunities</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-sm">
+                            Embedded maths skills in lesson
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      value={lesson.numeracy_opportunities || ""}
+                      onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
+                      placeholder="Opportunities for numeracy practice..."
+                      className="min-h-[100px]"
+                    />
                   </div>
-                  <Textarea
-                    value={lesson.numeracy_opportunities || ""}
-                    onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
-                    placeholder="Opportunities for numeracy practice..."
-                  />
-                </div>
-                <div>
-                  <div className={`flex items-center gap-1`}>
-                    <Label>Literacy Opportunities</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          Embedded reading/writing/speaking
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div>
+                    <div className={`flex items-center gap-1`}>
+                      <Label>Literacy Opportunities</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-sm">
+                            Embedded reading/writing/speaking
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      value={lesson.literacy_opportunities || ""}
+                      onChange={(e) => updateField("literacy_opportunities", e.target.value)}
+                      placeholder="Opportunities for literacy skill development..."
+                      className="min-h-[100px]"
+                    />
                   </div>
-                  <Textarea
-                    value={lesson.literacy_opportunities || ""}
-                    onChange={(e) => updateField("literacy_opportunities", e.target.value)}
-                    placeholder="Opportunities for literacy skill development..."
-                  />
-                </div>
-                <div>
-                  <div className={`flex items-center gap-1`}>
-                    <Label>Subject Pedagogies</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          How subject-specific methods are applied
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div>
+                    <div className={`flex items-center gap-1`}>
+                      <Label>Subject Pedagogies</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-sm">
+                            How subject-specific methods are applied
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      value={lesson.subject_pedagogies || ""}
+                      onChange={(e) => updateField("subject_pedagogies", e.target.value)}
+                      placeholder="Pedagogical approaches used..."
+                      className="min-h-[100px]"
+                    />
                   </div>
-                  <Textarea
-                    value={lesson.subject_pedagogies || ""}
-                    onChange={(e) => updateField("subject_pedagogies", e.target.value)}
-                    placeholder="Pedagogical approaches used..."
-                  />
-                </div>
-                <div>
-                  <div className={`flex items-center gap-1`}>
-                    <Label>Health & Safety Considerations</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          Hazards + safety controls
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div>
+                    <div className={`flex items-center gap-1`}>
+                      <Label>Health & Safety Considerations</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-sm">
+                            Hazards + safety controls
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      value={lesson.health_and_safety_considerations || ""}
+                      onChange={(e) =>
+                        updateField("health_and_safety_considerations", e.target.value)
+                      }
+                      placeholder="Potential hazards or safety measures..."
+                      className="min-h-[100px]"
+                    />
                   </div>
-                  <Textarea
-                    value={lesson.health_and_safety_considerations || ""}
-                    onChange={(e) =>
-                      updateField("health_and_safety_considerations", e.target.value)
-                    }
-                    placeholder="Potential hazards or safety measures..."
-                  />
                 </div>
               </div>
 
               <Separator />
 
-              {/* --- Lesson Structure --- */}
+              {/* Lesson Structure */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Lesson Structure</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Define each stage of your lesson, including timing and learning strategies.
+                </p>
+
                 <div className="space-y-5">
                   {stages.map((stage, i) => (
                     <div key={i} className="border border-border/60 rounded-xl bg-background/70 shadow-sm p-4 md:p-5 hover:shadow-md transition-all">
@@ -709,7 +842,6 @@ export default function NewLessonFormStudent() {
                         )}
                       </div>
 
-                      {/* Tooltip-enhanced fields */}
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                         <div>
                           <div className="flex items-center gap-1">
@@ -752,7 +884,7 @@ export default function NewLessonFormStudent() {
                                     </TooltipTrigger>
                                     <TooltipContent className="max-w-xs text-sm">
                                       {field === "teaching" &&
-                                        "Explain how you are planning / organising / structuring / adapting your placement school’s materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
+                                        "Explain how you are planning / organising / structuring / adapting your placement school's materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
                                       {field === "learning" &&
                                         "Detail pupil activity and clarify how pupils are engaged in learning at all times, during each phase of the lesson."}
                                       {field === "assessing" &&
@@ -778,8 +910,8 @@ export default function NewLessonFormStudent() {
               
               {/* Resources */}
               <div>
-                <div className={`flex items-center gap-1`}>
-                  <Label>Resources</Label>
+                <div className={`flex items-center gap-1 mb-3`}>
+                  <h3 className="text-lg font-semibold">Resources</h3>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -795,7 +927,6 @@ export default function NewLessonFormStudent() {
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: Resource, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-                      {/* Title */}
                       <Input
                         placeholder="Resource title"
                         value={res.title || ""}
@@ -806,7 +937,6 @@ export default function NewLessonFormStudent() {
                         }}
                       />
 
-                      {/* URL */}
                       <Input
                         placeholder="https://example.com"
                         value={res.url || ""}
@@ -852,19 +982,19 @@ export default function NewLessonFormStudent() {
 
               {/* Homework */}
               <div>
-                <div className={`flex items-center gap-1`}>
-                    <Label>Homework</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          Independent work extending learning
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                <div className={`flex items-center gap-1 mb-2`}>
+                  <h3 className="text-lg font-semibold">Homework</h3>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-sm">
+                        Independent work extending learning
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Textarea
                   placeholder="• Task students must complete at home..."
                   value={lesson.homework || ""}
@@ -877,8 +1007,8 @@ export default function NewLessonFormStudent() {
 
               {/* Evaluation */}
               <div>
-                <div className={`flex items-center gap-1`}>
-                  <Label>Evaluation</Label>
+                <div className={`flex items-center gap-1 mb-2`}>
+                  <h3 className="text-lg font-semibold">Evaluation</h3>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -891,7 +1021,7 @@ export default function NewLessonFormStudent() {
                   </TooltipProvider>
                 </div>
                 <Textarea
-                  placeholder="• Reflection on students’ progress..."
+                  placeholder="• Reflection on students' progress..."
                   value={lesson.evaluation || ""}
                   onChange={(e) => updateField("evaluation", e.target.value)}
                   className="min-h-[120px]"
@@ -902,32 +1032,36 @@ export default function NewLessonFormStudent() {
 
               {/* Notes */}
               <div>
-                <div className={`flex items-center gap-1`}>
-                    <Label>Teacher Notes</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-sm">
-                          Resource professional reminders or context
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                <div className={`flex items-center gap-1 mb-2`}>
+                  <h3 className="text-lg font-semibold">Teacher Notes</h3>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-sm">
+                        Professional reminders or context
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Textarea
-                  placeholder="Resource additional comments or reminders..."
+                  placeholder="Additional comments or reminders..."
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                   className="min-h-[120px]"
                 />
               </div>
 
-              {error && (
-                <p className="text-destructive text-sm font-medium">{error}</p>
-              )}
-
-              <div className="flex justify-end">
+              {/* Submit Button */}
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/lesson-plans")}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={saving}>
                   {saving ? "Saving..." : "Create Lesson Plan"}
                 </Button>

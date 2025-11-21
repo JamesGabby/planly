@@ -1,4 +1,4 @@
-"use client";
+              "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
+import { Loader2, Sparkles } from "lucide-react";
 
 const supabase = createClient();
 
@@ -36,6 +37,12 @@ export default function NewLessonFormDetailed() {
     exam_board: "",
     subject: "",
     year_group: "",
+    specialist_subject_knowledge_required: "",
+    knowledge_revisited: "",
+    numeracy_opportunities: "",
+    literacy_opportunities: "",
+    subject_pedagogies: "",
+    health_and_safety_considerations: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -58,10 +65,10 @@ export default function NewLessonFormDetailed() {
   ]);
 
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-  // Scroll to top when errors occur
   useEffect(() => {
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -117,7 +124,6 @@ export default function NewLessonFormDetailed() {
         assessing: "",
         adapting: "",
       };
-      // Insert new stage before the last (Plenary)
       const updated = [...prev];
       updated.splice(prev.length - 1, 0, newStage);
       return updated;
@@ -126,14 +132,21 @@ export default function NewLessonFormDetailed() {
 
   function removeStage(index: number) {
     setStages((prev) => {
-      // Don't allow removal of Starter or Plenary
       if (["Starter", "Plenary"].includes(prev[index].stage)) {
         return prev;
       }
-
-      // Remove only the clicked stage
       return prev.filter((_, i) => i !== index);
     });
+  }
+
+  function validateBasicFields() {
+    const errors: { [key: string]: string } = {};
+    if (!lesson.class?.trim()) errors.class = "Class is required.";
+    if (!lesson.year_group?.trim()) errors.year_group = "Year group is required.";
+    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
+    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function validateForm() {
@@ -147,7 +160,6 @@ export default function NewLessonFormDetailed() {
     if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
     if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
 
-    // Exam board required if GCSE or A-Level
     const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
     const isGCSE = yearNum >= 10 && yearNum <= 11;
     const isAlevel = yearNum >= 12 && yearNum <= 13;
@@ -159,6 +171,86 @@ export default function NewLessonFormDetailed() {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  }
+
+  async function generateLessonPlan() {
+    if (!validateBasicFields()) {
+      toast.error("Please fill in Class, Year Group, Subject, and Topic before generating.");
+      return;
+    }
+
+    setGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/generate-lesson", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planType: "detailed",
+          topic: lesson.topic,
+          subject: lesson.subject,
+          year_group: lesson.year_group,
+          class: lesson.class,
+          exam_board: lesson.exam_board === "Other" ? lesson.custom_exam_board : lesson.exam_board,
+          objectives: lesson.objectives,
+          outcomes: lesson.outcomes,
+          specialist_subject_knowledge_required: lesson.specialist_subject_knowledge_required,
+          knowledge_revisited: lesson.knowledge_revisited,
+          numeracy_opportunities: lesson.numeracy_opportunities,
+          literacy_opportunities: lesson.literacy_opportunities,
+          subject_pedagogies: lesson.subject_pedagogies,
+          health_and_safety_considerations: lesson.health_and_safety_considerations,
+          duration: "60 minutes",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate lesson plan");
+      }
+
+      const generatedPlan = await response.json();
+
+      // Update form fields with AI-generated content
+      updateField("objectives", generatedPlan.objectives || lesson.objectives);
+      updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
+      updateField("homework", generatedPlan.homework || "");
+      updateField("evaluation", generatedPlan.evaluation || "");
+      updateField("notes", generatedPlan.notes || "");
+      
+      // Update detailed-specific fields
+      updateField("specialist_subject_knowledge_required", generatedPlan.specialist_subject_knowledge_required || "");
+      updateField("knowledge_revisited", generatedPlan.knowledge_revisited || "");
+      updateField("numeracy_opportunities", generatedPlan.numeracy_opportunities || "");
+      updateField("literacy_opportunities", generatedPlan.literacy_opportunities || "");
+      updateField("subject_pedagogies", generatedPlan.subject_pedagogies || "");
+      updateField("health_and_safety_considerations", generatedPlan.health_and_safety_considerations || "");
+
+      if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
+        updateField("resources", generatedPlan.resources);
+      }
+
+      if (generatedPlan.lesson_structure && Array.isArray(generatedPlan.lesson_structure)) {
+        setStages(generatedPlan.lesson_structure);
+      }
+
+      toast.success("✨ Detailed lesson plan generated successfully! Review and edit as needed.");
+      
+      setTimeout(() => {
+        window.scrollTo({ top: 400, behavior: "smooth" });
+      }, 500);
+      
+    } catch (err) {
+      console.error("Generation error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate lesson plan";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function insertClass(className: string, userId: string) {
@@ -178,10 +270,10 @@ export default function NewLessonFormDetailed() {
         .single();
 
       if (error) throw error;
-      return data; // return new row for linking if needed
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown class insert error");
-      throw err; // important so handleSubmit stops
+      throw err;
     }
   }
 
@@ -190,7 +282,6 @@ export default function NewLessonFormDetailed() {
     setSaving(true);
     setError(null);
 
-    // ✅ Validate BEFORE async work
     if (!validateForm()) {
       setSaving(false);
       toast.error("Please fill in all required fields before saving.");
@@ -198,19 +289,16 @@ export default function NewLessonFormDetailed() {
     }
 
     try {
-      // ✅ Fetch user ONCE
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a lesson plan.");
 
-      // OPTIONAL: if you only insert class when not already existing
       if (!lesson.class) {
         throw new Error("Class name is missing.");
       }
 
       await insertClass(lesson.class, user.id);
 
-      // Format resources
       const formattedResources =
         Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
@@ -225,7 +313,6 @@ export default function NewLessonFormDetailed() {
             : lesson.exam_board)
         : null;
 
-      // Insert lesson plan
       const { error: insertError } = await supabase
         .from("lesson_plans")
         .insert([
@@ -258,9 +345,9 @@ export default function NewLessonFormDetailed() {
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">New Detailed Lesson Plan</h1>
           <p className="text-muted-foreground text-sm">
-            Create a structured and detailed lesson plan.
+            Create a comprehensive and pedagogically detailed lesson plan, or let AI help you generate one.
           </p>
         </div>
 
@@ -271,6 +358,13 @@ export default function NewLessonFormDetailed() {
 
           <CardContent className="pt-6 space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Error Display */}
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <p className="text-destructive text-sm font-medium">{error}</p>
+                </div>
+              )}
+
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -437,11 +531,33 @@ export default function NewLessonFormDetailed() {
                 )}
               </div>
 
-              <Separator />
+              {/* AI GENERATE BUTTON */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  onClick={generateLessonPlan}
+                  disabled={generating}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  size="lg"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Generating Detailed Plan...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generate Detailed Lesson Plan with AI
+                    </>
+                  )}
+                </Button>
+              </div>
 
-              {/* Objectives & Outcomes with bullet points */}
+              <Separator />
+              
+              {/* Objectives & Outcomes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Objectives */}
                 <div>
                   <Label className={formErrors.objectives ? "text-destructive" : ""}>
                     Objectives <span className="text-destructive">*</span>
@@ -483,7 +599,7 @@ export default function NewLessonFormDetailed() {
                         updateField("objectives", newValue);
                       }
                     }}
-                    placeholder={"What you intend to teach or what students will learn during instruction"}
+                    placeholder="What you intend to teach or what students will learn during instruction"
                     className={formErrors.objectives ? "border-destructive" : ""}
                   />
                   {formErrors.objectives && (
@@ -491,7 +607,6 @@ export default function NewLessonFormDetailed() {
                   )}
                 </div>
 
-                {/* Outcomes */}
                 <div>
                   <Label>Outcomes</Label>
                   <Textarea
@@ -531,7 +646,7 @@ export default function NewLessonFormDetailed() {
                         updateField("outcomes", newValue);
                       }
                     }}
-                    placeholder={"What the students will be able to do independently after learning takes place"}
+                    placeholder="What the students will be able to do independently after learning takes place"
                   />
                 </div>
               </div>
@@ -539,58 +654,71 @@ export default function NewLessonFormDetailed() {
               <Separator />
 
               {/* Pedagogical Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Specialist Subject Knowledge Required</Label>
-                  <Textarea
-                    value={lesson.specialist_subject_knowledge_required || ""}
-                    onChange={(e) =>
-                      updateField("specialist_subject_knowledge_required", e.target.value)
-                    }
-                    placeholder="Knowledge needed before teaching..."
-                  />
-                </div>
-                <div>
-                  <Label>Knowledge Revisited</Label>
-                  <Textarea
-                    value={lesson.knowledge_revisited || ""}
-                    onChange={(e) => updateField("knowledge_revisited", e.target.value)}
-                    placeholder="What prior learning is being built upon?"
-                  />
-                </div>
-                <div>
-                  <Label>Numeracy Opportunities</Label>
-                  <Textarea
-                    value={lesson.numeracy_opportunities || ""}
-                    onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
-                    placeholder="Opportunities for numeracy practice..."
-                  />
-                </div>
-                <div>
-                  <Label>Literacy Opportunities</Label>
-                  <Textarea
-                    value={lesson.literacy_opportunities || ""}
-                    onChange={(e) => updateField("literacy_opportunities", e.target.value)}
-                    placeholder="Opportunities for literacy skill development..."
-                  />
-                </div>
-                <div>
-                  <Label>Subject Pedagogies</Label>
-                  <Textarea
-                    value={lesson.subject_pedagogies || ""}
-                    onChange={(e) => updateField("subject_pedagogies", e.target.value)}
-                    placeholder="Pedagogical approaches used..."
-                  />
-                </div>
-                <div>
-                  <Label>Health & Safety Considerations</Label>
-                  <Textarea
-                    value={lesson.health_and_safety_considerations || ""}
-                    onChange={(e) =>
-                      updateField("health_and_safety_considerations", e.target.value)
-                    }
-                    placeholder="Potential hazards or safety measures..."
-                  />
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Pedagogical Details</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Detailed teaching considerations and subject-specific information.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Specialist Subject Knowledge Required</Label>
+                    <Textarea
+                      value={lesson.specialist_subject_knowledge_required || ""}
+                      onChange={(e) =>
+                        updateField("specialist_subject_knowledge_required", e.target.value)
+                      }
+                      placeholder="Knowledge needed before teaching..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <Label>Knowledge Revisited</Label>
+                    <Textarea
+                      value={lesson.knowledge_revisited || ""}
+                      onChange={(e) => updateField("knowledge_revisited", e.target.value)}
+                      placeholder="What prior learning is being built upon?"
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <Label>Numeracy Opportunities</Label>
+                    <Textarea
+                      value={lesson.numeracy_opportunities || ""}
+                      onChange={(e) => updateField("numeracy_opportunities", e.target.value)}
+                      placeholder="Opportunities for numeracy practice..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <Label>Literacy Opportunities</Label>
+                    <Textarea
+                      value={lesson.literacy_opportunities || ""}
+                      onChange={(e) => updateField("literacy_opportunities", e.target.value)}
+                      placeholder="Opportunities for literacy skill development..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <Label>Subject Pedagogies</Label>
+                    <Textarea
+                      value={lesson.subject_pedagogies || ""}
+                      onChange={(e) => updateField("subject_pedagogies", e.target.value)}
+                      placeholder="Pedagogical approaches used..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <Label>Health & Safety Considerations</Label>
+                    <Textarea
+                      value={lesson.health_and_safety_considerations || ""}
+                      onChange={(e) =>
+                        updateField("health_and_safety_considerations", e.target.value)
+                      }
+                      placeholder="Potential hazards or safety measures..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -599,6 +727,10 @@ export default function NewLessonFormDetailed() {
               {/* Lesson Structure */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Lesson Structure</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Define each stage of your lesson, including timing and learning strategies.
+                </p>
+
                 <div className="space-y-5">
                   {stages.map((stage, i) => (
                     <div
@@ -675,7 +807,6 @@ export default function NewLessonFormDetailed() {
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: Resource, index: number) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-                      {/* Title */}
                       <Input
                         placeholder="Resource title"
                         value={res.title || ""}
@@ -686,7 +817,6 @@ export default function NewLessonFormDetailed() {
                         }}
                       />
 
-                      {/* URL */}
                       <Input
                         placeholder="https://example.com"
                         value={res.url || ""}
@@ -747,7 +877,7 @@ export default function NewLessonFormDetailed() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Evaluation</h3>
                 <Textarea
-                  placeholder="• Reflection on students’ progress..."
+                  placeholder="• Reflection on students' progress..."
                   value={lesson.evaluation || ""}
                   onChange={(e) => updateField("evaluation", e.target.value)}
                   className="min-h-[120px]"
@@ -760,20 +890,17 @@ export default function NewLessonFormDetailed() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Teacher Notes</h3>
                 <Textarea
-                  placeholder="Any additional comments or reminders..."
+                  placeholder="Additional comments or reminders..."
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                   className="min-h-[120px]"
                 />
               </div>
 
-              {error && (
-                <p className="text-destructive text-sm font-medium">{error}</p>
-              )}
-
+              {/* Submit Button */}
               <div className="flex justify-end">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Create Lesson Plan"}
+                  {saving ? "Saving..." : "Create Detailed Lesson Plan"}
                 </Button>
               </div>
             </form>
