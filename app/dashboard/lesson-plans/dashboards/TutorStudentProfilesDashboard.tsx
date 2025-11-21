@@ -163,7 +163,7 @@ export default function TutorStudentProfilesDashboard() {
             <div className="text-center py-10">
               <p>No students found.</p>
               <Button className="mt-4" asChild>
-                <Link href="/dashboard/students/new">Add Student</Link>
+                <Link href="/dashboard/student-profiles/new">Add Student</Link>
               </Button>
             </div>
           ) : (
