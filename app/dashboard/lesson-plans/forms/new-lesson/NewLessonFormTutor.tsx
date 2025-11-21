@@ -732,7 +732,7 @@ export default function NewLessonFormTutor() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Session Evaluation</h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Reflect on the student's progress and what worked well.
+                  {"Reflect on the student's progress and what worked well."}
                 </p>
                 <Textarea
                   placeholder="• How did the student respond?&#10;• What progress was made?&#10;• Areas to focus on next time..."
