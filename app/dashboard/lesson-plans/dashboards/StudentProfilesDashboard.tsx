@@ -169,7 +169,7 @@ export default function StudentProfilesDashboard() {
             <div className="text-center py-10">
               <p>No students found.</p>
               <Button className="mt-4" asChild>
-                <a href="/dashboard/student-profiles/new">Add Student</a>
+                <Link href="/dashboard/student-profiles/new">Add Student</Link>
               </Button>
             </div>
           ) : (
