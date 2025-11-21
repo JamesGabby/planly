@@ -287,12 +287,12 @@ export default function NewTeacherStudentProfileForm() {
 
               {/* Textarea fields */}
               {[
+                { label: "Special Educational Needs", key: "special_educational_needs" },
                 { label: "Goals", key: "goals" },
                 { label: "Interests", key: "interests" },
                 { label: "Learning Preferences", key: "learning_preferences" },
                 { label: "Strengths", key: "strengths" },
                 { label: "Weaknesses", key: "weaknesses" },
-                { label: "Special Educational Needs", key: "special_educational_needs" },
                 { label: "Notes", key: "notes" },
               ].map(({ label, key }) => (
                 <div key={key}>
