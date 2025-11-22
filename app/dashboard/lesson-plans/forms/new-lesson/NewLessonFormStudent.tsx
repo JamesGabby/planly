@@ -154,7 +154,7 @@ export default function NewLessonFormStudent() {
     const errors: { [key: string]: string } = {};
     
     // Helper function to safely check string fields
-    const isEmptyString = (value: any): boolean => {
+    const isEmptyString = (value: string | null | undefined): boolean => {
       return !value || (typeof value === 'string' && !value.trim());
     };
 
