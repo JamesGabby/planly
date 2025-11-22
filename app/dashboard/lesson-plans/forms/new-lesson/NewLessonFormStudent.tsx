@@ -152,21 +152,26 @@ export default function NewLessonFormStudent() {
 
   function validateForm() {
     const errors: { [key: string]: string } = {};
+    
+    // Helper function to safely check string fields
+    const isEmptyString = (value: any): boolean => {
+      return !value || (typeof value === 'string' && !value.trim());
+    };
 
-    if (!lesson.class?.trim()) errors.class = "Class is required.";
-    if (!lesson.year_group?.trim()) errors.year_group = "Year group is required.";
-    if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
-    if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
-    if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
-    if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
-    if (!lesson.objectives?.trim()) errors.objectives = "Objectives are required.";
+    if (isEmptyString(lesson.class)) errors.class = "Class is required.";
+    if (isEmptyString(lesson.year_group)) errors.year_group = "Year group is required.";
+    if (isEmptyString(lesson.date_of_lesson)) errors.date_of_lesson = "Date is required.";
+    if (isEmptyString(lesson.time_of_lesson)) errors.time_of_lesson = "Time is required.";
+    if (isEmptyString(lesson.topic)) errors.topic = "Topic is required.";
+    if (isEmptyString(lesson.subject)) errors.subject = "Subject is required.";
+    if (isEmptyString(lesson.objectives)) errors.objectives = "Objectives are required.";
 
     const yearNum = parseInt(lesson.year_group?.replace("Year ", "") || "0");
     const isGCSE = yearNum >= 10 && yearNum <= 11;
     const isAlevel = yearNum >= 12 && yearNum <= 13;
     const showExamBoard = isGCSE || isAlevel;
 
-    if (showExamBoard && !lesson.exam_board?.trim()) {
+    if (showExamBoard && isEmptyString(lesson.exam_board)) {
       errors.exam_board = "Exam board is required for this year group.";
     }
 
@@ -175,84 +180,112 @@ export default function NewLessonFormStudent() {
   }
 
   async function generateLessonPlan() {
-    if (!validateBasicFields()) {
-      toast.error("Please fill in Class, Year Group, Subject, and Topic before generating.");
-      return;
-    }
-
-    setGenerating(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/generate-lesson", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          planType: "detailed", // Student form uses detailed plan structure
-          topic: lesson.topic,
-          subject: lesson.subject,
-          year_group: lesson.year_group,
-          class: lesson.class,
-          exam_board: lesson.exam_board === "Other" ? lesson.custom_exam_board : lesson.exam_board,
-          objectives: lesson.objectives,
-          outcomes: lesson.outcomes,
-          specialist_subject_knowledge_required: lesson.specialist_subject_knowledge_required,
-          knowledge_revisited: lesson.knowledge_revisited,
-          numeracy_opportunities: lesson.numeracy_opportunities,
-          literacy_opportunities: lesson.literacy_opportunities,
-          subject_pedagogies: lesson.subject_pedagogies,
-          health_and_safety_considerations: lesson.health_and_safety_considerations,
-          duration: "60 minutes",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate lesson plan");
-      }
-
-      const generatedPlan = await response.json();
-
-      // Update form fields with AI-generated content
-      updateField("objectives", generatedPlan.objectives || lesson.objectives);
-      updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
-      updateField("homework", generatedPlan.homework || "");
-      updateField("evaluation", generatedPlan.evaluation || "");
-      updateField("notes", generatedPlan.notes || "");
-      
-      // Update pedagogical fields
-      updateField("specialist_subject_knowledge_required", generatedPlan.specialist_subject_knowledge_required || "");
-      updateField("knowledge_revisited", generatedPlan.knowledge_revisited || "");
-      updateField("numeracy_opportunities", generatedPlan.numeracy_opportunities || "");
-      updateField("literacy_opportunities", generatedPlan.literacy_opportunities || "");
-      updateField("subject_pedagogies", generatedPlan.subject_pedagogies || "");
-      updateField("health_and_safety_considerations", generatedPlan.health_and_safety_considerations || "");
-
-      if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
-        updateField("resources", generatedPlan.resources);
-      }
-
-      if (generatedPlan.lesson_structure && Array.isArray(generatedPlan.lesson_structure)) {
-        setStages(generatedPlan.lesson_structure);
-      }
-
-      toast.success("✨ Lesson plan generated successfully! Review and edit as needed.");
-      
-      setTimeout(() => {
-        window.scrollTo({ top: 400, behavior: "smooth" });
-      }, 500);
-      
-    } catch (err) {
-      console.error("Generation error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to generate lesson plan";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setGenerating(false);
-    }
+  if (!validateBasicFields()) {
+    toast.error("Please fill in Class, Year Group, Subject, and Topic before generating.");
+    return;
   }
+
+  setGenerating(true);
+  setError(null);
+
+  try {
+    const response = await fetch("/api/generate-lesson", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        planType: "detailed", // Student form uses detailed plan structure
+        topic: lesson.topic,
+        subject: lesson.subject,
+        year_group: lesson.year_group,
+        class: lesson.class,
+        exam_board: lesson.exam_board === "Other" ? lesson.custom_exam_board : lesson.exam_board,
+        objectives: lesson.objectives,
+        outcomes: lesson.outcomes,
+        specialist_subject_knowledge_required: lesson.specialist_subject_knowledge_required,
+        knowledge_revisited: lesson.knowledge_revisited,
+        numeracy_opportunities: lesson.numeracy_opportunities,
+        literacy_opportunities: lesson.literacy_opportunities,
+        subject_pedagogies: lesson.subject_pedagogies,
+        health_and_safety_considerations: lesson.health_and_safety_considerations,
+        duration: "60 minutes",
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to generate lesson plan");
+    }
+
+    const generatedPlan = await response.json();
+
+    // Helper function to convert arrays to bullet-point strings
+    const formatAsBulletPoints = (data: string | string[] | null | undefined): string => {
+      if (!data) return "";
+      if (Array.isArray(data)) {
+        return data.map(item => `• ${item}`).join('\n');
+      }
+      // If it's already a string, check if it needs bullet points
+      if (typeof data === 'string' && data.trim() && !data.startsWith('•')) {
+        // If it's a single line without bullets, add one
+        if (!data.includes('\n')) {
+          return `• ${data}`;
+        }
+      }
+      return data;
+    };
+
+    // Update form fields with AI-generated content, formatting arrays as bullet points
+    updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
+    updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
+    updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
+    updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
+    updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
+    
+    // Update pedagogical fields
+    updateField("specialist_subject_knowledge_required", 
+      formatAsBulletPoints(generatedPlan.specialist_subject_knowledge_required) || ""
+    );
+    updateField("knowledge_revisited", 
+      formatAsBulletPoints(generatedPlan.knowledge_revisited) || ""
+    );
+    updateField("numeracy_opportunities", 
+      formatAsBulletPoints(generatedPlan.numeracy_opportunities) || ""
+    );
+    updateField("literacy_opportunities", 
+      formatAsBulletPoints(generatedPlan.literacy_opportunities) || ""
+    );
+    updateField("subject_pedagogies", 
+      formatAsBulletPoints(generatedPlan.subject_pedagogies) || ""
+    );
+    updateField("health_and_safety_considerations", 
+      formatAsBulletPoints(generatedPlan.health_and_safety_considerations) || ""
+    );
+
+    if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
+      updateField("resources", generatedPlan.resources);
+    }
+
+    if (generatedPlan.lesson_structure && Array.isArray(generatedPlan.lesson_structure)) {
+      setStages(generatedPlan.lesson_structure);
+    }
+
+    toast.success("✨ Lesson plan generated successfully! Review and edit as needed.");
+    
+    setTimeout(() => {
+      window.scrollTo({ top: 400, behavior: "smooth" });
+    }, 500);
+    
+  } catch (err) {
+    console.error("Generation error:", err);
+    const errorMessage = err instanceof Error ? err.message : "Failed to generate lesson plan";
+    setError(errorMessage);
+    toast.error(errorMessage);
+  } finally {
+    setGenerating(false);
+  }
+}
 
   async function insertClass(className: string, userId: string) {
     try {
@@ -344,7 +377,7 @@ export default function NewLessonFormStudent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan (Student Teacher)</h1>
           <p className="text-muted-foreground text-sm">
@@ -830,47 +863,20 @@ export default function NewLessonFormStudent() {
 
                 <div className="space-y-5">
                   {stages.map((stage, i) => (
-                    <div key={i} className="border border-border/60 rounded-xl bg-background/70 shadow-sm p-4 md:p-5 hover:shadow-md transition-all">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium">{stage.stage}</h4>
-                        {["Starter", "Plenary"].includes(stage.stage) ? (
-                          <Button type="button" variant="ghost" size="sm" onClick={() => clearStage(i)}>Clear</Button>
-                        ) : (
-                          <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => removeStage(i)}>
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <Label>Duration</Label>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    type="button"
-                                    tabIndex={0}
-                                    className="focus:outline-none transition-opacity hover:opacity-80 focus:opacity-100"
-                                  >
-                                    <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs text-sm">
-                                  How long will each activity last and what time will it be?
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <Input value={stage.duration} onChange={(e) => updateStage(i, "duration", e.target.value)} placeholder="e.g. 10 min" />
-                        </div>
-
-                        <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          {["teaching", "learning", "assessing", "adapting"].map((field) => (
-                            <div key={field}>
+                    <div
+                      key={i}
+                      className="border border-border/60 rounded-xl bg-background/70 shadow-sm transition-all hover:shadow-md"
+                    >
+                      {/* Stage Header */}
+                      <div className="px-5 py-4 border-b border-border/50 bg-muted/30 rounded-t-xl">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <h4 className="font-semibold text-lg">{stage.stage}</h4>
+                            <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1">
-                                <Label className="capitalize">{field}</Label>
+                                <Label htmlFor={`duration-${i}`} className="text-sm text-muted-foreground">
+                                  Duration:
+                                </Label>
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -879,30 +885,174 @@ export default function NewLessonFormStudent() {
                                         tabIndex={0}
                                         className="focus:outline-none transition-opacity hover:opacity-80 focus:opacity-100"
                                       >
-                                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                        <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
                                       </button>
                                     </TooltipTrigger>
                                     <TooltipContent className="max-w-xs text-sm">
-                                      {field === "teaching" &&
-                                        "Explain how you are planning / organising / structuring / adapting your placement school's materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
-                                      {field === "learning" &&
-                                        "Detail pupil activity and clarify how pupils are engaged in learning at all times, during each phase of the lesson."}
-                                      {field === "assessing" &&
-                                        "Plot your learning checks to assess understanding and progress, including questioning sequences."}
-                                      {field === "adapting" &&
-                                        "Explain how you need to adapt learning for pupils who require support, guidance, LSA direction, and additional challenge."}
+                                      How long will each activity last and what time will it be?
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
                               </div>
-                              <Textarea value={stage[field as keyof LessonStage] || ""} onChange={(e) => updateStage(i, field as keyof LessonStage, e.target.value)} placeholder={`${field} details...`} />
+                              <Input
+                                id={`duration-${i}`}
+                                value={stage.duration}
+                                onChange={(e) => updateStage(i, "duration", e.target.value)}
+                                placeholder="10 min"
+                                className="w-24 h-8 text-sm"
+                              />
                             </div>
-                          ))}
+                          </div>
+
+                          {["Starter", "Plenary"].includes(stage.stage) ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => clearStage(i)}
+                            >
+                              Clear
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => removeStage(i)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Stage Content */}
+                      <div className="p-5 space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {/* Teaching */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-base font-medium">Teaching</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      tabIndex={0}
+                                      className="focus:outline-none transition-opacity hover:opacity-80 focus:opacity-100"
+                                    >
+                                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs text-sm">
+                                    Explain how you are planning/organising/structuring/adapting your placement school's materials. Include routines, expectations, task explanations, conditions of working, and phase transitions.
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <Textarea
+                              value={stage.teaching || ""}
+                              onChange={(e) => updateStage(i, "teaching", e.target.value)}
+                              placeholder="e.g., Explain the concept using visual aids, demonstrate the method on the board..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Learning */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-base font-medium">Learning</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      tabIndex={0}
+                                      className="focus:outline-none transition-opacity hover:opacity-80 focus:opacity-100"
+                                    >
+                                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs text-sm">
+                                    Detail pupil activity and clarify how pupils are engaged in learning at all times, during each phase of the lesson.
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <Textarea
+                              value={stage.learning || ""}
+                              onChange={(e) => updateStage(i, "learning", e.target.value)}
+                              placeholder="e.g., Students work in pairs to solve problems, take notes, participate in discussion..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Assessing */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-base font-medium">Assessing</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      tabIndex={0}
+                                      className="focus:outline-none transition-opacity hover:opacity-80 focus:opacity-100"
+                                    >
+                                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs text-sm">
+                                    Plot your learning checks to assess understanding and progress, including questioning sequences.
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <Textarea
+                              value={stage.assessing || ""}
+                              onChange={(e) => updateStage(i, "assessing", e.target.value)}
+                              placeholder="e.g., Question and answer, mini whiteboard activities, observation of group work..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Adapting */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-base font-medium">Adapting</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      tabIndex={0}
+                                      className="focus:outline-none transition-opacity hover:opacity-80 focus:opacity-100"
+                                    >
+                                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs text-sm">
+                                    Explain how you need to adapt learning for pupils who require support, guidance, LSA direction, and additional challenge.
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <Textarea
+                              value={stage.adapting || ""}
+                              onChange={(e) => updateStage(i, "adapting", e.target.value)}
+                              placeholder="e.g., Extension tasks for advanced learners, scaffolding for struggling students..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
-                  <Button type="button" variant="secondary" onClick={addStage}>+ Add Stage</Button>
+
+                  <Button type="button" variant="secondary" onClick={addStage}>
+                    + Add Stage
+                  </Button>
                 </div>
               </div>
 

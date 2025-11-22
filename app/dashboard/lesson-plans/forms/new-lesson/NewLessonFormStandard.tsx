@@ -640,61 +640,116 @@ export default function NewLessonFormStandard() {
                   {stages.map((stage, i) => (
                     <div
                       key={i}
-                      className="border border-border/60 rounded-xl bg-background/70 shadow-sm p-4 md:p-5 transition-all hover:shadow-md"
+                      className="border border-border/60 rounded-xl bg-background/70 shadow-sm transition-all hover:shadow-md"
                     >
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium">{stage.stage}</h4>
+                      {/* Stage Header */}
+                      <div className="px-5 py-4 border-b border-border/50 bg-muted/30 rounded-t-xl">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <h4 className="font-semibold text-lg">{stage.stage}</h4>
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor={`duration-${i}`} className="text-sm text-muted-foreground">
+                                Duration:
+                              </Label>
+                              <Input
+                                id={`duration-${i}`}
+                                value={stage.duration}
+                                onChange={(e) => updateStage(i, "duration", e.target.value)}
+                                placeholder="10 min"
+                                className="w-24 h-8 text-sm"
+                              />
+                            </div>
+                          </div>
 
-                        {["Starter", "Plenary"].includes(stage.stage) ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => clearStage(i)}
-                          >
-                            Clear
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => removeStage(i)}
-                          >
-                            Remove
-                          </Button>
-                        )}
+                          {["Starter", "Plenary"].includes(stage.stage) ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => clearStage(i)}
+                            >
+                              Clear
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => removeStage(i)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                        <div>
-                          <Label>Duration</Label>
-                          <Input
-                            value={stage.duration}
-                            onChange={(e) => updateStage(i, "duration", e.target.value)}
-                            placeholder="e.g. 10 min"
-                          />
-                        </div>
-                        <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          {["teaching", "learning", "assessing", "adapting"].map(
-                            (field) => (
-                              <div key={field}>
-                                <Label className="capitalize">{field}</Label>
-                                <Textarea
-                                  value={stage[field as keyof LessonStage] || ""}
-                                  onChange={(e) =>
-                                    updateStage(
-                                      i,
-                                      field as keyof LessonStage,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder={`${field} details...`}
-                                />
-                              </div>
-                            )
-                          )}
+                      {/* Stage Content */}
+                      <div className="p-5 space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {/* Teaching */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Teaching</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                What will you do as the teacher? Include methods and strategies.
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.teaching || ""}
+                              onChange={(e) => updateStage(i, "teaching", e.target.value)}
+                              placeholder="e.g., Explain the concept using visual aids, demonstrate the method on the board..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Learning */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Learning</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                What will students do? Describe their activities and engagement.
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.learning || ""}
+                              onChange={(e) => updateStage(i, "learning", e.target.value)}
+                              placeholder="e.g., Students work in pairs to solve problems, take notes, participate in discussion..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Assessing */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Assessing</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                How will you check understanding and progress?
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.assessing || ""}
+                              onChange={(e) => updateStage(i, "assessing", e.target.value)}
+                              placeholder="e.g., Question and answer, mini whiteboard activities, observation of group work..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Adapting */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Adapting</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                How will you differentiate for various learning needs?
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.adapting || ""}
+                              onChange={(e) => updateStage(i, "adapting", e.target.value)}
+                              placeholder="e.g., Extension tasks for advanced learners, scaffolding for struggling students..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

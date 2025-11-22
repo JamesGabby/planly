@@ -560,93 +560,137 @@ export default function NewLessonFormTutor() {
 
               <Separator />
               
-              {/* Lesson Structure */}
+              {/* Session Structure - Enhanced for tutoring */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Session Structure</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Plan each phase of your tutoring session with personalized support.
+                  Plan each phase of your tutoring session with personalized support strategies.
                 </p>
 
                 <div className="space-y-5">
                   {stages.map((stage, i) => (
                     <div
                       key={i}
-                      className="border border-border/60 rounded-xl bg-background/70 shadow-sm p-4 md:p-5 transition-all hover:shadow-md"
+                      className="border border-border/60 rounded-xl bg-background/70 shadow-sm transition-all hover:shadow-md"
                     >
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium">{stage.stage}</h4>
+                      {/* Stage Header */}
+                      <div className="px-5 py-4 border-b border-border/50 bg-muted/30 rounded-t-xl">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <h4 className="font-semibold text-lg">{stage.stage}</h4>
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor={`duration-${i}`} className="text-sm text-muted-foreground">
+                                Duration:
+                              </Label>
+                              <Input
+                                id={`duration-${i}`}
+                                value={stage.duration}
+                                onChange={(e) => updateStage(i, "duration", e.target.value)}
+                                placeholder="10 min"
+                                className="w-24 h-8 text-sm"
+                              />
+                            </div>
+                          </div>
 
-                        {["Starter", "Plenary"].includes(stage.stage) ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => clearStage(i)}
-                          >
-                            Clear
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => removeStage(i)}
-                          >
-                            Remove
-                          </Button>
-                        )}
+                          {["Starter", "Plenary"].includes(stage.stage) ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => clearStage(i)}
+                            >
+                              Clear
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => removeStage(i)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                        <div>
-                          <Label>Duration</Label>
-                          <Input
-                            value={stage.duration}
-                            onChange={(e) => updateStage(i, "duration", e.target.value)}
-                            placeholder="e.g. 10 min"
-                          />
-                        </div>
-                        <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          {["teaching", "learning", "assessing", "adapting"].map(
-                            (field) => (
-                              <div key={field}>
-                                <Label className="capitalize">
-                                  {field === "teaching" ? "Tutor Does" : 
-                                   field === "learning" ? "Student Does" :
-                                   field === "assessing" ? "Check Understanding" :
-                                   "Adapt/Support"}
-                                </Label>
-                                <Textarea
-                                  value={stage[field as keyof LessonStage] || ""}
-                                  onChange={(e) =>
-                                    updateStage(
-                                      i,
-                                      field as keyof LessonStage,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder={
-                                    field === "teaching" ? "What you'll do..." :
-                                    field === "learning" ? "What student does..." :
-                                    field === "assessing" ? "How to check progress..." :
-                                    "If struggling/excelling..."
-                                  }
-                                />
-                              </div>
-                            )
-                          )}
+                      {/* Stage Content for Tutoring */}
+                      <div className="p-5 space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {/* Tutor Actions */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">What You'll Do</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                Your teaching approach and methods for this phase
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.teaching || ""}
+                              onChange={(e) => updateStage(i, "teaching", e.target.value)}
+                              placeholder="e.g., Use visual aids to explain the concept, demonstrate problem-solving steps on whiteboard, guide through worked examples..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Student Activities */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Student Activities</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                What the student will do during this phase
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.learning || ""}
+                              onChange={(e) => updateStage(i, "learning", e.target.value)}
+                              placeholder="e.g., Practice problems with guidance, explain their thinking process, work through examples independently..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Assessment Strategy */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Check Understanding</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                How you'll assess progress and comprehension
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.assessing || ""}
+                              onChange={(e) => updateStage(i, "assessing", e.target.value)}
+                              placeholder="e.g., Ask student to explain concept back, observe problem-solving approach, quick verbal quiz, check workings..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
+
+                          {/* Differentiation */}
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-base font-medium">Adapt & Support</Label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                How to adjust if student struggles or excels
+                              </p>
+                            </div>
+                            <Textarea
+                              value={stage.adapting || ""}
+                              onChange={(e) => updateStage(i, "adapting", e.target.value)}
+                              placeholder="e.g., If struggling: break down into smaller steps, use manipulatives. If excelling: introduce challenge problems, explore real-world applications..."
+                              className="min-h-[100px] text-sm"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
 
                   <Button type="button" variant="secondary" onClick={addStage}>
-                    + Add Phase
+                    + Add Session Phase
                   </Button>
                 </div>
               </div>
-
               <Separator />
 
               {/* Resources */}
