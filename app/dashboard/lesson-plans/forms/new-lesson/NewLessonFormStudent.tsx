@@ -946,7 +946,7 @@ export default function NewLessonFormStudent() {
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent className="max-w-xs text-sm">
-                                    Explain how you are planning/organising/structuring/adapting your placement school's materials. Include routines, expectations, task explanations, conditions of working, and phase transitions.
+                                    {"Explain how you are planning/organising/structuring/adapting your placement school's materials. Include routines, expectations, task explanations, conditions of working, and phase transitions."}
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>

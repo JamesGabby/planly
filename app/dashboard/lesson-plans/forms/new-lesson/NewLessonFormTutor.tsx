@@ -621,7 +621,7 @@ export default function NewLessonFormTutor() {
                           {/* Tutor Actions */}
                           <div className="space-y-2">
                             <div>
-                              <Label className="text-base font-medium">What You'll Do</Label>
+                              <Label className="text-base font-medium">{"What You'll Do"}</Label>
                               <p className="text-xs text-muted-foreground mt-0.5">
                                 Your teaching approach and methods for this phase
                               </p>
@@ -655,7 +655,7 @@ export default function NewLessonFormTutor() {
                             <div>
                               <Label className="text-base font-medium">Check Understanding</Label>
                               <p className="text-xs text-muted-foreground mt-0.5">
-                                How you'll assess progress and comprehension
+                                {"How you'll assess progress and comprehension"}
                               </p>
                             </div>
                             <Textarea
