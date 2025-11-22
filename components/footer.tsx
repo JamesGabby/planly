@@ -1,5 +1,7 @@
+import { Copyright } from "lucide-react";
 import { ThemeSwitcher } from "./theme-switcher";
 import { Poppins } from "next/font/google";
+
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -14,6 +16,9 @@ export function Footer() {
         Lessonly
       </p>
       <ThemeSwitcher />
+      <div className="flex items-center gap-1">
+        Built by James Gabbitus <Copyright className="w-3 h-3" />
+      </div>
     </footer>
   )
 }
