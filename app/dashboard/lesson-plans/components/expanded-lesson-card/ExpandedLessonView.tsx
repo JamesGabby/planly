@@ -2,9 +2,10 @@
 
 import { LessonPlanTeacher } from "@/app/dashboard/lesson-plans/types/lesson_teacher";
 import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 import { Calendar, Clock, GraduationCap, Printer } from "lucide-react";
+import Link from "next/link";
 
 /* --- EXPANDED LESSON VIEW --- */
 export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
@@ -14,27 +15,74 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
   const [homework, setHomework] = useState(lesson.homework ?? "");
   const [, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-
+  const [classId, setClassId] = useState<string | null>(null);
+  
   const resources = parseResources(lesson.resources);
-  const lessonStructure = Array.isArray(lesson.lesson_structure)
-    ? lesson.lesson_structure
-    : [];
+  const lessonStructure = Array.isArray(lesson.lesson_structure) ? lesson.lesson_structure : [];
+
+  // Fetch the class_id based on class_name and user_id
+  useEffect(() => {
+    async function fetchClassId() {
+      if (!lesson.class || !lesson.user_id) return;
+      
+      try {
+        // First, try to get the class by both class_name and user_id
+        const { data, error } = await supabase
+          .from("classes")
+          .select("class_id")
+          .eq("class_name", lesson.class)
+          .eq("user_id", lesson.user_id)
+          .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
+          
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        if (data) {
+          setClassId(data.class_id);
+        } else {
+          // If no class found with user_id match, try to get any class with this name
+          // This handles cases where classes might be shared or have different ownership
+          const { data: anyClassData, error: anyClassError } = await supabase
+            .from("classes")
+            .select("class_id")
+            .eq("class_name", lesson.class)
+            .limit(1)
+            .maybeSingle();
+            
+          if (anyClassError && anyClassError.code !== 'PGRST116') {
+            throw anyClassError;
+          }
+          
+          if (anyClassData) {
+            setClassId(anyClassData.class_id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching class ID:", err);
+      }
+    }
+    
+    fetchClassId();
+  }, [lesson.class, lesson.user_id, supabase]);
 
   async function handleSave(field: "notes" | "evaluation" | "homework", value: string) {
     setSaving(true);
     setMessage(null);
+
     try {
       const { error } = await supabase
         .from("lesson_plans")
         .update({ [field]: value })
         .eq("id", lesson.id);
+
       if (error) throw error;
+
       setMessage("Saved!");
       setTimeout(() => setMessage(null), 2000);
-     } catch (err: unknown) {      // ← fixed
+    } catch (err: unknown) {
       console.error(err);
-      const message =
-        err instanceof Error ? err.message : "Error saving changes";
+      const message = err instanceof Error ? err.message : "Error saving changes";
       setMessage(message);
     } finally {
       setSaving(false);
@@ -44,10 +92,10 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
   const handlePrint = () => {
     const printElement = document.getElementById('lesson-print');
     if (!printElement) return;
-
+    
     // Clone the element to manipulate without affecting the UI
     const clone = printElement.cloneNode(true) as HTMLElement;
-
+    
     // Replace textareas with their content as paragraphs
     const textareas = clone.querySelectorAll('textarea');
     textareas.forEach((ta) => {
@@ -65,38 +113,14 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
         <head>
           <title>Lesson Plan</title>
           <style>
-            body {
-              font-family: sans-serif;
-              margin: 20px;
-              color: #000;
-              background: #fff;
-            }
-            h2, h3 {
-              color: #000;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 20px;
-            }
-            th, td {
-              border: 1px solid #000;
-              padding: 6px 8px;
-              text-align: left;
-            }
-            ul {
-              padding-left: 20px;
-            }
-            button, input {
-              display: none !important;
-            }
-            section {
-              page-break-inside: avoid;
-              margin-bottom: 15px;
-            }
-            .meta-space {
-              margin-right: 55px;
-            }
+            body { font-family: sans-serif; margin: 20px; color: #000; background: #fff; }
+            h2, h3 { color: #000; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
+            ul { padding-left: 20px; }
+            button, input, a { display: none !important; }
+            section { page-break-inside: avoid; margin-bottom: 15px; }
+            .meta-space { margin-right: 55px; }
           </style>
         </head>
         <body>
@@ -104,7 +128,7 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
         </body>
       </html>
     `);
-
+    
     newWindow.document.close();
     newWindow.focus();
     newWindow.print();
@@ -118,10 +142,37 @@ export function ExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
         <h2 className="text-2xl font-bold text-foreground">
           {lesson.topic ?? "Untitled"}
         </h2>
-        <p className="text-sm text-muted-foreground">
-          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} {lesson.exam_board ? '•' : ''} {lesson.exam_board} <span className="meta-space" />
-          <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "}
-          <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
+        <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-2">
+          <span className="flex items-center gap-1">
+            <GraduationCap size={20} className="inline" />
+            {lesson.year_group}
+          </span>
+          <span>•</span>
+          {classId ? (
+            <Link 
+              href={`/dashboard/classes/${classId}`}
+              className="text-primary hover:underline hover:text-primary/80 transition-colors"
+            >
+              {lesson.class}
+            </Link>
+          ) : (
+            <span>{lesson.class}</span>
+          )}
+          {lesson.exam_board && (
+            <>
+              <span>•</span>
+              <span>{lesson.exam_board}</span>
+            </>
+          )}
+          <span className="meta-space" />
+          <span className="flex items-center gap-1">
+            <Calendar size={17} className="inline" />
+            {prettyDate(lesson.date_of_lesson)}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock size={17} className="inline" />
+            {lesson.time_of_lesson && `${prettyTime(lesson.time_of_lesson)}`}
+          </span>
         </p>
       </header>
 

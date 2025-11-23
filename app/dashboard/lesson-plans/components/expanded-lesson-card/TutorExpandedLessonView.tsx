@@ -118,7 +118,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           {lesson.topic ?? "Untitled"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          <Link href={`/dashboard/student-profiles/${lesson.student_id}`}><User size={20} className="inline" /> {lesson.first_name}{" "}{lesson.last_name} <span className="meta-space" /></Link>
+          <Link href={`/dashboard/student-profiles/${lesson.student_id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors"><User size={20} className="inline" /> {lesson.first_name}{" "}{lesson.last_name} <span className="meta-space" /></Link>
           <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "} <span className="meta-space" />
           <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
         </p>
