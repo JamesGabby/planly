@@ -100,7 +100,7 @@ export default function EditLessonFormStudent() {
         if (!data) throw new Error("Lesson plan not found");
 
         // Parse lesson structure if it's stored as JSON string
-        let parsedStages: LessonStage[] = Array.isArray(data.lesson_structure)
+        const parsedStages: LessonStage[] = Array.isArray(data.lesson_structure)
           ? data.lesson_structure
           : typeof data.lesson_structure === 'string'
           ? JSON.parse(data.lesson_structure)
