@@ -95,7 +95,7 @@ export default function NewTutorStudentProfileForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background px-4 py-6 sm:px-6 md:p-10 transition-colors">
       <div className="max-w-3xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">New Student Profile</h1>
@@ -109,9 +109,9 @@ export default function NewTutorStudentProfileForm() {
             <CardTitle className="text-xl font-semibold">Student Details</CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-6 space-y-8">
+          <CardContent className="pt-4 sm:pt-6 space-y-6 sm:space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={formErrors.first_name ? "text-destructive" : ""}>
                     First Name <span className="text-destructive">*</span>

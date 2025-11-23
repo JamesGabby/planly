@@ -127,7 +127,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
       {/* --- OBJECTIVES & OUTCOMES INLINE --- */}
       {(lesson.objectives || lesson.outcomes) && (
         <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {lesson.objectives && (
               <div>
                 <h4 className="font-medium text-foreground">Objectives</h4>

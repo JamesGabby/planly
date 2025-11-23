@@ -1,4 +1,4 @@
-              "use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -220,7 +220,7 @@ export default function NewLessonFormDetailed() {
       updateField("homework", generatedPlan.homework || "");
       updateField("evaluation", generatedPlan.evaluation || "");
       updateField("notes", generatedPlan.notes || "");
-      
+
       // Update detailed-specific fields
       updateField("specialist_subject_knowledge_required", generatedPlan.specialist_subject_knowledge_required || "");
       updateField("knowledge_revisited", generatedPlan.knowledge_revisited || "");
@@ -238,11 +238,11 @@ export default function NewLessonFormDetailed() {
       }
 
       toast.success("✨ Detailed lesson plan generated successfully! Review and edit as needed.");
-      
+
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
       }, 500);
-      
+
     } catch (err) {
       console.error("Generation error:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to generate lesson plan";
@@ -302,15 +302,15 @@ export default function NewLessonFormDetailed() {
       const formattedResources =
         Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
-              title: res.title || res.url || "",
-              url: res.url?.trim() || "",
-            }))
+            title: res.title || res.url || "",
+            url: res.url?.trim() || "",
+          }))
           : [];
 
       const finalExamBoard = showExamBoard
         ? (lesson.exam_board === "Other"
-            ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
-            : lesson.exam_board)
+          ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
+          : lesson.exam_board)
         : null;
 
       const { error: insertError } = await supabase
@@ -342,8 +342,8 @@ export default function NewLessonFormDetailed() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background px-4 py-6 sm:px-6 md:p-10 transition-colors">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">New Detailed Lesson Plan</h1>
           <p className="text-muted-foreground text-sm">
@@ -356,7 +356,7 @@ export default function NewLessonFormDetailed() {
             <CardTitle className="text-xl font-semibold">Lesson Details</CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-6 space-y-8">
+          <CardContent className="pt-4 sm:pt-6 space-y-6 sm:space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Error Display */}
               {error && (
@@ -366,7 +366,7 @@ export default function NewLessonFormDetailed() {
               )}
 
               {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={formErrors.class ? "text-destructive" : ""}>
                     Class <span className="text-destructive">*</span>
@@ -555,9 +555,9 @@ export default function NewLessonFormDetailed() {
               </div>
 
               <Separator />
-              
+
               {/* Objectives & Outcomes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={formErrors.objectives ? "text-destructive" : ""}>
                     Objectives <span className="text-destructive">*</span>
@@ -659,8 +659,8 @@ export default function NewLessonFormDetailed() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Detailed teaching considerations and subject-specific information.
                 </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Specialist Subject Knowledge Required</Label>
                     <Textarea
@@ -780,8 +780,8 @@ export default function NewLessonFormDetailed() {
                       </div>
 
                       {/* Stage Content */}
-                      <div className="p-5 space-y-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="p-4 sm:p-5 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                           {/* Teaching */}
                           <div className="space-y-2">
                             <div>
@@ -855,7 +855,7 @@ export default function NewLessonFormDetailed() {
                   </Button>
                 </div>
               </div>
-              
+
               <Separator />
 
               {/* Resources */}
@@ -867,7 +867,7 @@ export default function NewLessonFormDetailed() {
 
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: Resource, index: number) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                    <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 items-center">
                       <Input
                         placeholder="Resource title"
                         value={res.title || ""}

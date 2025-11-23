@@ -319,8 +319,8 @@ export default function NewLessonFormStandard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-6 md:p-10 transition-colors">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background px-4 py-6 sm:px-6 md:p-10 transition-colors">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">New Lesson Plan</h1>
           <p className="text-muted-foreground text-sm">
@@ -333,7 +333,7 @@ export default function NewLessonFormStandard() {
             <CardTitle className="text-xl font-semibold">Lesson Details</CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-6 space-y-8">
+          <CardContent className="pt-4 sm:pt-6 space-y-6 sm:space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {error && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
@@ -342,7 +342,7 @@ export default function NewLessonFormStandard() {
               )}
 
               {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={formErrors.class ? "text-destructive" : ""}>
                     Class <span className="text-destructive">*</span>
@@ -533,7 +533,7 @@ export default function NewLessonFormStandard() {
               <Separator />
 
               {/* Objectives & Outcomes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={formErrors.objectives ? "text-destructive" : ""}>
                     Objectives <span className="text-destructive">*</span>
@@ -685,8 +685,8 @@ export default function NewLessonFormStandard() {
                       </div>
 
                       {/* Stage Content */}
-                      <div className="p-5 space-y-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="p-4 sm:p-5 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                           {/* Teaching */}
                           <div className="space-y-2">
                             <div>
@@ -772,7 +772,7 @@ export default function NewLessonFormStandard() {
 
                 <div className="space-y-3">
                   {(lesson.resources || []).map((res: Resource, index: number) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                    <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 items-center">
                       {/* Title */}
                       <Input
                         placeholder="Resource title"
