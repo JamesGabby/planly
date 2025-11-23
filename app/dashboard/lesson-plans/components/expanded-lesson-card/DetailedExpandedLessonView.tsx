@@ -2,15 +2,17 @@
 
 import { LessonPlanTeacher } from "../../types/lesson_teacher";
 import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
 import { GraduationCap, Calendar, Clock, Printer } from "lucide-react";
+import Link from "next/link";
 
 export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeacher }) {
   const supabase = createClient();
   const [notes, setNotes] = useState(lesson.notes ?? "");
   const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
   const [homework, setHomework] = useState(lesson.homework ?? "");
+  const [classId, setClassId] = useState<string | null>(null);
 
   const [, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -20,6 +22,52 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
     ? lesson.lesson_structure
     : [];
 
+  // Fetch the class_id based on class_name and user_id
+  useEffect(() => {
+    async function fetchClassId() {
+      if (!lesson.class || !lesson.user_id) return;
+      
+      try {
+        // First, try to get the class by both class_name and user_id
+        const { data, error } = await supabase
+          .from("classes")
+          .select("class_id")
+          .eq("class_name", lesson.class)
+          .eq("user_id", lesson.user_id)
+          .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
+          
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        if (data) {
+          setClassId(data.class_id);
+        } else {
+          // If no class found with user_id match, try to get any class with this name
+          // This handles cases where classes might be shared or have different ownership
+          const { data: anyClassData, error: anyClassError } = await supabase
+            .from("classes")
+            .select("class_id")
+            .eq("class_name", lesson.class)
+            .limit(1)
+            .maybeSingle();
+            
+          if (anyClassError && anyClassError.code !== 'PGRST116') {
+            throw anyClassError;
+          }
+          
+          if (anyClassData) {
+            setClassId(anyClassData.class_id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching class ID:", err);
+      }
+    }
+    
+    fetchClassId();
+  }, [lesson.class, lesson.user_id, supabase]);
+  
   async function handleSave(
     field: "notes" | "evaluation" | "homework",
     value: string
@@ -122,12 +170,39 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
       {/* --- HEADER --- */}
       <header>
         <h2 className="text-2xl font-bold text-foreground">
-          {lesson.topic ?? "Untitled Lesson"}
+          {lesson.topic ?? "Untitled"}
         </h2>
-        <p className="text-sm text-muted-foreground">
-          <GraduationCap size={20} className="inline" /> {lesson.year_group}  • {lesson.class} {lesson.exam_board ? '•' : ''} {lesson.exam_board} <span className="meta-space" />
-          <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "}
-          <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
+        <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-2">
+          <span className="flex items-center gap-1">
+            <GraduationCap size={20} className="inline" />
+            {lesson.year_group}
+          </span>
+          <span>•</span>
+          {classId ? (
+            <Link 
+              href={`/dashboard/classes/${classId}`}
+              className="text-primary hover:underline hover:text-primary/80 transition-colors"
+            >
+              {lesson.class}
+            </Link>
+          ) : (
+            <span>{lesson.class}</span>
+          )}
+          {lesson.exam_board && (
+            <>
+              <span>•</span>
+              <span>{lesson.exam_board}</span>
+            </>
+          )}
+          <span className="meta-space" />
+          <span className="flex items-center gap-1">
+            <Calendar size={17} className="inline" />
+            {prettyDate(lesson.date_of_lesson)}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock size={17} className="inline" />
+            {lesson.time_of_lesson && `${prettyTime(lesson.time_of_lesson)}`}
+          </span>
         </p>
       </header>
 
