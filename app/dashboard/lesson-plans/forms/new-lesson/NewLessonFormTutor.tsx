@@ -663,7 +663,7 @@ export default function NewLessonFormTutor() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                           {/* Tutor Actions */}
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium">What You'll Do</Label>
+                            <Label className="text-sm font-medium">{"What You'll Do"}</Label>
                             <Textarea
                               value={stage.teaching || ""}
                               onChange={(e) => updateStage(i, "teaching", e.target.value)}
@@ -824,7 +824,7 @@ export default function NewLessonFormTutor() {
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Reflect on the student's progress and what worked well.
+                  {"Reflect on the student's progress and what worked well."}
                 </p>
 
                 <Textarea
