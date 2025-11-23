@@ -1,7 +1,6 @@
 import { FocusTrap } from "focus-trap-react";
 import { useScroll, useTransform, AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
-import { ExpandedLessonView } from "./expanded-lesson-card/ExpandedLessonView";
 import { useUserMode } from "@/components/UserModeContext";
 import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
 import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView";
@@ -31,11 +30,8 @@ export function MobileResponsiveModal({
     const teacherLesson = lesson as LessonPlanTeacher;
     
     switch (mode) {
-      case "detailed":
-      case "student":
-        return <DetailedExpandedLessonView lesson={teacherLesson} />;
       default:
-        return <ExpandedLessonView lesson={teacherLesson} />;
+        return <DetailedExpandedLessonView lesson={teacherLesson} />;
     }
   }
 

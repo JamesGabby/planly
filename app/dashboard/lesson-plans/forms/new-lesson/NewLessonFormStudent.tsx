@@ -430,9 +430,6 @@ export default function NewLessonFormStudent() {
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             New Lesson Plan
-            <span className="block sm:inline text-base sm:text-lg font-normal text-muted-foreground mt-1 sm:mt-0 sm:ml-2">
-              (Student Teacher)
-            </span>
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm max-w-2xl">
             Create a comprehensive lesson plan with pedagogical details, or let AI help you generate one.

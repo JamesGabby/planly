@@ -178,12 +178,69 @@ export default function NewLessonFormTutor() {
 
       const generatedPlan = await response.json();
 
-      // Update form fields with AI-generated content
-      updateField("objectives", generatedPlan.objectives || lesson.objectives);
-      updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
-      updateField("homework", generatedPlan.homework || "");
-      updateField("evaluation", generatedPlan.evaluation || "");
-      updateField("notes", generatedPlan.notes || "");
+      // ADD THIS FORMATTING HELPER
+      type BulletPointObject = {
+        text?: string;
+        content?: string;
+        value?: string;
+        description?: string;
+        [key: string]: unknown;
+      };
+
+      type BulletPointData =
+        | string
+        | number
+        | boolean
+        | null
+        | undefined
+        | BulletPointObject
+        | BulletPointData[];
+
+      const formatAsBulletPoints = (data: BulletPointData): string => {
+        if (!data) return "";
+
+        // If it's an array
+        if (Array.isArray(data)) {
+          return data.map(item => {
+            if (typeof item === 'object' && item !== null) {
+              const obj = item as BulletPointObject;
+              return `• ${obj.text || obj.content || obj.value || obj.description || JSON.stringify(item)}`;
+            }
+            return `• ${item}`;
+          }).join('\n');
+        }
+
+        // If it's an object (but not array or null)
+        if (typeof data === 'object' && data !== null) {
+          const obj = data as BulletPointObject;
+          const text = obj.text || obj.content || obj.value || obj.description;
+          if (text) {
+            return Array.isArray(text) ? formatAsBulletPoints(text) : `• ${text}`;
+          }
+          console.warn('Unexpected object structure:', data);
+          return `• ${JSON.stringify(data)}`;
+        }
+
+        // If it's already a string
+        if (typeof data === 'string') {
+          if (data.trim() && !data.startsWith('•')) {
+            if (!data.includes('\n')) {
+              return `• ${data}`;
+            }
+            return data.split('\n').map(line => line.trim()).filter(line => line).map(line => `• ${line}`).join('\n');
+          }
+          return data;
+        }
+
+        return `• ${String(data)}`;
+      };
+
+      // UPDATE THESE LINES TO USE THE FORMATTER
+      updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
+      updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
+      updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
+      updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
+      updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
 
       if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
         updateField("resources", generatedPlan.resources);

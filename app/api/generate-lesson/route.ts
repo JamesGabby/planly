@@ -1,4 +1,4 @@
-  import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 type LessonPlanType = "standard" | "detailed" | "student" | "tutor";
 
@@ -12,10 +12,10 @@ interface GenerateLessonRequest {
   objectives?: string;
   outcomes?: string;
   exam_board?: string;
-  
+
   // Type identifier
   planType: LessonPlanType;
-  
+
   // Detailed/Student plan specific
   specialist_subject_knowledge_required?: string;
   knowledge_revisited?: string;
@@ -23,7 +23,7 @@ interface GenerateLessonRequest {
   literacy_opportunities?: string;
   subject_pedagogies?: string;
   health_and_safety_considerations?: string;
-  
+
   // Student/Tutor specific
   student_name?: string;
   learning_style?: string;
@@ -204,87 +204,60 @@ ${data.specific_needs ? `- Specific Needs/Goals: ${data.specific_needs}` : ""}
 ${data.parent_goals ? `- Parent Goals: ${data.parent_goals}` : ""}
 
 This is a TUTORING SESSION plan (1-on-1 or small group). Focus on:
-- Personalized, responsive instruction
+- Personalized, responsive instruction tailored to ${data.student_name || "the student"}
 - Frequent checks for understanding every 3-5 minutes
 - Adaptive pacing based on student response
 - Building student confidence and independence
-- Addressing specific knowledge gaps`;
+- Addressing specific knowledge gaps
+- Clear, actionable feedback`;
 
       jsonStructure = `{
-  "objectives": "• Specific, achievable goals for this tutoring session\\n• Focused on the student's individual needs and current level",
-  "outcomes": "• What the student will be able to do by the end\\n• Concrete, measurable progress indicators",
-  "materials_needed": [
-    "Whiteboard and markers",
-    "Student workbook or paper",
-    "Specific textbook pages or worksheets",
-    "Calculator or other tools",
-    "Access to online resources if needed"
-  ],
+  "objectives": "• Specific, achievable goals for this tutoring session with ${data.student_name || "the student"}\\n• Focused on the student's individual needs and current level\\n• 3-4 clear learning objectives",
+  "outcomes": "• What the student will be able to do independently by the end of this session\\n• Concrete, measurable progress indicators\\n• Success criteria that the student can self-assess",
   "lesson_structure": [
     {
-      "stage": "Warm-up & Review",
+      "stage": "Starter",
       "duration": "5-10 min",
-      "teaching": "What the tutor does: Review previous session, assess starting point, build rapport and confidence",
-      "learning": "What the student does: Answers questions, demonstrates prior knowledge, shares concerns or questions",
-      "assessing": "Check understanding through specific questions: What do you remember from last time? Can you explain...?",
-      "adapting": "If struggling: Break down into smaller steps, revisit basics. If excelling: Move faster, add complexity"
+      "teaching": "What you'll do as the tutor: Build rapport, review previous learning, assess starting point with warm-up questions. Ask 'What do you remember about...?' Check any homework from last time. Create a positive, encouraging atmosphere.",
+      "learning": "What the student does: Answers warm-up questions to activate prior knowledge, shares any questions or concerns about the topic, demonstrates current understanding level through discussion",
+      "assessing": "Check understanding: Ask 'Can you explain...?' 'What do you already know about...?' 'Show me how to...' Listen carefully to identify knowledge gaps or misconceptions to address today.",
+      "adapting": "If student is struggling or anxious: Start with easier questions, provide lots of encouragement, break concepts into smaller steps. If student is confident: Move quickly through review, skip basics, jump to new material sooner."
     },
     {
       "stage": "Main Teaching",
       "duration": "15-20 min",
-      "teaching": "Explicit teaching: Explain, model, demonstrate with clear examples and step-by-step guidance",
-      "learning": "Active learning: Student takes notes, asks questions, tries examples with support",
-      "assessing": "Check understanding every 3-5 minutes with targeted questions and observation of working",
-      "adapting": "If struggling: Use different explanations, more worked examples, simplify. If excelling: Reduce scaffolding, increase complexity"
+      "teaching": "Explicit, clear teaching: Explain the key concept step-by-step with visual aids (diagrams, worked examples). Model problem-solving with think-aloud. Use real-world examples relevant to the student. Check understanding every 3-5 minutes with quick questions.",
+      "learning": "Active participation: Student takes notes in their own words, asks clarifying questions, works through guided examples alongside you, tries similar problems with your immediate support and feedback",
+      "assessing": "Frequent checks: 'Can you explain this back to me in your own words?' 'Why did we do that step?' 'What would happen if we changed this?' Watch their face for confusion. Observe their working - are they applying the method correctly?",
+      "adapting": "If struggling: Use different explanations (visual, verbal, hands-on), provide more worked examples, slow down pace, use simpler numbers or examples. If excelling: Reduce scaffolding faster, introduce more complex variations, ask 'what if' extension questions."
     },
     {
-      "stage": "Guided Practice",
+      "stage": "Guided Practice", 
       "duration": "15-20 min",
-      "teaching": "Support and guide: Provide scaffolding, give hints not answers, ask leading questions",
-      "learning": "Work through problems with decreasing support, explain reasoning, practice independently",
-      "assessing": "Observe working process, ask reasoning questions (Why did you...? How do you know...?)",
-      "adapting": "If struggling: Provide more worked examples, work through together. If excelling: Step back, let them lead"
+      "teaching": "Gradual release: Provide less help as confidence grows. Give hints and prompts rather than answers: 'What should you try first?' 'How can you check that?' Sit beside student, not across - work together. Praise effort and strategy use.",
+      "learning": "Increasingly independent work: Student attempts problems with decreasing support, explains their reasoning out loud ('talk me through your thinking'), identifies and self-corrects mistakes with guidance, builds confidence through successful practice",
+      "assessing": "Deep understanding checks: Ask 'Why did you choose that method?' 'How do you know you're right?' 'Can you spot any mistakes here?' Watch confidence level - are they attempting problems willingly or hesitating? Note remaining areas of difficulty.",
+      "adapting": "If still struggling: Return to teaching mode, work through more examples together, break problems into substeps. If showing mastery: Step back more, let them work independently while you observe, introduce challenge problems or alternative methods."
     },
     {
-      "stage": "Independent Practice",
-      "duration": "10-15 min",
-      "teaching": "Observe and provide feedback: Watch student work independently, note areas of difficulty",
-      "learning": "Work independently on similar problems, apply what they've learned without prompting",
-      "assessing": "Review completed work, identify any remaining gaps or misconceptions",
-      "adapting": "If struggling: Return to guided practice, reteach key concepts. If excelling: Provide challenge problems"
-    },
-    {
-      "stage": "Review & Next Steps",
-      "duration": "5 min",
-      "teaching": "Summarize learning, celebrate progress, set homework, plan next session",
-      "learning": "Reflect on what they learned, ask final questions, understand what to practice",
-      "assessing": "Can student explain key concepts back to you? Do they feel confident?",
-      "adapting": "Identify specific areas to focus on next time based on today's progress"
+      "stage": "Plenary",
+      "duration": "5-10 min", 
+      "teaching": "Consolidate learning: Summarize key concepts covered today. Celebrate specific successes: 'You really got the hang of...' Set clear, manageable homework. Discuss what to focus on in the next session. Answer any final questions. End positively.",
+      "learning": "Demonstrate understanding: Student explains the main concepts in their own words, identifies what they found easy and what was challenging, understands what to practice at home, feels confident about next steps, asks any remaining questions",
+      "assessing": "Final understanding check: 'Explain to me how to [solve this type of problem]' 'What's the most important thing you learned today?' 'On a scale of 1-10, how confident do you feel now?' If confidence is low, make note to revisit next time.",
+      "adapting": "Based on today's session, plan next time: If student struggled, plan to review this topic again with different approach. If student succeeded, plan to build on this with next level of difficulty. Note what worked well to repeat."
     }
   ],
-  "key_teaching_points": [
-    "• Most important concept 1 to emphasize and ensure understanding",
-    "• Critical skill 2 that needs practice and mastery",
-    "• Key connection 3 to help student see the bigger picture"
+  "resources": [
+    {"title": "Whiteboard/paper for working", "url": ""},
+    {"title": "Relevant textbook or workbook pages", "url": ""},
+    {"title": "Practice worksheet for this topic", "url": ""},
+    {"title": "Online practice tool or educational video", "url": "https://example.com"},
+    {"title": "Visual aids or manipulatives if needed", "url": ""}
   ],
-  "common_misconceptions": [
-    "• Misconception 1 students often have about this topic",
-    "• How to identify this misconception (what they might say or do)",
-    "• Strategy to address and correct this misconception",
-    "• Misconception 2 to watch out for",
-    "• Correction approach with clear explanation"
-  ],
-  "assessment_methods": [
-    "• Ask student to explain concepts in their own words",
-    "• Observe their problem-solving approach and working",
-    "• Review written work for understanding and common errors",
-    "• Use exit questions at end: 'Explain to me how to...'",
-    "• Check confidence level: 'How confident do you feel with this?'"
-  ],
-  "homework": "Optional practice task that reinforces today's learning:\\n• Specific problems or exercises to complete\\n• Estimated time: 20-30 minutes\\n• What to do if stuck (review notes, watch video, try simpler version)\\n• What to bring to next session",
-  "parent_communication": "What to tell parents about today's session:\\n• Topics covered and skills practiced\\n• Progress made and achievements to celebrate\\n• What to practice at home and how parents can support\\n• Any concerns or areas needing extra attention\\n• Goals for next session",
-  "next_session_prep": "What to prepare for next time:\\n• Materials needed (worksheets, resources)\\n• Topics to review if student didn't fully grasp today\\n• New concepts to introduce building on today's learning\\n• Questions to ask to check retention\\n• How to increase challenge if student is progressing quickly",
-  "notes": "• Session observations: engagement level, confidence, effort\\n• What strategies worked well with this student\\n• Teaching approaches that were most effective\\n• Adjustments needed for future sessions\\n• Student's strengths to build on\\n• Motivational notes and encouragement to use"
+  "homework": "Practice task to reinforce today's learning:\\n\\n• Specific problems to complete: [e.g., 'Complete questions 5-10 on worksheet' or 'Practice 5 similar problems']\\n• Estimated time: 20-30 minutes\\n• Purpose: Reinforce [specific skill] practiced today\\n• Instructions: Show all working, try independently first\\n• If stuck: Review notes from today, watch [recommended video], message me with specific questions\\n• Bring to next session: Completed work and any questions about problems that were difficult\\n• Optional extension: [Challenge problem for if they finish early]",
+  "evaluation": "Post-session reflection and assessment:\\n\\n**Student Progress:**\\n• What progress did ${data.student_name || "the student"} make toward today's objectives? (Rate: Excellent/Good/Some/Limited progress)\\n• Concepts they grasped well and demonstrated confidence with:\\n• Areas that still need work or caused confusion:\\n• Observed confidence level and engagement: (Rate 1-10)\\n\\n**Teaching Effectiveness:**\\n• What teaching strategies worked best today? (visual aids, worked examples, real-world connections, etc.)\\n• What would I do differently next time?\\n• Any breakthrough moments or 'aha!' insights?\\n\\n**Next Session Planning:**\\n• Focus areas for next time based on today's performance\\n• Concepts to review before introducing new material\\n• Estimated pace: Can we move forward or need to consolidate?\\n\\n**Parent Communication Notes:**\\n• Key achievements to share with parents: 'Today [student] successfully...'\\n• Practice recommendations for home: 'Please help [student] practice...'\\n• Areas where parents can provide support\\n• Next session focus and goals\\n• Any concerns or celebrations to communicate",
+  "notes": "Session observations and reminders:\\n\\n**Student Profile:**\\n• Engagement level today: (High/Medium/Low) - Note: [What affected this?]\\n• Confidence level: (Growing/Stable/Needs boost) - Note: [Specific observations]\\n• Learning style preferences: [What worked: visual/verbal/hands-on/written?]\\n• Pace that works best: [Fast/Moderate/Slow and steady]\\n\\n**Teaching Strategies That Worked:**\\n• [e.g., 'Diagrams really helped with understanding']\\n• [e.g., 'Real-world examples about sports clicked']\\n• [e.g., 'Breaking into smaller steps reduced anxiety']\\n\\n**Motivational Notes:**\\n• What encouragement/praise resonates with this student?\\n• Rewards or goals that motivate them\\n• Topics or contexts they find interesting\\n\\n**Important Reminders:**\\n• Specific struggles to be aware of: [e.g., 'Gets confused when multiple steps']\\n• Strengths to build on: [e.g., 'Great at spotting patterns']\\n• Parent preferences or requests: [Any special instructions]\\n• Best times/days for this student (energy levels, focus)\\n\\n**Preparation for Next Session:**\\n• Materials to bring: [Worksheets, specific textbook, tools]\\n• Concepts to review at start of next session\\n• New topics to introduce if ready\\n• Questions to ask to check retention of today's learning\\n• Adjustments to make based on today's observations"
 }`;
       break;
 
@@ -356,7 +329,7 @@ ${data.year_group ? `- Make it age-appropriate for ${data.year_group}` : "- Make
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateLessonRequest = await request.json();
-    
+
     if (!body.planType) {
       body.planType = "standard"; // Default to standard if not specified
     }
