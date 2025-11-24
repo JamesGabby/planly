@@ -70,6 +70,61 @@ export default function NewLessonFormStudent() {
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
+  // New state for classes dropdown
+  const [classes, setClasses] = useState<{ class_id: string; class_name: string }[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [showCustomClassInput, setShowCustomClassInput] = useState(false);
+  const [customClassName, setCustomClassName] = useState("");
+
+  // Fetch classes on mount
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  async function fetchClasses() {
+    try {
+      setLoadingClasses(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("classes")
+        .select("class_id, class_name")
+        .eq("user_id", user.id)
+        .order("class_name", { ascending: true });
+
+      if (error) throw error;
+
+      setClasses(data || []);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+      toast.error("Failed to load classes");
+    } finally {
+      setLoadingClasses(false);
+    }
+  }
+
+  // Handle class selection from dropdown
+  function handleClassChange(value: string) {
+    if (value === "other") {
+      setShowCustomClassInput(true);
+      updateField("class", "");
+      setCustomClassName("");
+    } else {
+      setShowCustomClassInput(false);
+      setCustomClassName("");
+      updateField("class", value);
+    }
+  }
+
+  // Handle custom class input
+  function handleCustomClassInput(value: string) {
+    setCustomClassName(value);
+    updateField("class", value);
+  }
+
   useEffect(() => {
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -153,7 +208,6 @@ export default function NewLessonFormStudent() {
   function validateForm() {
     const errors: { [key: string]: string } = {};
 
-    // Helper function to safely check string fields
     const isEmptyString = (value: string | null | undefined): boolean => {
       return !value || (typeof value === 'string' && !value.trim());
     };
@@ -195,7 +249,7 @@ export default function NewLessonFormStudent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          planType: "detailed", // Student form uses detailed plan structure
+          planType: "detailed",
           topic: lesson.topic,
           subject: lesson.subject,
           year_group: lesson.year_group,
@@ -225,73 +279,60 @@ export default function NewLessonFormStudent() {
         content?: string;
         value?: string;
         description?: string;
-        [key: string]: unknown; // Allow other properties
+        [key: string]: unknown;
       };
 
-      type BulletPointData = 
-        | string 
-        | number 
-        | boolean 
-        | null 
+      type BulletPointData =
+        | string
+        | number
+        | boolean
+        | null
         | undefined
         | BulletPointObject
-        | BulletPointData[]; // Recursive for arrays
+        | BulletPointData[];
 
       const formatAsBulletPoints = (data: BulletPointData): string => {
         if (!data) return "";
 
-        // If it's an array
         if (Array.isArray(data)) {
           return data.map(item => {
-            // If the item is an object, try to extract a meaningful value
             if (typeof item === 'object' && item !== null) {
               const obj = item as BulletPointObject;
-              // Check for common property names that might contain the text
               return `• ${obj.text || obj.content || obj.value || obj.description || JSON.stringify(item)}`;
             }
             return `• ${item}`;
           }).join('\n');
         }
 
-        // If it's an object (but not array or null)
         if (typeof data === 'object' && data !== null) {
           const obj = data as BulletPointObject;
-          // Try to extract text from common property names
           const text = obj.text || obj.content || obj.value || obj.description;
           if (text) {
             return Array.isArray(text) ? formatAsBulletPoints(text) : `• ${text}`;
           }
-          // If no recognizable properties, stringify it for debugging
           console.warn('Unexpected object structure:', data);
           return `• ${JSON.stringify(data)}`;
         }
 
-        // If it's already a string
         if (typeof data === 'string') {
-          // Check if it needs bullet points
           if (data.trim() && !data.startsWith('•')) {
-            // If it's a single line without bullets, add one
             if (!data.includes('\n')) {
               return `• ${data}`;
             }
-            // If it has multiple lines, add bullets to each line
             return data.split('\n').map(line => line.trim()).filter(line => line).map(line => `• ${line}`).join('\n');
           }
           return data;
         }
 
-        // For any other type (number, boolean, etc.)
         return `• ${String(data)}`;
       };
 
-      // Update form fields with AI-generated content, formatting arrays as bullet points
       updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
       updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
       updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
 
-      // Update pedagogical fields
       updateField("specialist_subject_knowledge_required",
         formatAsBulletPoints(generatedPlan.specialist_subject_knowledge_required) || ""
       );
@@ -337,6 +378,19 @@ export default function NewLessonFormStudent() {
 
   async function insertClass(className: string, userId: string) {
     try {
+      // Check if class already exists
+      const { data: existingClass } = await supabase
+        .from("classes")
+        .select("*")
+        .eq("class_name", className)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existingClass) {
+        return existingClass;
+      }
+
+      // Insert new class
       const { data, error } = await supabase
         .from("classes")
         .insert([
@@ -352,6 +406,10 @@ export default function NewLessonFormStudent() {
         .single();
 
       if (error) throw error;
+
+      // Refresh classes list
+      await fetchClasses();
+
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown class insert error");
@@ -462,12 +520,41 @@ export default function NewLessonFormStudent() {
                     <Label className={`text-sm ${formErrors.class ? "text-destructive" : ""}`}>
                       Class <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      value={lesson.class || ""}
-                      onChange={(e) => updateField("class", e.target.value)}
-                      placeholder="e.g. 7S"
-                      className={`mt-1 ${formErrors.class ? "border-destructive" : ""}`}
-                    />
+
+                    <Select
+                      value={showCustomClassInput ? "other" : (lesson.class || "")}
+                      onValueChange={handleClassChange}
+                      disabled={loadingClasses}
+                    >
+                      <SelectTrigger className={`mt-1 w-full ${formErrors.class ? "border-destructive" : ""}`}>
+                        <SelectValue placeholder={loadingClasses ? "Loading classes..." : "Select class..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes.map((cls) => (
+                          <SelectItem key={cls.class_id} value={cls.class_name}>
+                            {cls.class_name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="other">+ Add New Class</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {showCustomClassInput && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Input
+                          value={customClassName}
+                          onChange={(e) => handleCustomClassInput(e.target.value)}
+                          placeholder="Enter new class name (e.g., 7S)"
+                          className="mt-2"
+                          autoFocus
+                        />
+                      </motion.div>
+                    )}
+
                     {formErrors.class && (
                       <p className="text-destructive text-xs mt-1">{formErrors.class}</p>
                     )}
