@@ -37,3 +37,19 @@ export function parseResources(resources: Resource[] | null | undefined): Resour
   if (!resources || !Array.isArray(resources)) return [];
   return resources;
 }
+
+// Add to your utils/helpers file
+export function parseStructuredText(text: string): {
+  bullets: string[];
+  paragraphs: string[];
+} {
+  if (!text) return { bullets: [], paragraphs: [] };
+  
+  // Split by bullet points
+  const bullets = text
+    .split(/•\s+/)
+    .filter(item => item.trim())
+    .map(item => item.replace(/\*\*/g, '').trim());
+  
+  return { bullets, paragraphs: [] };
+}

@@ -1,59 +1,78 @@
-import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
 import { parseResources, prettyDate, prettyTime } from "../../utils/helpers";
-import { User, Calendar, Clock, Printer } from "lucide-react";
+import {
+  User,
+  Calendar,
+  Clock,
+  Printer,
+  Target,
+  Award,
+  BookOpen,
+  Package,
+  ClipboardList,
+  StickyNote,
+  CheckCircle2
+} from "lucide-react";
 import Link from "next/link";
 import { LessonPlanTutor } from "../../types/lesson_tutor";
 
+// Component to format content with bullets and bold text
+function FormattedContent({ content }: { content: string }) {
+  if (!content) return null;
+
+  // Parse bullet points and bold text
+  const parts = content.split(/•\s+/).filter(item => item.trim());
+
+  if (parts.length <= 1) {
+    // No bullet points, just format the text
+    return (
+      <div
+        className="whitespace-pre-wrap leading-relaxed"
+        dangerouslySetInnerHTML={{
+          __html: content
+            .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+            .replace(/\n/g, '<br />')
+        }}
+      />
+    );
+  }
+
+  // Has bullet points
+  return (
+    <ul className="space-y-2">
+      {parts.map((item, idx) => (
+        <li key={idx} className="flex gap-3 items-start">
+          <span className="text-primary mt-1.5 flex-shrink-0 font-bold">•</span>
+          <span
+            className="flex-1"
+            dangerouslySetInnerHTML={{
+              __html: item
+                .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+                .replace(/\n/g, '<br />')
+            }}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /* --- EXPANDED LESSON VIEW --- */
 export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor }) {
-  const supabase = createClient();
-  const [notes, setNotes] = useState(lesson.notes ?? "");
-  const [evaluation, setEvaluation] = useState(lesson.evaluation ?? "");
-  const [homework, setHomework] = useState(lesson.homework ?? "");
-  const [, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
   const resources = parseResources(lesson.resources);
   const lessonStructure = Array.isArray(lesson.lesson_structure)
     ? lesson.lesson_structure
     : [];
 
-  async function handleSave(field: "notes" | "evaluation" | "homework", value: string) {
-    setSaving(true);
-    setMessage(null);
-    try {
-      const { error } = await supabase
-        .from("tutor_lesson_plans")
-        .update({ [field]: value })
-        .eq("id", lesson.id);
-      if (error) throw error;
-      setMessage("Saved!");
-      setTimeout(() => setMessage(null), 2000);
-     } catch (err: unknown) {      // ← fixed
-      console.error(err);
-      const message =
-        err instanceof Error ? err.message : "Error saving changes";
-      setMessage(message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
   const handlePrint = () => {
     const printElement = document.getElementById('lesson-print');
     if (!printElement) return;
 
-    // Clone the element to manipulate without affecting the UI
     const clone = printElement.cloneNode(true) as HTMLElement;
 
-    // Replace textareas with their content as paragraphs
-    const textareas = clone.querySelectorAll('textarea');
-    textareas.forEach((ta) => {
-      const p = document.createElement('p');
-      p.textContent = ta.value;
-      p.style.whiteSpace = 'pre-wrap'; // preserve line breaks
-      ta.parentNode?.replaceChild(p, ta);
+    // Transform the structure for print
+    const stageBlocks = clone.querySelectorAll('.rounded-lg.border');
+    stageBlocks.forEach(block => {
+      block.classList.add('stage-block');
     });
 
     const newWindow = window.open('', '', 'width=800,height=600');
@@ -62,40 +81,120 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
     newWindow.document.write(`
       <html>
         <head>
-          <title>Lesson Plan</title>
+          <title>Lesson Plan - ${lesson.topic || 'Untitled'}</title>
           <style>
             body {
-              font-family: sans-serif;
-              margin: 20px;
-              color: #000;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              margin: 30px;
+              color: #1a1a1a;
               background: #fff;
+              line-height: 1.6;
             }
-            h2, h3 {
-              color: #000;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
+            h2 { 
+              color: #2563eb; 
+              border-bottom: 3px solid #2563eb;
+              padding-bottom: 10px;
               margin-bottom: 20px;
             }
-            th, td {
-              border: 1px solid #000;
-              padding: 6px 8px;
-              text-align: left;
+            h3 { 
+              color: #1e40af; 
+              margin-top: 25px;
+              margin-bottom: 15px;
+              font-size: 1.3em;
+            }
+            h4 {
+              color: #334155;
+              margin-bottom: 8px;
+              font-size: 1.1em;
+            }
+            h5 {
+              color: #475569;
+              font-size: 0.95em;
+              margin-top: 12px;
+              margin-bottom: 6px;
+            }
+            .stage-block, .info-card {
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 20px;
+              margin-bottom: 20px;
+              page-break-inside: avoid;
+              background: #f8fafc;
+            }
+            .stage-header {
+              background: #e0e7ff;
+              padding: 15px;
+              border-radius: 6px 6px 0 0;
+              margin: -20px -20px 15px -20px;
+              border-bottom: 2px solid #cbd5e1;
+            }
+            .content-section {
+              margin-bottom: 20px;
+              padding-bottom: 15px;
+              border-bottom: 1px solid #e2e8f0;
+            }
+            .content-section:last-child {
+              border-bottom: none;
             }
             ul {
               padding-left: 20px;
+              margin: 8px 0;
             }
-            button, input {
+            li {
+              margin-bottom: 8px;
+            }
+            strong {
+              color: #1e293b;
+              font-weight: 600;
+            }
+            button, input, textarea {
               display: none !important;
             }
-            section {
-              page-break-inside: avoid;
-              margin-bottom: 15px;
-            }
-            .meta-space {
-              margin-right: 10px;
-            }
+            .meta-info {
+          background: #f1f5f9;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .meta-info > div {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 12px;
+        }
+        .meta-info a,
+        .meta-info span {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-right: 8px;
+        }
+        .meta-info svg {
+          flex-shrink: 0;
+        }
+        .objectives-outcomes {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 25px;
+        }
+          .lesson-structure-section {
+          page-break-before: always;
+        }
+        @media print {
+          .stage-block, .info-card {
+            page-break-inside: avoid;
+          }
+          body {
+            margin: 15px;
+          }
+          .objectives-outcomes {
+            grid-template-columns: 1fr;
+          }
+          .meta-info > div {
+            gap: 15px;
+          }
+        }
           </style>
         </head>
         <body>
@@ -111,100 +210,173 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
   };
 
   return (
-    <div id="lesson-print" className="ExpandedLessonView space-y-6 text-foreground">
+    <div id="lesson-print" className="ExpandedLessonView max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
       {/* --- HEADER --- */}
-      <header>
-        <h2 className="text-2xl font-bold text-foreground">
-          {lesson.topic ?? "Untitled"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Link href={`/dashboard/student-profiles/${lesson.student_id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors"><User size={20} className="inline" /> {lesson.first_name}{" "}{lesson.last_name} <span className="meta-space" /></Link>
-          <Calendar size={17} className="inline ml-4" /> {prettyDate(lesson.date_of_lesson)}{" "} <span className="meta-space" />
-          <Clock size={17} className="inline ml-4" /> {lesson.time_of_lesson && ` ${prettyTime(lesson.time_of_lesson)}`}
-        </p>
-      </header>
+      <header className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+            {lesson.topic ?? "Untitled"}
+          </h2>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm w-full sm:w-auto"
+          >
+            <Printer size={18} />
+            <span>Print / Export PDF</span>
+          </button>
+        </div>
 
-      {/* --- OBJECTIVES & OUTCOMES INLINE --- */}
-      {(lesson.objectives || lesson.outcomes) && (
-        <section>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {lesson.objectives && (
-              <div>
-                <h4 className="font-medium text-foreground">Objectives</h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {lesson.objectives}
-                </p>
-              </div>
-            )}
-
-            {lesson.outcomes && (
-              <div>
-                <h4 className="font-medium text-foreground">Outcomes</h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {lesson.outcomes}
-                </p>
-              </div>
+        {/* Meta Information Card */}
+        <div className="meta-info rounded-lg border border-border bg-card p-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-x-4 sm:gap-y-2 text-sm">
+            <Link
+              href={`/dashboard/student-profiles/${lesson.student_id}`}
+              className="flex items-center gap-2 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
+            >
+              <User size={18} className="flex-shrink-0" />
+              <span className="truncate">{lesson.first_name} {lesson.last_name}</span>
+            </Link>
+            <span className="hidden sm:inline text-muted-foreground">•</span>
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Calendar size={16} className="flex-shrink-0" />
+              <span className="truncate">{prettyDate(lesson.date_of_lesson)}</span>
+            </span>
+            {lesson.time_of_lesson && (
+              <>
+                <span className="hidden sm:inline text-muted-foreground">•</span>
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Clock size={16} className="flex-shrink-0" />
+                  <span className="truncate">{prettyTime(lesson.time_of_lesson)}</span>
+                </span>
+              </>
             )}
           </div>
+        </div>
+      </header>
+
+      {/* --- OBJECTIVES & OUTCOMES --- */}
+      {(lesson.objectives || lesson.outcomes) && (
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {lesson.objectives && (
+            <div className="rounded-lg border border-border bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10 p-4 sm:p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Target className="text-blue-600 dark:text-blue-400 mt-1 flex-shrink-0" size={22} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg text-foreground mb-3">Objectives</h3>
+                  <div className="text-sm text-muted-foreground">
+                    <FormattedContent content={lesson.objectives} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {lesson.outcomes && (
+            <div className="rounded-lg border border-border bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/20 dark:to-green-900/10 p-4 sm:p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Award className="text-green-600 dark:text-green-400 mt-1 flex-shrink-0" size={22} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg text-foreground mb-3">Outcomes</h3>
+                  <div className="text-sm text-muted-foreground">
+                    <FormattedContent content={lesson.outcomes} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
       {/* --- LESSON STRUCTURE --- */}
       {lessonStructure.length > 0 && (
-        <section>
-          <h3 className="font-semibold mb-2 text-foreground">
-            Lesson Structure
+        <section className="lesson-structure-section">
+          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <BookOpen className="text-primary flex-shrink-0" size={24} />
+            <span>Lesson Structure</span>
           </h3>
-          <div className="overflow-x-auto rounded-lg border border-border bg-card">
-            <table className="w-full text-sm border-collapse">
-              <thead className="bg-muted text-muted-foreground">
-                <tr>
-                  <th className="text-left p-3 font-semibold border-r border-border">
-                    Stage
-                  </th>
-                  <th className="text-left p-3 font-semibold border-r border-border">
-                    Duration
-                  </th>
-                  <th className="text-left p-3 font-semibold border-r border-border">
-                    Teaching
-                  </th>
-                  <th className="text-left p-3 font-semibold border-r border-border">
-                    Learning
-                  </th>
-                  <th className="text-left p-3 font-semibold border-r border-border">
-                    Assessing
-                  </th>
-                  <th className="text-left p-3 font-semibold">Adapting</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lessonStructure.map((stage, i) => (
-                  <tr
-                    key={i}
-                    className={`border-t border-border transition-colors ${
-                      i % 2 ? "bg-muted/50" : "bg-background"
-                    } hover:bg-accent`}
-                  >
-                    <td className="p-3 font-medium border-r border-border">
-                      {stage.stage}
-                    </td>
-                    <td className="p-3 border-r border-border">
-                      {stage.duration}
-                    </td>
-                    <td className="p-3 border-r border-border">
-                      {stage.teaching}
-                    </td>
-                    <td className="p-3 border-r border-border">
-                      {stage.learning}
-                    </td>
-                    <td className="p-3 border-r border-border">
-                      {stage.assessing}
-                    </td>
-                    <td className="p-3">{stage.adapting}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            {lessonStructure.map((stage, i) => (
+              <div
+                key={i}
+                className="rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+              >
+                {/* Stage Header */}
+                <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 border-b border-border">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-base sm:text-lg font-semibold text-foreground truncate">
+                        {stage.stage}
+                      </h4>
+                      {stage.duration && (
+                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                          <Clock size={14} className="flex-shrink-0" />
+                          <span>{stage.duration}</span>
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/20 text-primary w-fit whitespace-nowrap">
+                      Stage {i + 1} of {lessonStructure.length}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stage Content */}
+                <div className="p-4 sm:p-6">
+                  <div className="space-y-5">
+                    {/* Teaching */}
+                    {stage.teaching && (
+                      <div className="space-y-2">
+                        <h5 className="font-semibold text-sm text-foreground flex items-center gap-2 pb-2 border-b border-border">
+                          <span className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></span>
+                          <span>Teaching Activities</span>
+                        </h5>
+                        <div className="text-sm text-muted-foreground pl-5">
+                          <FormattedContent content={stage.teaching} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Learning */}
+                    {stage.learning && (
+                      <div className="space-y-2">
+                        <h5 className="font-semibold text-sm text-foreground flex items-center gap-2 pb-2 border-b border-border">
+                          <span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></span>
+                          <span>Student Learning</span>
+                        </h5>
+                        <div className="text-sm text-muted-foreground pl-5">
+                          <FormattedContent content={stage.learning} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Assessing */}
+                    {stage.assessing && (
+                      <div className="space-y-2">
+                        <h5 className="font-semibold text-sm text-foreground flex items-center gap-2 pb-2 border-b border-border">
+                          <span className="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0"></span>
+                          <span>Assessment Methods</span>
+                        </h5>
+                        <div className="text-sm text-muted-foreground pl-5">
+                          <FormattedContent content={stage.assessing} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Adapting */}
+                    {stage.adapting && (
+                      <div className="space-y-2">
+                        <h5 className="font-semibold text-sm text-foreground flex items-center gap-2 pb-2 border-b border-border">
+                          <span className="w-3 h-3 rounded-full bg-purple-500 flex-shrink-0"></span>
+                          <span>Differentiation & Adaptation</span>
+                        </h5>
+                        <div className="text-sm text-muted-foreground pl-5">
+                          <FormattedContent content={stage.adapting} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       )}
@@ -212,85 +384,100 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
       {/* --- RESOURCES --- */}
       {resources.length > 0 && (
         <section>
-          <h3 className="font-semibold mb-2 text-foreground">Resources</h3>
-          <ul className="list-disc list-inside text-sm space-y-1">
-            {resources.map((r, i) => (
-              <li key={i}>
-                <a
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  {r.title || r.url}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <Package className="text-primary flex-shrink-0" size={24} />
+            <span>Resources</span>
+          </h3>
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {resources.map((r, i) => (
+                <li key={i} className="flex items-start gap-2 group">
+                  <span className="text-primary mt-1 flex-shrink-0 transition-transform group-hover:translate-x-1">→</span>
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline hover:text-primary/80 transition-colors text-sm break-words"
+                  >
+                    {r.title || r.url}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
 
-      {/* --- HOMEWORK (editable) --- */}
-      <section>
-        <h3 className="font-semibold mb-1 text-foreground">Homework</h3>
+      {/* --- HOMEWORK (Read-only) --- */}
+      {lesson.homework && (
+        <section>
+          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <ClipboardList className="text-primary flex-shrink-0" size={24} />
+            <span>Homework</span>
+          </h3>
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm">
+            <div className="text-sm text-muted-foreground">
+              <FormattedContent content={lesson.homework} />
+            </div>
+          </div>
+        </section>
+      )}
 
-        <textarea
-          className="w-full min-h-[80px] rounded-md border border-input bg-background 
-                    text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
-          value={homework}
-          onChange={(e) => setHomework(e.target.value)}
-          onBlur={() => handleSave("homework", homework)}
-        />
-      </section>
+      {/* --- EVALUATION & NOTES (Read-only) --- */}
+      <section className="space-y-4 sm:space-y-6">
+        {lesson.evaluation && (
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <CheckCircle2 className="text-primary flex-shrink-0" size={24} />
+              <span>Evaluation</span>
+            </h3>
+            <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm">
+              <div className="text-sm text-muted-foreground">
+                <FormattedContent content={lesson.evaluation} />
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* --- NOTES & EVALUATION --- */}
-      <section className="space-y-4">
-        <div>
-          <h3 className="font-semibold mb-1 text-foreground">Evaluation</h3>
-          <textarea
-            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
-            value={evaluation}
-            onChange={(e) => setEvaluation(e.target.value)}
-            onBlur={() => handleSave("evaluation", evaluation)}
-          />
-        </div>
-
-        <div>
-          <h3 className="font-semibold mb-1 text-foreground">Notes</h3>
-          <textarea
-            className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground text-sm p-2 focus:ring-2 focus:ring-ring focus:outline-none"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={() => handleSave("notes", notes)}
-          />
-        </div>
-
-        {message && (
-          <p
-            className={`text-sm ${
-              message === "Saved!"
-                ? "text-green-600 dark:text-green-400"
-                : "text-destructive"
-            }`}
-          >
-            {message}
-          </p>
+        {lesson.notes && (
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <StickyNote className="text-primary flex-shrink-0" size={24} />
+              <span>Notes</span>
+            </h3>
+            <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm">
+              <div className="text-sm text-muted-foreground">
+                <FormattedContent content={lesson.notes} />
+              </div>
+            </div>
+          </div>
         )}
       </section>
-      <div className="flex justify-between items-center mt-4">
-        <span className="text-xs text-muted-foreground flex flex-col md:flex-row md:items-center md:gap-2">
-          <span>Created: {new Date(lesson.created_at).toLocaleString()}</span>
-          <span>Updated: {new Date(lesson.updated_at).toLocaleString()}</span>
-        </span>
 
-        <button
-          onClick={handlePrint}
-          className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/80 transition"
-        >
-          <Printer size={18} />
-          Print / Export PDF
-        </button>
-      </div>
+      {/* --- FOOTER METADATA --- */}
+      <footer className="pt-6 border-t border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar size={12} className="flex-shrink-0" />
+              <span className="truncate">Created: {new Date(lesson.created_at).toLocaleString()}</span>
+            </span>
+            <span className="hidden sm:inline">•</span>
+            <span className="flex items-center gap-1">
+              <Clock size={12} className="flex-shrink-0" />
+              <span className="truncate">Updated: {new Date(lesson.updated_at).toLocaleString()}</span>
+            </span>
+          </div>
+
+          <button
+            onClick={handlePrint}
+            className="sm:hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            <Printer size={18} />
+            <span>Print / Export PDF</span>
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }
