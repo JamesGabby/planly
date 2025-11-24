@@ -35,8 +35,6 @@ export function LessonCardStudent({
   onDuplicate: () => void;
 }) {
 
-  const { mode } = useUserMode();
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
