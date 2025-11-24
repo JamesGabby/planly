@@ -70,106 +70,106 @@ export default function EditLessonFormTutor() {
   }, [error, formErrors]);
 
   // Fetch existing lesson data
-useEffect(() => {
-  async function fetchLesson() {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    async function fetchLesson() {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in");
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user) throw new Error("You must be logged in");
 
-      const { data, error: fetchError } = await supabase
-        .from("tutor_lesson_plans")
-        .select("*")
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .single();
+        const { data, error: fetchError } = await supabase
+          .from("tutor_lesson_plans")
+          .select("*")
+          .eq("id", id)
+          .eq("user_id", user.id)
+          .single();
 
-      if (fetchError) throw fetchError;
-      if (!data) throw new Error("Tutoring session plan not found");
+        if (fetchError) throw fetchError;
+        if (!data) throw new Error("Tutoring session plan not found");
 
-      // Parse lesson structure
-      let parsedStages: LessonStage[] = [];
-      
-      if (data.lesson_structure) {
-        if (Array.isArray(data.lesson_structure)) {
-          parsedStages = data.lesson_structure;
-        } else if (typeof data.lesson_structure === 'string') {
-          try {
-            parsedStages = JSON.parse(data.lesson_structure);
-          } catch (e) {
-            console.error("Error parsing lesson_structure:", e);
-            parsedStages = [];
+        // Parse lesson structure
+        let parsedStages: LessonStage[] = [];
+
+        if (data.lesson_structure) {
+          if (Array.isArray(data.lesson_structure)) {
+            parsedStages = data.lesson_structure;
+          } else if (typeof data.lesson_structure === 'string') {
+            try {
+              parsedStages = JSON.parse(data.lesson_structure);
+            } catch (e) {
+              console.error("Error parsing lesson_structure:", e);
+              parsedStages = [];
+            }
           }
         }
-      }
 
-      // Only add blank Starter/Plenary if the array is completely empty
-      if (parsedStages.length === 0) {
-        parsedStages = [
-          {
-            stage: "Starter",
-            duration: "",
-            teaching: "",
-            learning: "",
-            assessing: "",
-            adapting: "",
-          },
-          {
-            stage: "Plenary",
-            duration: "",
-            teaching: "",
-            learning: "",
-            assessing: "",
-            adapting: "",
-          },
-        ];
-      } else {
-        // If we have stages, ensure Starter is first and Plenary is last
-        const hasStarter = parsedStages.some((s) => s.stage === "Starter");
-        const hasPlenary = parsedStages.some((s) => s.stage === "Plenary");
+        // Only add blank Starter/Plenary if the array is completely empty
+        if (parsedStages.length === 0) {
+          parsedStages = [
+            {
+              stage: "Starter",
+              duration: "",
+              teaching: "",
+              learning: "",
+              assessing: "",
+              adapting: "",
+            },
+            {
+              stage: "Plenary",
+              duration: "",
+              teaching: "",
+              learning: "",
+              assessing: "",
+              adapting: "",
+            },
+          ];
+        } else {
+          // If we have stages, ensure Starter is first and Plenary is last
+          const hasStarter = parsedStages.some((s) => s.stage === "Starter");
+          const hasPlenary = parsedStages.some((s) => s.stage === "Plenary");
 
-        if (!hasStarter) {
-          parsedStages.unshift({
-            stage: "Starter",
-            duration: "",
-            teaching: "",
-            learning: "",
-            assessing: "",
-            adapting: "",
-          });
+          if (!hasStarter) {
+            parsedStages.unshift({
+              stage: "Starter",
+              duration: "",
+              teaching: "",
+              learning: "",
+              assessing: "",
+              adapting: "",
+            });
+          }
+
+          if (!hasPlenary) {
+            parsedStages.push({
+              stage: "Plenary",
+              duration: "",
+              teaching: "",
+              learning: "",
+              assessing: "",
+              adapting: "",
+            });
+          }
         }
-        
-        if (!hasPlenary) {
-          parsedStages.push({
-            stage: "Plenary",
-            duration: "",
-            teaching: "",
-            learning: "",
-            assessing: "",
-            adapting: "",
-          });
-        }
-      }
 
-      setLesson(data);
-      setStages(parsedStages);
-      
-    } catch (err) {
-      console.error("Error fetching lesson:", err);
-      setError(err instanceof Error ? err.message : "Failed to load tutoring session plan");
-      toast.error("Failed to load tutoring session plan");
-    } finally {
-      setLoading(false);
+        setLesson(data);
+        setStages(parsedStages);
+
+      } catch (err) {
+        console.error("Error fetching lesson:", err);
+        setError(err instanceof Error ? err.message : "Failed to load tutoring session plan");
+        toast.error("Failed to load tutoring session plan");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  if (id) {
-    fetchLesson();
-  }
-}, [id]);
+    if (id) {
+      fetchLesson();
+    }
+  }, [id]);
 
   const updateField = <K extends keyof LessonPlanTutor>(
     key: K,

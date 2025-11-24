@@ -1,4 +1,4 @@
-               "use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -103,8 +103,8 @@ export default function EditLessonFormStudent() {
         const parsedStages: LessonStage[] = Array.isArray(data.lesson_structure)
           ? data.lesson_structure
           : typeof data.lesson_structure === 'string'
-          ? JSON.parse(data.lesson_structure)
-          : [];
+            ? JSON.parse(data.lesson_structure)
+            : [];
 
         // Ensure Starter and Plenary exist
         const hasStarter = parsedStages.some((s) => s.stage === "Starter");
@@ -298,11 +298,11 @@ export default function EditLessonFormStudent() {
         [key: string]: unknown;
       };
 
-      type BulletPointData = 
-        | string 
-        | number 
-        | boolean 
-        | null 
+      type BulletPointData =
+        | string
+        | number
+        | boolean
+        | null
         | undefined
         | BulletPointObject
         | BulletPointData[];
@@ -481,8 +481,8 @@ export default function EditLessonFormStudent() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-4 sm:p-6 md:p-8 lg:p-10 transition-colors">
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-               
-               {/* Header Section */}
+
+        {/* Header Section */}
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Edit Lesson Plan
@@ -990,7 +990,7 @@ export default function EditLessonFormStudent() {
               </section>
 
               <Separator />
-              
+
               {/* Lesson Structure */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
