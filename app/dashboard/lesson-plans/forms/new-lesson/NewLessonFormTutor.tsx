@@ -364,43 +364,6 @@ export default function NewLessonFormTutor() {
     }
   }
 
-  async function createStudentProfile(
-    firstName?: string,
-    lastName?: string
-  ): Promise<string> {
-    if (!firstName?.trim() || !lastName?.trim()) {
-      throw new Error("Student first and last name are required.");
-    }
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError) throw userError;
-    if (!user) throw new Error("You must be logged in to create a student profile.");
-
-    const timestamp = new Date().toISOString();
-
-    const { data, error } = await supabase
-      .from("student_profiles")
-      .insert([
-        {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          user_id: user.id,
-          created_at: timestamp,
-          updated_at: timestamp,
-        },
-      ])
-      .select("student_id")
-      .single();
-
-    if (error) throw error;
-
-    return data.student_id;
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
