@@ -60,12 +60,110 @@ export default function NewLessonFormTutor() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [students, setStudents] = useState<{ student_id: string; first_name: string; last_name: string }[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [showNewStudentInputs, setShowNewStudentInputs] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
 
   useEffect(() => {
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [error, formErrors]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  async function fetchStudents() {
+    try {
+      setLoadingStudents(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("student_profiles")
+        .select("student_id, first_name, last_name")
+        .eq("user_id", user.id)
+        .order("first_name", { ascending: true });
+
+      if (error) throw error;
+
+      setStudents(data || []);
+    } catch (err) {
+      console.error("Error fetching students:", err);
+      toast.error("Failed to load students");
+    } finally {
+      setLoadingStudents(false);
+    }
+  }
+
+  function handleStudentChange(value: string) {
+    if (value === "other") {
+      setShowNewStudentInputs(true);
+      setSelectedStudentId("");
+      updateField("first_name", "");
+      updateField("last_name", "");
+    } else {
+      setShowNewStudentInputs(false);
+      setSelectedStudentId(value);
+
+      // Find the selected student and populate the fields
+      const selectedStudent = students.find(s => s.student_id === value);
+      if (selectedStudent) {
+        updateField("first_name", selectedStudent.first_name);
+        updateField("last_name", selectedStudent.last_name);
+      }
+    }
+  }
+
+  async function createStudentProfile(
+    firstName?: string,
+    lastName?: string
+  ): Promise<string> {
+    if (!firstName?.trim() || !lastName?.trim()) {
+      throw new Error("Student first and last name are required.");
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw userError;
+    if (!user) throw new Error("You must be logged in to create a student profile.");
+
+    // If a student was selected from dropdown, return that student_id
+    if (selectedStudentId) {
+      return selectedStudentId;
+    }
+
+    // Otherwise, create a new student profile
+    const timestamp = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("student_profiles")
+      .insert([
+        {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          user_id: user.id,
+          created_at: timestamp,
+          updated_at: timestamp,
+        },
+      ])
+      .select("student_id")
+      .single();
+
+    if (error) throw error;
+
+    // Refresh the students list
+    await fetchStudents();
+
+    return data.student_id;
+  }
 
   const updateField = <K extends keyof LessonPlanTutor>(
     key: K,
@@ -398,32 +496,65 @@ export default function NewLessonFormTutor() {
                 </div>
 
                 <div className="bg-muted/30 rounded-lg p-4 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
-                        First Name <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        value={lesson.first_name || ""}
-                        onChange={(e) => updateField("first_name", e.target.value)}
-                        placeholder="e.g. Sarah"
-                        className={`mt-1 ${formErrors.first_name ? "border-destructive" : ""}`}
-                      />
-                      {formErrors.first_name && (
-                        <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
-                      )}
-                    </div>
+                  {/* Student Dropdown */}
+                  <div>
+                    <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
+                      Select Student <span className="text-destructive">*</span>
+                    </Label>
 
-                    <div>
-                      <Label className="text-sm">Last Name</Label>
-                      <Input
-                        value={lesson.last_name || ""}
-                        onChange={(e) => updateField("last_name", e.target.value)}
-                        placeholder="e.g. Johnson"
-                        className="mt-1"
-                      />
-                    </div>
+                    <Select
+                      value={showNewStudentInputs ? "other" : selectedStudentId}
+                      onValueChange={handleStudentChange}
+                      disabled={loadingStudents}
+                    >
+                      <SelectTrigger className={`mt-1 w-full ${formErrors.first_name ? "border-destructive" : ""}`}>
+                        <SelectValue placeholder={loadingStudents ? "Loading students..." : "Select a student..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {students.map((student) => (
+                          <SelectItem key={student.student_id} value={student.student_id}>
+                            {student.first_name} {student.last_name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="other">+ Add New Student</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {formErrors.first_name && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
+                    )}
                   </div>
+
+                  {/* New Student Input Fields - Only show when "other" is selected */}
+                  {showNewStudentInputs && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div>
+                        <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
+                          First Name <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          value={lesson.first_name || ""}
+                          onChange={(e) => updateField("first_name", e.target.value)}
+                          placeholder="e.g. Sarah"
+                          className={`mt-1 ${formErrors.first_name ? "border-destructive" : ""}`}
+                          autoFocus
+                        />
+                        {formErrors.first_name && (
+                          <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="text-sm">Last Name</Label>
+                        <Input
+                          value={lesson.last_name || ""}
+                          onChange={(e) => updateField("last_name", e.target.value)}
+                          placeholder="e.g. Johnson"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 
