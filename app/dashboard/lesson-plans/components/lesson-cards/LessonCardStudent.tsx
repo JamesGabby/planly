@@ -20,6 +20,7 @@ import { LessonPlanTeacher } from "@/app/dashboard/lesson-plans/types/lesson_tea
 import { prettyDate, prettyTime } from "../../utils/helpers";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { useUserMode } from "@/components/UserModeContext";
 
 /* ------------------------------------ */
 /* ADVANCED LESSON CARD COMPONENT       */
@@ -33,6 +34,8 @@ export function LessonCardStudent({
   onDelete: () => void;
   onDuplicate: () => void;
 }) {
+
+  const { mode } = useUserMode();
 
   return (
     <motion.div
@@ -117,7 +120,7 @@ export function LessonCardStudent({
                     variant="secondary"
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
+                      window.location.href = `/dashboard/lesson-plans/edit-teacher/${lesson.id}`;
                     }}
                   >
                     <Edit3 className="w-4 h-4" />
@@ -171,7 +174,7 @@ export function LessonCardStudent({
                     variant="secondary"
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
+                      window.location.href = `/dashboard/lesson-plans/edit-teacher/${lesson.id}`;
                     }}
                   >
                     <Edit3 className="w-4 h-4" />

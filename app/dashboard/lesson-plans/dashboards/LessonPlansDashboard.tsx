@@ -210,15 +210,8 @@ export default function LessonPlansDashboard() {
       return <LessonCardTutor lesson={lp as LessonPlanTutor} {...commonProps} />;
     }
 
-    const teacherLesson = lp as LessonPlanTeacher;
-    
-    switch (mode) {
-      case "detailed":
-        return <LessonCardAdvanced lesson={teacherLesson} {...commonProps} />;
-      case "student":
-        return <LessonCardStudent lesson={teacherLesson} {...commonProps} />;
-      default:
-        return <LessonCard lesson={teacherLesson} {...commonProps} />;
+    if (mode === "teacher") {
+      return <LessonCardStudent lesson={lp as LessonPlanTeacher} {...commonProps} />;
     }
   };
 

@@ -113,7 +113,7 @@ export function LessonCardTutor({
                     variant="secondary"
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
+                      window.location.href = `/dashboard/lesson-plans/edit-tutor/${lesson.id}`;
                     }}
                   >
                     <Edit3 className="w-4 h-4" />
@@ -168,7 +168,7 @@ export function LessonCardTutor({
                     variant="secondary"
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/dashboard/lesson-plans/${lesson.id}/edit`;
+                      window.location.href = `/dashboard/lesson-plans/edit-tutor/${lesson.id}`;
                     }}
                   >
                     <Edit3 className="w-4 h-4" />

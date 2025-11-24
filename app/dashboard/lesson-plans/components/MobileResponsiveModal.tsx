@@ -27,11 +27,8 @@ export function MobileResponsiveModal({
       return <TutorExpandedLessonView lesson={lesson as LessonPlanTutor} />;
     }
 
-    const teacherLesson = lesson as LessonPlanTeacher;
-    
-    switch (mode) {
-      default:
-        return <DetailedExpandedLessonView lesson={teacherLesson} />;
+    if (mode === "teacher") {
+      return <DetailedExpandedLessonView lesson={lesson as LessonPlanTeacher} />;
     }
   }
 
