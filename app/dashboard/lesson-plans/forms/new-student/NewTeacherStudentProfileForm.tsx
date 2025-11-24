@@ -20,6 +20,7 @@ import {
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Loader2 } from "lucide-react";
 
 const supabase = createClient();
 
@@ -168,153 +169,301 @@ export default function NewTeacherStudentProfileForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background px-4 py-6 sm:px-6 md:p-10 transition-colors">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">New Student Profile</h1>
-          <p className="text-muted-foreground text-sm">
-            Add a new student and their learning details.
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-4 sm:p-6 md:p-8 lg:p-10 transition-colors">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            New Student Profile
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm max-w-2xl">
+            Create a detailed profile to personalize learning and track student progress.
           </p>
         </div>
 
         <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="text-xl font-semibold">Student Details</CardTitle>
+          <CardHeader className="border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl font-semibold">Student Information</CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-4 sm:pt-6 space-y-6 sm:space-y-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* First Name */}
-                <div>
-                  <Label className={formErrors.first_name ? "text-destructive" : ""}>
-                    First Name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    value={student.first_name}
-                    onChange={(e) => updateField("first_name", e.target.value)}
-                    placeholder="First Name"
-                  />
-                  {formErrors.first_name && (
-                    <p className="text-destructive text-xs mt-1">
-                      {formErrors.first_name}
-                    </p>
-                  )}
+          <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+              {/* Error Display */}
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 sm:p-4">
+                  <p className="text-destructive text-xs sm:text-sm font-medium">{error}</p>
+                </div>
+              )}
+
+              {/* Basic Information Section */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h3 className="text-base sm:text-lg font-semibold">Basic Information</h3>
                 </div>
 
-                {/* Last Name */}
-                <div>
-                  <Label className={formErrors.last_name ? "text-destructive" : ""}>
-                    Last Name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    value={student.last_name}
-                    onChange={(e) => updateField("last_name", e.target.value)}
-                    placeholder="Last Name"
-                  />
-                  {formErrors.last_name && (
-                    <p className="text-destructive text-xs mt-1">
-                      {formErrors.last_name}
-                    </p>
-                  )}
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* First Name */}
+                  <div>
+                    <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
+                      First Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      value={student.first_name}
+                      onChange={(e) => updateField("first_name", e.target.value)}
+                      placeholder="e.g., Sarah"
+                      className={`mt-1 ${formErrors.first_name ? "border-destructive" : ""}`}
+                    />
+                    {formErrors.first_name && (
+                      <p className="text-destructive text-xs mt-1">
+                        {formErrors.first_name}
+                      </p>
+                    )}
+                  </div>
 
-                {/* Class Dropdown */}
-                <div>
-                  <Label className={formErrors.level ? "text-destructive" : ""}>
-                    Class <span className="text-destructive">*</span>
-                  </Label>
+                  {/* Last Name */}
+                  <div>
+                    <Label className={`text-sm ${formErrors.last_name ? "text-destructive" : ""}`}>
+                      Last Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      value={student.last_name}
+                      onChange={(e) => updateField("last_name", e.target.value)}
+                      placeholder="e.g., Johnson"
+                      className={`mt-1 ${formErrors.last_name ? "border-destructive" : ""}`}
+                    />
+                    {formErrors.last_name && (
+                      <p className="text-destructive text-xs mt-1">
+                        {formErrors.last_name}
+                      </p>
+                    )}
+                  </div>
 
-                  <Select
-                    value={
-                      student.class_name && classes.includes(student.class_name)
-                        ? student.class_name
-                        : student.class_name && !classes.includes(student.class_name)
-                        ? "other"
-                        : ""
-                    }
-                    onValueChange={(value) => {
-                      if (value === "other") {
-                        updateField("class_name", "_custom");
-                        setCustomClass("");
-                      } else {
-                        updateField("class_name", value);
-                        setCustomClass("");
+                  {/* Class Dropdown */}
+                  <div className="sm:col-span-2">
+                    <Label className={`text-sm ${formErrors.level ? "text-destructive" : ""}`}>
+                      Class <span className="text-destructive">*</span>
+                    </Label>
+
+                    <Select
+                      value={
+                        student.class_name && classes.includes(student.class_name)
+                          ? student.class_name
+                          : student.class_name && !classes.includes(student.class_name)
+                            ? "other"
+                            : ""
                       }
-                    }}
-                    disabled={loadingClasses}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={loadingClasses ? "Loading classes..." : "Select a class"}
-                      />
-                    </SelectTrigger>
+                      onValueChange={(value) => {
+                        if (value === "other") {
+                          updateField("class_name", "_custom");
+                          setCustomClass("");
+                        } else {
+                          updateField("class_name", value);
+                          setCustomClass("");
+                        }
+                      }}
+                      disabled={loadingClasses}
+                    >
+                      <SelectTrigger className={`mt-1 w-full ${formErrors.level ? "border-destructive" : ""}`}>
+                        <SelectValue
+                          placeholder={loadingClasses ? "Loading classes..." : "Select a class"}
+                        />
+                      </SelectTrigger>
 
-                    <SelectContent>
-                      {classes
-                        .filter((name) => name.trim() !== "")
-                        .map((className) => (
-                          <SelectItem key={className} value={className}>
-                            {className}
-                          </SelectItem>
-                        ))}
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <SelectContent>
+                        {classes
+                          .filter((name) => name.trim() !== "")
+                          .map((className) => (
+                            <SelectItem key={className} value={className}>
+                              {className}
+                            </SelectItem>
+                          ))}
+                        <SelectItem value="other">+ Add New Class</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  {formErrors.level && (
-                    <p className="text-destructive text-xs mt-1">{formErrors.level}</p>
-                  )}
+                    {formErrors.level && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.level}</p>
+                    )}
 
-                  {/* Custom Class Input */}
-                  {!classes.includes(student.class_name) && (
-                    <div className="mt-2">
-                      <Label>Custom Class Name</Label>
-                      <Input
-                        value={customClass}
-                        onChange={(e) => {
-                          setCustomClass(e.target.value);
-                          updateField("class_name", e.target.value);
-                        }}
-                        placeholder="Enter custom class name"
-                      />
-                    </div>
-                  )}
+                    {/* Custom Class Input */}
+                    {!classes.includes(student.class_name) && (
+                      <div className="mt-2">
+                        <Input
+                          value={customClass}
+                          onChange={(e) => {
+                            setCustomClass(e.target.value);
+                            updateField("class_name", e.target.value);
+                          }}
+                          placeholder="Enter new class name (e.g., 7S)"
+                          autoFocus
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </section>
 
               <Separator />
 
-              {/* Textarea fields */}
-              {[
-                { label: "Special Educational Needs", key: "special_educational_needs" },
-                { label: "Goals", key: "goals" },
-                { label: "Interests", key: "interests" },
-                { label: "Learning Preferences", key: "learning_preferences" },
-                { label: "Strengths", key: "strengths" },
-                { label: "Weaknesses", key: "weaknesses" },
-                { label: "Notes", key: "notes" },
-              ].map(({ label, key }) => (
-                <div key={key}>
-                  <Label>{label}</Label>
-                  <Textarea
-                    value={student[key as keyof typeof student] || ""}
-                    onChange={(e) =>
-                      updateField(key as keyof typeof student, e.target.value)
-                    }
-                    placeholder={`Enter ${label.toLowerCase()}...`}
-                    className="min-h-[100px]"
-                  />
+              {/* Special Educational Needs Section */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h3 className="text-base sm:text-lg font-semibold">Special Educational Needs (SEN)</h3>
                 </div>
-              ))}
 
-              {error && (
-                <p className="text-destructive text-sm font-medium">{error}</p>
-              )}
+                <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
+                  Document any special educational needs, accommodations, or support requirements.
+                </p>
 
-              <div className="flex justify-end">
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Create Student Profile"}
+                <Textarea
+                  value={student.special_educational_needs || ""}
+                  onChange={(e) => updateField("special_educational_needs", e.target.value)}
+                  placeholder="e.g., Dyslexia - requires extra time for reading tasks, prefers audio instructions..."
+                  className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
+                />
+              </section>
+
+              <Separator />
+
+              {/* Learning Profile Section */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h3 className="text-base sm:text-lg font-semibold">Learning Profile</h3>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Goals */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Learning Goals</Label>
+                    <p className="text-xs text-muted-foreground">
+                      What does the student want to achieve?
+                    </p>
+                    <Textarea
+                      value={student.goals || ""}
+                      onChange={(e) => updateField("goals", e.target.value)}
+                      placeholder="e.g., Improve essay writing skills, prepare for GCSE exams, build confidence in public speaking..."
+                      className="min-h-[100px] text-xs sm:text-sm"
+                    />
+                  </div>
+
+                  {/* Interests */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Interests & Hobbies</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Use these to make lessons more engaging and relevant.
+                    </p>
+                    <Textarea
+                      value={student.interests || ""}
+                      onChange={(e) => updateField("interests", e.target.value)}
+                      placeholder="e.g., Football, gaming, reading fantasy novels, music production..."
+                      className="min-h-[100px] text-xs sm:text-sm"
+                    />
+                  </div>
+
+                  {/* Learning Preferences */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Learning Preferences</Label>
+                    <p className="text-xs text-muted-foreground">
+                      How does the student learn best?
+                    </p>
+                    <Textarea
+                      value={student.learning_preferences || ""}
+                      onChange={(e) => updateField("learning_preferences", e.target.value)}
+                      placeholder="e.g., Visual learner - responds well to diagrams and videos, prefers hands-on activities, needs frequent breaks..."
+                      className="min-h-[100px] text-xs sm:text-sm"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <Separator />
+
+              {/* Strengths & Areas for Development Section */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h3 className="text-base sm:text-lg font-semibold">Strengths & Development Areas</h3>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Strengths */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Strengths</Label>
+                    <p className="text-xs text-muted-foreground">
+                      What does the student excel at?
+                    </p>
+                    <Textarea
+                      value={student.strengths || ""}
+                      onChange={(e) => updateField("strengths", e.target.value)}
+                      placeholder="e.g., Strong verbal communication, excellent memory for facts, creative thinking, good problem solver..."
+                      className="min-h-[120px] text-xs sm:text-sm"
+                    />
+                  </div>
+
+                  {/* Areas for Development */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Areas for Development</Label>
+                    <p className="text-xs text-muted-foreground">
+                      What skills need more practice?
+                    </p>
+                    <Textarea
+                      value={student.weaknesses || ""}
+                      onChange={(e) => updateField("weaknesses", e.target.value)}
+                      placeholder="e.g., Struggles with time management, needs work on written expression, difficulty staying focused..."
+                      className="min-h-[120px] text-xs sm:text-sm"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <Separator />
+
+              {/* Additional Notes Section */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h3 className="text-base sm:text-lg font-semibold">Additional Notes</h3>
+                </div>
+
+                <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
+                  Any other important information about the student.
+                </p>
+
+                <Textarea
+                  value={student.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  placeholder="e.g., Parent preferences, behavioral considerations, medication schedules, preferred communication methods..."
+                  className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
+                />
+              </section>
+
+              {/* Submit Buttons */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/student-profiles")}
+                  className="w-full sm:w-auto order-2 sm:order-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full sm:w-auto order-1 sm:order-2"
+                  size="lg"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Create Student Profile"
+                  )}
                 </Button>
               </div>
             </form>
