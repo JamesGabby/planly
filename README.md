@@ -5,6 +5,7 @@ Tech:
 * Supabase
 * Tailwind CSS
 * TypeScript
+* Google Generative AI
 * Framer Motion
 * Shadcn
 * Lucide React
