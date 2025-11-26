@@ -1,10 +1,10 @@
-      import Link from "next/link";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowRight, 
-  Sparkles, 
-  BookOpen, 
-  Users, 
+import {
+  ArrowRight,
+  Sparkles,
+  BookOpen,
+  Users,
   Target,
   GraduationCap,
   LayoutDashboard,
@@ -98,14 +98,14 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-        
-        <div className="relative flex flex-col items-center justify-center text-center px-6 py-24 md:py-36 lg:py-44 gap-8 max-w-7xl mx-auto">
+
+        <div className="relative flex flex-col items-center justify-center text-center px-6 py-24 gap-8 max-w-7xl mx-auto">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/30 backdrop-blur-sm text-primary text-sm font-semibold shadow-lg animate-fade-up animate-once">
             <Sparkles className="w-4 h-4" />
             AI-Powered Lesson Planning for UK Educators
           </div>
-          
+
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold max-w-5xl leading-[1.05] tracking-tight animate-fade-up animate-once" style={{ animationDelay: '100ms' }}>
             Create Outstanding Lessons in{" "}
@@ -113,17 +113,17 @@ export default function LandingPage() {
               Minutes, Not Hours
             </span>
           </h1>
-          
+
           {/* Subheadline */}
           <p className="text-xl md:text-2xl lg:text-3xl max-w-4xl text-muted-foreground leading-relaxed animate-fade-up animate-once font-light" style={{ animationDelay: '200ms' }}>
             The intelligent planning platform built exclusively for UK teachers, tutors, and trainee educators. AI-powered, curriculum-aligned, and designed to save you time.
           </p>
-          
+
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-up animate-once mt-6" style={{ animationDelay: '300ms' }}>
-            <Button 
-              size="lg" 
-              className="px-10 py-7 text-lg font-semibold shadow-2xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 gap-3 group relative overflow-hidden" 
+            <Button
+              size="lg"
+              className="px-10 py-7 text-lg font-semibold shadow-2xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 gap-3 group relative overflow-hidden"
               asChild
             >
               <Link href="/dashboard/lesson-plans">
@@ -132,10 +132,10 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="lg"
-              className="px-10 py-7 text-lg font-semibold border-2 hover:bg-accent/50 backdrop-blur-sm hover:scale-[1.02] transition-all duration-300" 
+              className="px-10 py-7 text-lg font-semibold border-2 hover:bg-accent/50 backdrop-blur-sm hover:scale-[1.02] transition-all duration-300"
               asChild
             >
               <Link href="#features">Explore Features</Link>
@@ -183,7 +183,7 @@ export default function LandingPage() {
       {/* Features Section */}
       <section id="features" className="px-6 py-24 md:py-32 lg:py-40 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
-        
+
         <div className="max-w-7xl mx-auto text-center mb-16 md:mb-24 relative">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-semibold mb-6 backdrop-blur-sm">
             <Zap className="w-4 h-4" />
@@ -227,7 +227,7 @@ export default function LandingPage() {
       <section className="px-6 py-24 md:py-32 bg-gradient-to-br from-primary/5 via-accent/5 to-background relative overflow-hidden">
         <div className="absolute top-20 right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-        
+
         <div className="max-w-7xl mx-auto relative">
           <div className="grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
             <div className="order-2 lg:order-1">
@@ -251,10 +251,10 @@ export default function LandingPage() {
                 </Link>
               </Button>
             </div>
-            
+
             <div className="grid gap-4 order-1 lg:order-2">
               {benefits.map((benefit, i) => (
-                <div 
+                <div
                   key={i}
                   className="flex items-center gap-4 p-6 rounded-2xl bg-background/80 backdrop-blur-sm border-2 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-x-2 group"
                 >
@@ -268,7 +268,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-      
+
       {/* How It Works */}
       <section className="px-6 py-24 md:py-32 relative">
         <div className="max-w-7xl mx-auto text-center mb-16 md:mb-20">
@@ -295,12 +295,12 @@ export default function LandingPage() {
                 <div className="text-[120px] md:text-[140px] font-bold text-primary/5 absolute -top-8 left-0 select-none group-hover:text-primary/10 transition-colors duration-300">
                   {item.step}
                 </div>
-                
+
                 {/* Icon */}
                 <div className="relative mb-6 p-4 rounded-2xl bg-primary/10 text-primary w-fit group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 group-hover:scale-110 transform">
                   {item.icon}
                 </div>
-                
+
                 {/* Content */}
                 <h3 className="text-2xl md:text-3xl font-bold mb-4 relative group-hover:text-primary transition-colors">
                   {item.title}
@@ -324,7 +324,7 @@ export default function LandingPage() {
       {/* Testimonial/Social Proof Section */}
       <section className="px-6 py-24 md:py-32 bg-gradient-to-br from-accent/10 via-background to-primary/10 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(var(--foreground) / 0.05) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-        
+
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-semibold mb-6">
@@ -360,7 +360,7 @@ export default function LandingPage() {
                 school: "London"
               }
             ].map((testimonial, i) => (
-              <div 
+              <div
                 key={i}
                 className="p-8 rounded-3xl bg-background/80 backdrop-blur-sm border-2 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group"
               >
@@ -394,7 +394,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        
+
         <div className="relative max-w-5xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
             Ready to Transform Your{" "}
@@ -405,12 +405,12 @@ export default function LandingPage() {
           <p className="text-primary-foreground/90 text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed font-light">
             {"Join hundreds of UK educators who've already saved countless hours while creating better, more engaging lessons for their students."}
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button 
-              size="lg" 
-              variant="secondary" 
-              className="text-lg px-10 py-7 gap-2 shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 group text-primary font-semibold" 
+            <Button
+              size="lg"
+              variant="secondary"
+              className="text-lg px-10 py-7 gap-2 shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 group text-primary font-semibold"
               asChild
             >
               <Link href="/dashboard/lesson-plans">
@@ -418,10 +418,10 @@ export default function LandingPage() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg px-10 py-7 border-2 border-primary-foreground/30 hover:bg-primary-foreground/10 text-primary-foreground backdrop-blur-sm" 
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-lg px-10 py-7 border-2 border-primary-foreground/30 hover:bg-primary-foreground/10 text-primary-foreground backdrop-blur-sm"
               asChild
             >
               <Link href="#features">View All Features</Link>
