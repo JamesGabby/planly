@@ -223,6 +223,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
         await fetchStudent(user.id);
       } catch (err) {
         setError("Failed to fetch user");
+        console.log(err);
         setLoading(false);
       }
     }
