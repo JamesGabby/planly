@@ -242,7 +242,7 @@ export default function LandingPage() {
                 </span>
               </h2>
               <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed font-light">
-                Whether you're a trainee teacher finding your feet, an NQT/ECT building your practice, or an experienced educator maximizing efficiency—our platform grows with you every step of the way.
+                {"Whether you're a trainee teacher finding your feet, an NQT/ECT building your practice, or an experienced educator maximizing efficiency—our platform grows with you every step of the way."}
               </p>
               <Button size="lg" className="gap-2 group px-8 py-6 text-lg font-semibold shadow-xl hover:scale-105 transition-all duration-300" asChild>
                 <Link href="/dashboard/lesson-plans">
@@ -283,7 +283,7 @@ export default function LandingPage() {
             </span>
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto font-light">
-            From account creation to your first AI-generated lesson—it's incredibly quick and intuitive
+            {"From account creation to your first AI-generated lesson—it's incredibly quick and intuitive"}
           </p>
         </div>
 
@@ -370,7 +370,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6 italic">
-                  "{testimonial.quote}"
+                  &quot;{testimonial.quote}&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
@@ -403,7 +403,7 @@ export default function LandingPage() {
             </span>
           </h2>
           <p className="text-primary-foreground/90 text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed font-light">
-            Join hundreds of UK educators who've already saved countless hours while creating better, more engaging lessons for their students.
+            {"Join hundreds of UK educators who've already saved countless hours while creating better, more engaging lessons for their students."}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
