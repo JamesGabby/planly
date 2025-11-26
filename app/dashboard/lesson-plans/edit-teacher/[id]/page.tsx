@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, Loader2, Sparkles } from "lucide-react";
 import { useUserMode } from "@/components/UserModeContext";
+import { EditLessonFormSkeleton } from "../../skeletons/EditLessonFormSkeleton";
 
 const supabase = createClient();
 
@@ -457,12 +458,7 @@ export default function EditLessonFormStudent() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-muted/50 to-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Loading lesson plan...</p>
-        </div>
-      </div>
+      <EditLessonFormSkeleton />
     );
   }
 

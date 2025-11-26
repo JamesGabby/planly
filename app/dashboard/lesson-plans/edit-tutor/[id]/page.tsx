@@ -17,6 +17,7 @@ import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
 import { useUserMode } from "@/components/UserModeContext";
+import { EditTutoringSessionSkeleton } from "../../skeletons/EditTutoringSessionSkeleton";
 
 const supabase = createClient();
 
@@ -459,12 +460,7 @@ useEffect(() => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-muted/50 to-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Loading tutoring session plan...</p>
-        </div>
-      </div>
+      <EditTutoringSessionSkeleton />
     );
   }
 
