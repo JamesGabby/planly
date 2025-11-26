@@ -165,6 +165,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
         if (!user) {
           setError("Not logged in");
+          console.log(error);
           setLoading(false);
           return;
         }
@@ -172,6 +173,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
         await fetchStudent(user.id);
       } catch (err) {
         setError("Failed to fetch user");
+        console.log(error, err);
         setLoading(false);
       }
     }
@@ -220,7 +222,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     // set new timer
     const timer = setTimeout(async () => {
       try {
-        const payload: Record<string, any> = { [field]: value };
+        const payload: Record<string, string> = { [field]: value };
         const { error } = await supabase
           .from("student_profiles")
           .update(payload)
@@ -235,7 +237,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
           // Update parent state only if it is actually different (avoid extra re-render)
           setStudent(prev => {
             if (!prev) return prev;
-            // @ts-ignore - index by key
+            // @ts-expect-error
             if (prev[field] === value) return prev;
             return { ...prev, [field]: value };
           });
@@ -348,7 +350,6 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
 
   /* ---------- Field value accessor with fallback ---------- */
   const getFieldValue = (key: keyof StudentProfileTutor) => {
-    // @ts-ignore
     return (student && student[key]) ? String(student[key]) : "";
   };
 
