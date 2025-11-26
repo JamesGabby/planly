@@ -1,4 +1,3 @@
-import { Copyright } from "lucide-react";
 import { ThemeSwitcher } from "./theme-switcher";
 import { Poppins } from "next/font/google";
 
@@ -17,7 +16,7 @@ export function Footer() {
       </p>
       <ThemeSwitcher />
       <div className="flex items-center gap-1">
-        Built by James Gabbitus <Copyright className="w-3 h-3" />
+        Built by James Gabbitus 
       </div>
     </footer>
   )
