@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -15,53 +15,219 @@ import {
   BicepsFlexed,
   GraduationCap,
   ChartLine,
+  Loader2,
+  Save,
 } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { StudentProfileTeacher } from "@/app/dashboard/lesson-plans/types/student_profile_teacher";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { motion, AnimatePresence } from "framer-motion";
+import StudentProfileSkeleton from "@/app/dashboard/lesson-plans/skeletons/StudentProfileSkeleton";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-// Define the keys we want to work with
-type StudentFieldKey = keyof StudentProfileTeacher;
+/* ---------- Field type ---------- */
+type TutorField = {
+  key: keyof StudentProfileTeacher;
+  label: string;
+  icon: ReactNode;
+  readOnly?: boolean;
+  highlight?: boolean;
+  category: 'overview' | 'learning' | 'assessment';
+};
 
+/* ---------- Memoized EditableFieldCard ---------- */
+const EditableFieldCard = React.memo(function EditableFieldCard(props: {
+  field: TutorField;
+  initialValue: string;
+  editMode: boolean;
+  scheduleSave: (fieldKey: string, value: string) => void;
+  saving?: boolean;
+  lastSaved?: Date | null;
+}) {
+  const { field, initialValue, editMode, scheduleSave, saving, lastSaved } = props;
+  const [localValue, setLocalValue] = useState(initialValue ?? "");
+
+  useEffect(() => {
+    setLocalValue(initialValue ?? "");
+  }, [initialValue]);
+
+  const onChange = (val: string) => {
+    setLocalValue(val);
+    scheduleSave(String(field.key), val);
+  };
+
+  return (
+    <Card className={`transition-all hover:shadow-md ${field.highlight ? 'border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20' : ''}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className={`p-2 rounded-lg ${field.highlight ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300' : 'bg-primary/10 text-primary'}`}>
+              {field.icon}
+            </div>
+            <CardTitle className="text-base font-semibold">{field.label}</CardTitle>
+          </div>
+          {field.highlight && (
+            <Badge variant="outline" className="border-yellow-500 text-yellow-700 dark:text-yellow-300">
+              Important
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-2">
+        {editMode ? (
+          <>
+            <Textarea
+              value={localValue}
+              onChange={(e) => onChange(e.target.value)}
+              rows={field.key === "notes" ? 5 : 3}
+              className="resize-none w-full"
+              placeholder={field.readOnly ? "Read only" : `Enter ${field.label.toLowerCase()}...`}
+              disabled={field.readOnly}
+            />
+            <AnimatePresence mode="wait">
+              {saving ? (
+                <motion.div
+                  key="saving"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                >
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Saving...</span>
+                </motion.div>
+              ) : lastSaved ? (
+                <motion.div
+                  key="saved"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400"
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  <span>Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </>
+        ) : (
+          (initialValue && initialValue.length > 0) ? (
+            <p className={`whitespace-pre-wrap text-sm leading-relaxed ${field.highlight ? 'text-yellow-800 dark:text-yellow-200 font-medium' : 'text-muted-foreground'}`}>
+              {initialValue}
+            </p>
+          ) : (
+            <p className="text-sm italic text-muted-foreground/60">Not provided</p>
+          )
+        )}
+      </CardContent>
+    </Card>
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render when relevant props change
+  return prevProps.editMode === nextProps.editMode
+    && prevProps.initialValue === nextProps.initialValue
+    && prevProps.saving === nextProps.saving
+    && ((prevProps.lastSaved?.getTime() ?? 0) === (nextProps.lastSaved?.getTime() ?? 0));
+});
+
+/* ---------- EditableNamePair (header) ---------- */
+function EditableNamePair(props: {
+  id: string;
+  firstNameInitial: string;
+  lastNameInitial: string;
+  scheduleSave: (fieldKey: string, value: string) => void;
+}) {
+  const { firstNameInitial, lastNameInitial, scheduleSave } = props;
+  const [firstName, setFirstName] = useState(firstNameInitial ?? "");
+  const [lastName, setLastName] = useState(lastNameInitial ?? "");
+
+  useEffect(() => setFirstName(firstNameInitial ?? ""), [firstNameInitial]);
+  useEffect(() => setLastName(lastNameInitial ?? ""), [lastNameInitial]);
+
+  const onFirstChange = (v: string) => {
+    setFirstName(v);
+    scheduleSave("first_name", v);
+  };
+
+  const onLastChange = (v: string) => {
+    setLastName(v);
+    scheduleSave("last_name", v);
+  };
+
+  return (
+    <>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">
+          First Name
+        </label>
+        <input
+          className="w-full text-lg font-bold bg-transparent border border-input px-2 py-1 rounded"
+          value={firstName}
+          onChange={(e) => onFirstChange(e.target.value)}
+          placeholder="First name"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">
+          Last Name
+        </label>
+        <input
+          className="w-full text-lg font-bold bg-transparent border border-input px-2 py-1 rounded"
+          value={lastName}
+          onChange={(e) => onLastChange(e.target.value)}
+          placeholder="Last name"
+        />
+      </div>
+    </>
+  );
+}
+
+/* ---------- Main component ---------- */
 export default function StudentDetailTableWithTimestamp({ params }: Props) {
-  const paramsObj = React.use(params);
+  const paramsObj = React.use(params) as { id: string };
   const { id } = paramsObj;
   const supabase = createClient();
 
-  const [student, setStudent] = useState<StudentProfileTeacher>();
+  const [student, setStudent] = useState<StudentProfileTeacher | undefined>();
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
   const [lastSaved, setLastSaved] = useState<{ [key: string]: Date | null }>({});
-  const [error, setError] = useState("")
+  const [error, setError] = useState("");
 
-  const [debounceTimers, setDebounceTimers] = useState<{ [key: string]: NodeJS.Timeout }>({});
+  // timers ref (per-field)
+  const debounceTimersRef = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
 
-  // Fetch student
   useEffect(() => {
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        setError("Not logged in");
+        if (!user) {
+          setError("Not logged in");
+          setLoading(false);
+          return;
+        }
+
+        await fetchStudent(user.id);
+      } catch (err) {
+        setError("Failed to fetch user");
         setLoading(false);
-        return;
       }
-
-      console.log(error);
-
-      await fetchStudent(user.id);
     }
 
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function fetchStudent(userId: string) {
@@ -74,8 +240,8 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
             class:classes(class_name)
           )
         `)
-        .eq("student_id", id)        // still filter by the student page you're viewing
-        .eq("user_id", userId)       // ← REQUIRED for production (RLS)
+        .eq("student_id", id)
+        .eq("user_id", userId)
         .single();
 
       if (error) throw error;
@@ -86,7 +252,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
           .filter(Boolean)
           .join(", ");
 
-        setStudent({ ...data, class_name: classNames });
+        setStudent({ ...data, class_name: classNames } as StudentProfileTeacher);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load student");
@@ -95,31 +261,67 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
     }
   }
 
-  // Handle input change with debounce
-  const handleChange = (field: StudentFieldKey, value: string) => {
-    if (!student) return;
-    setStudent({ ...student, [field]: value } as StudentProfileTeacher);
+  /* ---------- scheduleSave (debounced per field) ---------- */
+  const scheduleSave = useCallback((field: string, value: string) => {
+    // clear existing timer
+    const timers = debounceTimersRef.current;
+    if (timers[field]) {
+      clearTimeout(timers[field] as ReturnType<typeof setTimeout>);
+    }
 
-    if (debounceTimers[field]) clearTimeout(debounceTimers[field]);
-
-    setSaving((prev) => ({ ...prev, [field]: true }));
+    // show saving indicator (only set true if not already)
+    setSaving(prev => {
+      if (prev[field]) return prev;
+      return { ...prev, [field]: true };
+    });
 
     const timer = setTimeout(async () => {
-      const { error } = await supabase
-        .from("teacher_student_profiles")
-        .update({ [field]: value })
-        .eq("student_id", id);
+      try {
+        const payload: Record<string, any> = { [field]: value };
+        const { error } = await supabase
+          .from("teacher_student_profiles")
+          .update(payload)
+          .eq("student_id", id);
 
-      setSaving((prev) => ({ ...prev, [field]: false }));
-      if (!error) setLastSaved((prev) => ({ ...prev, [field]: new Date() }));
-      if (error) console.error("Error saving field", field, error.message);
-    }, 800);
+        if (error) {
+          console.error("Error saving field", field, error.message);
+        } else {
+          setLastSaved(prev => ({ ...prev, [field]: new Date() }));
+          // update parent state only if changed
+          setStudent(prev => {
+            if (!prev) return prev;
+            // @ts-ignore
+            if (prev[field] === value) return prev;
+            return { ...prev, [field]: value };
+          });
+        }
+      } catch (err) {
+        console.error("Error saving field", field, err);
+      } finally {
+        setSaving(prev => ({ ...prev, [field]: false }));
+        debounceTimersRef.current[field] = null;
+      }
+    }, 1000); // 1000ms debounce
 
-    setDebounceTimers((prev) => ({ ...prev, [field]: timer }));
-  };
+    debounceTimersRef.current[field] = timer;
+  }, [supabase, id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!student)
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimersRef.current).forEach((t) => {
+        if (t) clearTimeout(t);
+      });
+    };
+  }, []);
+
+  /* ---------- Loading / Error UI ---------- */
+  if (loading) {
+    return (
+      <StudentProfileSkeleton />
+    );
+  }
+
+  if (!student) {
     return (
       <div className="max-w-xl mx-auto p-8 text-center">
         <div className="mb-4">
@@ -137,176 +339,206 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
         <h2 className="text-xl font-bold text-destructive">Student Not Found</h2>
       </div>
     );
+  }
 
-  const fields: Array<{ label: string; key: StudentFieldKey; icon: React.ReactNode; readOnly?: boolean }> = [
-    { label: "Classes", key: "class_name" as StudentFieldKey, icon: <GraduationCap />, readOnly: true },
-    { label: "Special Educational Needs (SEN)", key: "special_educational_needs" as StudentFieldKey, icon: <AlertTriangle /> },
-    { label: "Areas to Improve", key: "weaknesses" as StudentFieldKey, icon: <ChartLine /> },
-    { label: "Goals", key: "goals" as StudentFieldKey, icon: <Target /> },
-    { label: "Interests", key: "interests" as StudentFieldKey, icon: <Sparkles /> },
-    { label: "Learning Preferences", key: "learning_preferences" as StudentFieldKey, icon: <BrainCircuit /> },
-    { label: "Strengths", key: "strengths" as StudentFieldKey, icon: <BicepsFlexed /> },
-    { label: "Notes", key: "notes" as StudentFieldKey, icon: <FileText /> },
+  /* ---------- Fields (categorized) ---------- */
+  const fields: TutorField[] = [
+    { label: "Classes", key: "class_name", icon: <GraduationCap />, readOnly: true, category: 'overview' },
+    { label: "Special Educational Needs (SEN)", key: "special_educational_needs", icon: <AlertTriangle />, highlight: true, category: 'overview' },
+    { label: "Goals", key: "goals", icon: <Target />, category: 'overview' },
+    { label: "Interests", key: "interests", icon: <Sparkles />, category: 'learning' },
+    { label: "Learning Preferences", key: "learning_preferences", icon: <BrainCircuit />, category: 'learning' },
+    { label: "Strengths", key: "strengths", icon: <BicepsFlexed />, category: 'assessment' },
+    { label: "Areas to Improve", key: "weaknesses", icon: <ChartLine />, category: 'assessment' },
+    { label: "Notes", key: "notes", icon: <FileText />, category: 'assessment' },
   ];
 
-  return (
-    <div className="max-w-4xl mx-auto p-8 space-y-6">
-      <div className="mb-4">
-        <Button
-          asChild
-          variant="ghost"
-          className="inline-flex items-center gap-1 px-2 py-1 text-sm w-auto"
-        >
-          <Link href="/dashboard/student-profiles">
-            <ArrowLeft className="h-3 w-3" />
-            Back
-          </Link>
-        </Button>
-      </div>
+  const categorizedFields = {
+    overview: fields.filter(f => f.category === 'overview'),
+    learning: fields.filter(f => f.category === 'learning'),
+    assessment: fields.filter(f => f.category === 'assessment'),
+  };
 
-      <h1 className="text-3xl font-bold tracking-tight text-center">
-        {student.first_name} {student.last_name}
-      </h1>
+  /* ---------- Header save indicator helper ---------- */
+  const NameSaveIndicator = () => {
+    const firstSaving = saving["first_name"];
+    const lastSaving = saving["last_name"];
+    const firstSaved = lastSaved["first_name"];
+    const lastSavedTime = lastSaved["last_name"];
 
-      {/* Edit Mode Toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-muted-foreground">
-          {editMode ? "Editing – changes save automatically" : "View only mode"}
-        </span>
-
-        <Button
-          variant={editMode ? "default" : "outline"}
-          onClick={() => setEditMode(!editMode)}
-          className="flex items-center gap-2 transition-all"
-        >
-          {editMode ? (
-            <>
-              <CheckCircle2 className="w-4 h-4" />
-              Done
-            </>
-          ) : (
-            <>
-              <Pencil className="w-4 h-4" />
-              Edit
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto rounded-lg border bg-card text-card-foreground shadow-sm">
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          {/* Desktop Table */}
-          <table className="hidden md:table w-full table-fixed text-sm">
-            <tbody className="divide-y">
-              {fields.map((field) => {
-                const value = student[field.key];
-                const displayValue = typeof value === 'string' ? value : String(value ?? '');
-                
-                return (
-                  <tr key={String(field.key)} className="divide-x border-b hover:bg-accent transition-colors">
-                    <td className="w-56 px-4 py-3 font-medium text-foreground align-top">
-                      <div className="flex items-center gap-2">
-                        {field.icon} {field.label}
-                      </div>
-                    </td>
-                    <td
-                      className={cn(
-                        "px-4 py-3 align-top",
-                        field.key === "special_educational_needs" ? "text-yellow-500 font-medium" : "text-muted-foreground"
-                      )}
-                    >
-                      {displayValue ? (
-                        <div className="inline-flex items-center gap-1.5">
-                          {displayValue}
-                        </div>
-                      ) : (
-                        <span className="italic opacity-60">Not provided</span>
-                      )}
-
-                      {/* Edit Mode */}
-                      {editMode && !field.readOnly && (
-                        <Textarea
-                          value={displayValue}
-                          onChange={(e) => handleChange(field.key, e.target.value)}
-                          rows={field.key === "notes" ? 5 : 2}
-                          className="resize-none w-full mt-1"
-                        />
-                      )}
-
-                      {/* Saving indicator */}
-                      {saving[String(field.key)] && editMode && (
-                        <span className="ml-2 text-xs text-muted-foreground animate-pulse">
-                          Saving…
-                        </span>
-                      )}
-                      {!saving[String(field.key)] && lastSaved[String(field.key)] && editMode && (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          Saved at {lastSaved[String(field.key)]?.toLocaleTimeString()}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {/* Mobile Card Version */}
-          <div className="md:hidden divide-y">
-            {fields.map((field) => {
-              const value = student[field.key];
-              const displayValue = typeof value === 'string' ? value : String(value ?? '');
-              
-              return (
-                <div
-                  key={String(field.key)}
-                  className="p-4 space-y-2 hover:bg-accent transition-colors"
-                >
-                  <div className="flex items-center gap-2 font-semibold">
-                    {field.icon} {field.label}
-                  </div>
-
-                  {displayValue ? (
-                    <div className={cn(
-                      "inline-flex items-center gap-1.5",
-                      field.key === "special_educational_needs" ? "text-yellow-500 font-medium" : "text-muted-foreground"
-                    )}>
-                      {displayValue}
-                      {field.key === "special_educational_needs" && (
-                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                      )}
-                    </div>
-                  ) : (
-                    <span className="italic opacity-60">Not provided</span>
-                  )}
-
-                  {/* Edit Mode */}
-                  {editMode && !field.readOnly && (
-                    <Textarea
-                      value={displayValue}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      rows={field.key === "notes" ? 5 : 2}
-                      className="resize-none w-full mt-1"
-                    />
-                  )}
-
-                  {/* Saving & timestamps */}
-                  {saving[String(field.key)] && editMode && (
-                    <span className="text-xs text-muted-foreground animate-pulse block">
-                      Saving…
-                    </span>
-                  )}
-                  {!saving[String(field.key)] && lastSaved[String(field.key)] && editMode && (
-                    <span className="text-xs text-muted-foreground block">
-                      Saved at {lastSaved[String(field.key)]?.toLocaleTimeString()}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+    if (firstSaving || lastSaving) {
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          <span>Saving name...</span>
         </div>
+      );
+    }
+
+    if (firstSaved || lastSavedTime) {
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+          <CheckCircle2 className="h-3 w-3" />
+          <span>Name saved</span>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const getFieldValue = (key: keyof StudentProfileTeacher) => {
+    // @ts-ignore
+    return (student && student[key]) ? String(student[key]) : "";
+  };
+
+  /* ---------- Render ---------- */
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
+        {/* Back button + header card */}
+        <div className="space-y-4">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+          >
+            <Link href="/dashboard/student-profiles">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Students
+            </Link>
+          </Button>
+
+          <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {editMode ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <EditableNamePair
+                            id={id}
+                            firstNameInitial={getFieldValue("first_name")}
+                            lastNameInitial={getFieldValue("last_name")}
+                            scheduleSave={scheduleSave}
+                          />
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          <NameSaveIndicator />
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight break-words">
+                          {student.first_name} {student.last_name}
+                        </CardTitle>
+                        <div className="text-sm text-muted-foreground mt-1">Student Profile</div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:ml-4">
+                  {editMode && (
+                    <Badge variant="secondary" className="gap-1.5 whitespace-nowrap">
+                      <Save className="h-3 w-3" />
+                      Auto-saving
+                    </Badge>
+                  )}
+                  <Button
+                    variant={editMode ? "default" : "outline"}
+                    onClick={() => setEditMode(!editMode)}
+                    className="gap-2 w-full sm:w-auto whitespace-nowrap"
+                  >
+                    {editMode ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4" />
+                        Done Editing
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-4 w-4" />
+                        Edit Profile
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Overview */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-1 bg-primary rounded-full" />
+            <h2 className="text-xl font-semibold">Overview</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categorizedFields.overview.map((field) => (
+              <EditableFieldCard
+                key={String(field.key)}
+                field={field}
+                initialValue={getFieldValue(field.key)}
+                editMode={editMode}
+                scheduleSave={scheduleSave}
+                saving={!!saving[String(field.key)]}
+                lastSaved={lastSaved[String(field.key)] ?? null}
+              />
+            ))}
+          </div>
+        </section>
+
+        <Separator />
+
+        {/* Learning */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-1 bg-primary rounded-full" />
+            <h2 className="text-xl font-semibold">Learning Style</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categorizedFields.learning.map((field) => (
+              <EditableFieldCard
+                key={String(field.key)}
+                field={field}
+                initialValue={getFieldValue(field.key)}
+                editMode={editMode}
+                scheduleSave={scheduleSave}
+                saving={!!saving[String(field.key)]}
+                lastSaved={lastSaved[String(field.key)] ?? null}
+              />
+            ))}
+          </div>
+        </section>
+
+        <Separator />
+
+        {/* Assessment */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-1 bg-primary rounded-full" />
+            <h2 className="text-xl font-semibold">Assessment & Notes</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categorizedFields.assessment.map((field) => (
+              <EditableFieldCard
+                key={String(field.key)}
+                field={field}
+                initialValue={getFieldValue(field.key)}
+                editMode={editMode}
+                scheduleSave={scheduleSave}
+                saving={!!saving[String(field.key)]}
+                lastSaved={lastSaved[String(field.key)] ?? null}
+              />
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
