@@ -140,6 +140,58 @@ const EditableFieldCard = React.memo(function EditableFieldCard(props: {
     && ((prevProps.lastSaved?.getTime() ?? 0) === (nextProps.lastSaved?.getTime() ?? 0));
 });
 
+/* ---------- Small helper: EditableNamePair (keeps header tidy) ---------- */
+function EditableNamePair(props: {
+  id: string;
+  firstNameInitial: string;
+  lastNameInitial: string;
+  scheduleSave: (fieldKey: string, value: string) => void;
+}) {
+  const { firstNameInitial, lastNameInitial, scheduleSave } = props;
+  const [firstName, setFirstName] = useState(firstNameInitial ?? "");
+  const [lastName, setLastName] = useState(lastNameInitial ?? "");
+
+  useEffect(() => setFirstName(firstNameInitial ?? ""), [firstNameInitial]);
+  useEffect(() => setLastName(lastNameInitial ?? ""), [lastNameInitial]);
+
+  const onFirstChange = (v: string) => {
+    setFirstName(v);
+    scheduleSave("first_name", v);
+  };
+
+  const onLastChange = (v: string) => {
+    setLastName(v);
+    scheduleSave("last_name", v);
+  };
+
+  return (
+    <>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">
+          First Name
+        </label>
+        <Input
+          value={firstName}
+          onChange={(e) => onFirstChange(e.target.value)}
+          placeholder="First name"
+          className="text-lg font-bold"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">
+          Last Name
+        </label>
+        <Input
+          value={lastName}
+          onChange={(e) => onLastChange(e.target.value)}
+          placeholder="Last name"
+          className="text-lg font-bold"
+        />
+      </div>
+    </>
+  );
+}
+
 /* ---------- Main component ---------- */
 export default function StudentDetailTableWithTimestamp({ params }: Props) {
   const paramsObj = React.use(params) as { id: string };
@@ -387,8 +439,6 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
                             firstNameInitial={getFieldValue("first_name")}
                             lastNameInitial={getFieldValue("last_name")}
                             scheduleSave={scheduleSave}
-                            saving={saving}
-                            lastSaved={lastSaved}
                           />
                         </div>
                         <div className="flex flex-wrap gap-3">
@@ -506,59 +556,5 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
         </section>
       </div>
     </div>
-  );
-}
-
-/* ---------- Small helper: EditableNamePair (keeps header tidy) ---------- */
-function EditableNamePair(props: {
-  id: string;
-  firstNameInitial: string;
-  lastNameInitial: string;
-  scheduleSave: (fieldKey: string, value: string) => void;
-  saving: { [key: string]: boolean };
-  lastSaved: { [key: string]: Date | null };
-}) {
-  const { firstNameInitial, lastNameInitial, scheduleSave, saving, lastSaved } = props;
-  const [firstName, setFirstName] = useState(firstNameInitial ?? "");
-  const [lastName, setLastName] = useState(lastNameInitial ?? "");
-
-  useEffect(() => setFirstName(firstNameInitial ?? ""), [firstNameInitial]);
-  useEffect(() => setLastName(lastNameInitial ?? ""), [lastNameInitial]);
-
-  const onFirstChange = (v: string) => {
-    setFirstName(v);
-    scheduleSave("first_name", v);
-  };
-
-  const onLastChange = (v: string) => {
-    setLastName(v);
-    scheduleSave("last_name", v);
-  };
-
-  return (
-    <>
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          First Name
-        </label>
-        <Input
-          value={firstName}
-          onChange={(e) => onFirstChange(e.target.value)}
-          placeholder="First name"
-          className="text-lg font-bold"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          Last Name
-        </label>
-        <Input
-          value={lastName}
-          onChange={(e) => onLastChange(e.target.value)}
-          placeholder="Last name"
-          className="text-lg font-bold"
-        />
-      </div>
-    </>
   );
 }
