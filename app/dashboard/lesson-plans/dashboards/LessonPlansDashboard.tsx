@@ -273,7 +273,8 @@ export default function LessonPlansDashboard() {
   async function handleDuplicateLesson(lesson: LessonPlanTeacher) {
     try {
       // Destructure and exclude auto-generated fields
-      const { id: _id, created_at: _created_at, updated_at: _updated_at, ...lessonData } = lesson;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, created_at, updated_at, ...lessonData } = lesson;
 
       const copy = {
         ...lessonData,
