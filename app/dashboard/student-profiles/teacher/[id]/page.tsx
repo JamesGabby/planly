@@ -292,7 +292,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
           // update parent state only if changed
           setStudent(prev => {
             if (!prev) return prev;
-            // @ts-expect-error
+            // @ts-expect-error no type needed
             if (prev[field] === value) return prev;
             return { ...prev, [field]: value };
           });
