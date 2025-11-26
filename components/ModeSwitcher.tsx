@@ -8,8 +8,8 @@ export function ModeSwitcher() {
   const items = [
     // { value: "teacher", label: "Teacher", description: "A minimal teacher view showing only the essentials so you can plan quickly" },
     // { value: "detailed", label: "Detailed", description: "A detailed teacher view covering all lesson considerations so you can plan carefully and thoroughly" },
-    { value: "teacher", label: "Teacher", description: "Same as detailed view but with tips and guidance to plan your lessons following best teaching practices" },
-    { value: "tutor", label: "Tutor", description: "Plan and view your one-to-one lessons" },
+    { value: "teacher", label: "Teaching", description: "Same as detailed view but with tips and guidance to plan your lessons following best teaching practices" },
+    { value: "tutor", label: "Tutoring", description: "Plan and view your one-to-one lessons" },
   ];
 
   return (
