@@ -1,4 +1,3 @@
-// components/TutorFiltersCard.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -48,6 +47,12 @@ interface TutorFiltersCardProps {
   setSelectedStudent: (value: string) => void;
   dateFilter: string;
   setDateFilter: (value: string) => void;
+  selectedSubject: string;
+  setSelectedSubject: (value: string) => void;
+  selectedExamBoard: string;
+  setSelectedExamBoard: (value: string) => void;
+  dateRange: { from: Date | undefined; to: Date | undefined };
+  setDateRange: (value: { from: Date | undefined; to: Date | undefined }) => void;
   students: string[];
   subjects?: string[];
   examBoards?: string[];
@@ -61,18 +66,18 @@ export function LessonTutorFiltersCard({
   setSelectedStudent,
   dateFilter,
   setDateFilter,
+  selectedSubject,
+  setSelectedSubject,
+  selectedExamBoard,
+  setSelectedExamBoard,
+  dateRange,
+  setDateRange,
   students,
   subjects = [],
   examBoards = [],
   onFiltersChange,
 }: TutorFiltersCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<string>("");
-  const [selectedExamBoard, setSelectedExamBoard] = useState<string>("");
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({ from: undefined, to: undefined });
 
   // Count active filters (excluding search)
   const activeFilterCount = [
@@ -90,6 +95,7 @@ export function LessonTutorFiltersCard({
     setSelectedSubject("");
     setSelectedExamBoard("");
     setDateRange({ from: undefined, to: undefined });
+    
     onFiltersChange?.({
       search: "",
       selectedStudent: "",
@@ -103,7 +109,10 @@ export function LessonTutorFiltersCard({
   const handleQuickDateFilter = (days: number) => {
     const date = new Date();
     date.setDate(date.getDate() + days);
-    setDateFilter(date.toISOString().split("T")[0]);
+    const dateString = date.toISOString().split("T")[0];
+    setDateFilter(dateString);
+    // Clear date range when setting specific date
+    setDateRange({ from: undefined, to: undefined });
   };
 
   return (
@@ -112,7 +121,7 @@ export function LessonTutorFiltersCard({
       <div className="flex flex-col sm:flex-row gap-3">
         <ModeSwitcher />
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search by topic, objectives, or student..."
             value={search}
@@ -127,6 +136,7 @@ export function LessonTutorFiltersCard({
               onClick={() => setSearch("")}
             >
               <X className="h-3 w-3" />
+              <span className="sr-only">Clear search</span>
             </Button>
           )}
         </div>
@@ -178,6 +188,7 @@ export function LessonTutorFiltersCard({
                 onClick={() => setSelectedStudent("")}
               >
                 <X className="h-3 w-3" />
+                <span className="sr-only">Remove student filter</span>
               </Button>
             </Badge>
           )}
@@ -191,6 +202,7 @@ export function LessonTutorFiltersCard({
                 onClick={() => setSelectedSubject("")}
               >
                 <X className="h-3 w-3" />
+                <span className="sr-only">Remove subject filter</span>
               </Button>
             </Badge>
           )}
@@ -204,6 +216,7 @@ export function LessonTutorFiltersCard({
                 onClick={() => setSelectedExamBoard("")}
               >
                 <X className="h-3 w-3" />
+                <span className="sr-only">Remove exam board filter</span>
               </Button>
             </Badge>
           )}
@@ -217,6 +230,7 @@ export function LessonTutorFiltersCard({
                 onClick={() => setDateFilter("")}
               >
                 <X className="h-3 w-3" />
+                <span className="sr-only">Remove date filter</span>
               </Button>
             </Badge>
           )}
@@ -231,6 +245,7 @@ export function LessonTutorFiltersCard({
                 onClick={() => setDateRange({ from: undefined, to: undefined })}
               >
                 <X className="h-3 w-3" />
+                <span className="sr-only">Remove date range filter</span>
               </Button>
             </Badge>
           )}
@@ -255,7 +270,11 @@ export function LessonTutorFiltersCard({
                 </Label>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    variant={dateFilter === new Date().toISOString().split("T")[0] ? "default" : "outline"}
+                    variant={
+                      dateFilter === new Date().toISOString().split("T")[0]
+                        ? "default"
+                        : "outline"
+                    }
                     size="sm"
                     onClick={() => handleQuickDateFilter(0)}
                   >
@@ -289,9 +308,11 @@ export function LessonTutorFiltersCard({
                 {/* Student Filter */}
                 <div className="space-y-2">
                   <Label htmlFor="student-filter">Student</Label>
-                  <Select 
-                    value={selectedStudent || undefined} 
-                    onValueChange={(value) => setSelectedStudent(value === "all-students" ? "" : value)}
+                  <Select
+                    value={selectedStudent || "all-students"}
+                    onValueChange={(value) =>
+                      setSelectedStudent(value === "all-students" ? "" : value)
+                    }
                   >
                     <SelectTrigger id="student-filter">
                       <SelectValue placeholder="All Students" />
@@ -312,8 +333,10 @@ export function LessonTutorFiltersCard({
                   <div className="space-y-2">
                     <Label htmlFor="subject-filter">Subject</Label>
                     <Select
-                      value={selectedSubject || undefined}
-                      onValueChange={(value) => setSelectedSubject(value === "all-subjects" ? "" : value)}
+                      value={selectedSubject || "all-subjects"}
+                      onValueChange={(value) =>
+                        setSelectedSubject(value === "all-subjects" ? "" : value)
+                      }
                     >
                       <SelectTrigger id="subject-filter">
                         <SelectValue placeholder="All Subjects" />
@@ -335,8 +358,10 @@ export function LessonTutorFiltersCard({
                   <div className="space-y-2">
                     <Label htmlFor="exam-board-filter">Exam Board</Label>
                     <Select
-                      value={selectedExamBoard || undefined}
-                      onValueChange={(value) => setSelectedExamBoard(value === "all-boards" ? "" : value)}
+                      value={selectedExamBoard || "all-boards"}
+                      onValueChange={(value) =>
+                        setSelectedExamBoard(value === "all-boards" ? "" : value)
+                      }
                     >
                       <SelectTrigger id="exam-board-filter">
                         <SelectValue placeholder="All Exam Boards" />
@@ -375,9 +400,13 @@ export function LessonTutorFiltersCard({
                       <Calendar
                         mode="single"
                         selected={dateFilter ? new Date(dateFilter) : undefined}
-                        onSelect={(date) =>
-                          setDateFilter(date ? date.toISOString().split("T")[0] : "")
-                        }
+                        onSelect={(date) => {
+                          setDateFilter(date ? date.toISOString().split("T")[0] : "");
+                          // Clear date range when setting specific date
+                          if (date) {
+                            setDateRange({ from: undefined, to: undefined });
+                          }
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -418,12 +447,16 @@ export function LessonTutorFiltersCard({
                           from: dateRange.from,
                           to: dateRange.to,
                         }}
-                        onSelect={(range) =>
+                        onSelect={(range) => {
                           setDateRange({
                             from: range?.from,
                             to: range?.to,
-                          })
-                        }
+                          });
+                          // Clear specific date when setting range
+                          if (range?.from) {
+                            setDateFilter("");
+                          }
+                        }}
                         numberOfMonths={2}
                         initialFocus
                       />

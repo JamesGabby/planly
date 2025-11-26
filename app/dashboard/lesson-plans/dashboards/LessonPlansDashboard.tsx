@@ -20,6 +20,8 @@ import { LessonPlanTutor } from "../types/lesson_tutor";
 
 const supabase = createClient();
 
+const ITEMS_PER_PAGE = 6;
+
 export default function LessonPlansDashboard() {
   const [lessons, setLessons] = useState<LessonPlanTeacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,76 +39,100 @@ export default function LessonPlansDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonPlanTeacher | LessonPlanTutor | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LessonPlanTeacher | null>(null);
-
-  const ITEMS_PER_PAGE = 6;
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [previousPage, setPreviousPage] = useState(1);
 
   const { mode } = useUserMode();
 
+  // Memoize date calculations to prevent hydration issues
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+  
+  const tomorrowStr = useMemo(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  }, []);
+
   useEffect(() => {
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        setError("Not logged in");
+        if (authError) throw authError;
+
+        if (!user) {
+          setError("Not logged in");
+          setLoading(false);
+          return;
+        }
+        
+        setUserId(user.id);
+        await fetchLessonPlans(user.id);
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError(err instanceof Error ? err.message : "Failed to authenticate");
         setLoading(false);
-        return;
       }
-      setUserId(user.id);
-      fetchLessonPlans(user.id);
     }
 
     load();
   }, []);
 
   async function fetchLessonPlans(userId: string) {
+    if (!userId) {
+      setError("User ID is required");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from("lesson_plans")
         .select("*")
         .eq("user_id", userId)
         .order("date_of_lesson", { ascending: true });
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
       setLessons(data ?? []);
     } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Failed to load lesson plans");
+      console.error("Fetch error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to load lesson plans";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   }
 
-  // --- Compute dates OUTSIDE memos ---
-  const today = new Date().toISOString().split("T")[0];
-
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split("T")[0];
-
-  // --- Memo for filter options ---
+  // Filter options
   const classes = useMemo(() => {
     const set = new Set<string>();
-    lessons.forEach((l) => l.class && set.add(l.class));
+    lessons.forEach((l) => {
+      if (l.class) set.add(l.class);
+    });
     return Array.from(set).sort();
   }, [lessons]);
 
   const subjects = useMemo(() => {
     const set = new Set<string>();
-    lessons.forEach((l) => l.subject && set.add(l.subject));
+    lessons.forEach((l) => {
+      if (l.subject) set.add(l.subject);
+    });
     return Array.from(set).sort();
   }, [lessons]);
 
   const yearGroups = useMemo(() => {
     const set = new Set<string>();
-    lessons.forEach((l) => l.year_group && set.add(l.year_group));
+    lessons.forEach((l) => {
+      if (l.year_group) set.add(l.year_group);
+    });
     return Array.from(set).sort();
   }, [lessons]);
 
@@ -119,7 +145,7 @@ export default function LessonPlansDashboard() {
     return Array.from(set).sort();
   }, [lessons]);
 
-  // --- Filtered lessons ---
+  // Filtered lessons with proper null/undefined handling
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
       // Class filter
@@ -133,33 +159,50 @@ export default function LessonPlansDashboard() {
 
       // Exam board filter
       if (selectedExamBoard) {
-        const lessonBoard = l.exam_board || l.custom_exam_board;
+        const lessonBoard = l.exam_board || l.custom_exam_board || "";
         if (lessonBoard !== selectedExamBoard) return false;
       }
 
-      // Specific date filter
-      if (dateFilter && l.date_of_lesson !== dateFilter) return false;
+      // Specific date filter (takes precedence over date range)
+      if (dateFilter) {
+        return l.date_of_lesson === dateFilter;
+      }
 
       // Date range filter
       if (dateRange.from && l.date_of_lesson) {
         const lessonDate = new Date(l.date_of_lesson);
-        if (lessonDate < dateRange.from) return false;
-        if (dateRange.to && lessonDate > dateRange.to) return false;
+        const fromDate = new Date(dateRange.from);
+        fromDate.setHours(0, 0, 0, 0);
+        
+        if (lessonDate < fromDate) return false;
+        
+        if (dateRange.to) {
+          const toDate = new Date(dateRange.to);
+          toDate.setHours(23, 59, 59, 999);
+          if (lessonDate > toDate) return false;
+        }
       }
 
       // Search filter
-      if (!search) return true;
-      const s = search.toLowerCase();
-      return (
-        (l.topic ?? "").toLowerCase().includes(s) ||
-        (l.objectives ?? "").toLowerCase().includes(s) ||
-        (l.class ?? "").toLowerCase().includes(s) ||
-        (l.subject ?? "").toLowerCase().includes(s) ||
-        (l.year_group ?? "").toLowerCase().includes(s) ||
-        (l.exam_board ?? "").toLowerCase().includes(s) ||
-        (l.custom_exam_board ?? "").toLowerCase().includes(s) ||
-        (l.student ?? "").toLowerCase().includes(s)
-      );
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const searchableFields = [
+          l.topic,
+          l.objectives,
+          l.class,
+          l.subject,
+          l.year_group,
+          l.exam_board,
+          l.custom_exam_board,
+          l.student,
+        ];
+
+        return searchableFields.some((field) =>
+          field?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
     });
   }, [
     lessons,
@@ -172,83 +215,23 @@ export default function LessonPlansDashboard() {
     dateRange,
   ]);
 
-  // --- Memo using today + tomorrowStr ---
+  // Categorized lessons
   const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {
     const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
     const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
 
     const upcoming = filtered
       .filter((l) => l.date_of_lesson && l.date_of_lesson > tomorrowStr)
-      .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
+      .sort((a, b) => (a.date_of_lesson || "").localeCompare(b.date_of_lesson || ""));
 
     const previous = filtered
       .filter((l) => l.date_of_lesson && l.date_of_lesson < today)
-      .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
+      .sort((a, b) => (b.date_of_lesson || "").localeCompare(a.date_of_lesson || ""));
 
     return { todayLessons, tomorrowLessons, upcoming, previous };
   }, [filtered, today, tomorrowStr]);
 
-  async function handleDeleteConfirm() {
-    if (!confirmDelete) return;
-
-    try {
-      const { error } = await supabase
-        .from("lesson_plans")
-        .delete()
-        .eq("id", confirmDelete.id);
-
-      if (error) {
-        toast.error(`Failed to delete: ${error.message}`);
-      } else {
-        setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
-        toast.success("Lesson deleted successfully!");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Unexpected error occurred during deletion.");
-    } finally {
-      setConfirmDelete(null);
-    }
-  }
-
-  async function handleDuplicateLesson(lesson: LessonPlanTeacher) {
-    try {
-      // Create a copy without ID fields (Supabase auto-generates these)
-      const copy: Partial<LessonPlanTeacher> = {
-        ...lesson,
-        topic: `${lesson.topic} (Copy)`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // keep original lesson date
-        date_of_lesson: lesson.date_of_lesson,
-      };
-
-      // Explicitly remove fields not allowed during insert
-      delete (copy as any).id;
-      delete (copy as any).created_at; // replace with new timestamp above
-      delete (copy as any).updated_at;
-
-      const { data, error } = await supabase
-        .from("lesson_plans")
-        .insert([copy])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setLessons((prev) => [data, ...prev]);
-      toast.success("Lesson duplicated successfully!");
-    } catch (err) {
-      console.error("Duplicate error:", err);
-
-      toast.error(
-        err instanceof Error
-          ? "Failed to duplicate lesson: " + err.message
-          : "Failed to duplicate lesson: Unknown error"
-      );
-    }
-  }
-
+  // Paginated results
   const paginatedUpcoming = useMemo(() => {
     const start = (upcomingPage - 1) * ITEMS_PER_PAGE;
     return upcoming.slice(start, start + ITEMS_PER_PAGE);
@@ -259,15 +242,72 @@ export default function LessonPlansDashboard() {
     return previous.slice(start, start + ITEMS_PER_PAGE);
   }, [previous, previousPage]);
 
-  const backgroundClass =
-    selectedLesson || confirmDelete
-      ? "scale-[0.987] blur-sm transition-all duration-300"
-      : "transition-all duration-300";
+  // Reset pagination when filters change
+  useEffect(() => {
+    setUpcomingPage(1);
+    setPreviousPage(1);
+  }, [search, selectedClass, selectedSubject, selectedYearGroup, selectedExamBoard, dateFilter, dateRange]);
+
+  async function handleDeleteConfirm() {
+    if (!confirmDelete) return;
+
+    try {
+      const { error: deleteError } = await supabase
+        .from("lesson_plans")
+        .delete()
+        .eq("id", confirmDelete.id);
+
+      if (deleteError) throw deleteError;
+
+      setLessons((prev) => prev.filter((p) => p.id !== confirmDelete.id));
+      toast.success("Lesson deleted successfully!");
+    } catch (err) {
+      console.error("Delete error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete lesson";
+      toast.error(errorMessage);
+    } finally {
+      setConfirmDelete(null);
+    }
+  }
+
+  async function handleDuplicateLesson(lesson: LessonPlanTeacher) {
+    try {
+      const { id, created_at, updated_at, ...lessonData } = lesson;
+
+      const copy = {
+        ...lessonData,
+        topic: `${lesson.topic} (Copy)`,
+      };
+
+      const { data, error: duplicateError } = await supabase
+        .from("lesson_plans")
+        .insert([copy])
+        .select()
+        .single();
+
+      if (duplicateError) throw duplicateError;
+
+      if (data) {
+        setLessons((prev) => [data, ...prev]);
+        toast.success("Lesson duplicated successfully!");
+      }
+    } catch (err) {
+      console.error("Duplicate error:", err);
+      const errorMessage = err instanceof Error 
+        ? `Failed to duplicate: ${err.message}` 
+        : "Failed to duplicate lesson";
+      toast.error(errorMessage);
+    }
+  }
+
+  const backgroundClass = selectedLesson || confirmDelete
+    ? "scale-[0.987] blur-sm transition-all duration-300"
+    : "transition-all duration-300";
 
   const renderLessonCard = (lp: LessonPlanTeacher | LessonPlanTutor) => {
     const commonProps = {
-      onDelete: () => setConfirmDelete(lp),
-      onDuplicate: () => handleDuplicateLesson(lp),
+      onDelete: () => setConfirmDelete(lp as LessonPlanTeacher),
+      onDuplicate: () => handleDuplicateLesson(lp as LessonPlanTeacher),
     };
 
     if (mode === "tutor") {
@@ -277,23 +317,29 @@ export default function LessonPlansDashboard() {
     if (mode === "teacher") {
       return <LessonCardStudent lesson={lp as LessonPlanTeacher} {...commonProps} />;
     }
+
+    return null;
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Lesson Plans</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Lesson Plans</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage and browse your lesson plans
               </p>
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" onClick={() => fetchLessonPlans(userId)}>
+              <Button 
+                variant="outline" 
+                onClick={() => userId && fetchLessonPlans(userId)}
+                disabled={loading || !userId}
+              >
                 Refresh
               </Button>
               <Button asChild>
@@ -311,6 +357,14 @@ export default function LessonPlansDashboard() {
             setSelectedClass={setSelectedClass}
             dateFilter={dateFilter}
             setDateFilter={setDateFilter}
+            selectedSubject={selectedSubject}
+            setSelectedSubject={setSelectedSubject}
+            selectedYearGroup={selectedYearGroup}
+            setSelectedYearGroup={setSelectedYearGroup}
+            selectedExamBoard={selectedExamBoard}
+            setSelectedExamBoard={setSelectedExamBoard}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
             classes={classes}
             subjects={subjects}
             yearGroups={yearGroups}
@@ -321,154 +375,164 @@ export default function LessonPlansDashboard() {
 
           {/* Lessons */}
           {error ? (
-            <div className="text-destructive">{error}</div>
+            <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
+              <p className="text-destructive font-semibold mb-2">Error Loading Lessons</p>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button 
+                variant="outline" 
+                onClick={() => userId && fetchLessonPlans(userId)}
+                disabled={loading}
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : loading ? (
+            <motion.div
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <LessonCardSkeleton key={`skeleton-${i}`} />
+              ))}
+            </motion.div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg font-medium mb-2">No lessons found</p>
+              <p className="text-sm mb-6">
+                Try adjusting your filters or create a new lesson plan
+              </p>
+              <Button asChild>
+                <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
+              </Button>
+            </div>
           ) : (
             <>
-              {/* Show skeletons while loading */}
-              {loading ? (
-                <motion.div
-                  layout
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-                >
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <LessonCardSkeleton key={`skeleton-${i}`} />
-                  ))}
-                </motion.div>
-              ) : (
+              {/* Today's Lessons */}
+              {todayLessons.length > 0 && (
                 <>
-                  {/* No Lessons Available */}
-                  {!loading && filtered.length === 0 && (
-                    <div className="text-center py-10 text-muted-foreground">
-                      <p>
-                        No lessons found. Try adjusting your filters or create a new lesson
-                        plan.
-                      </p>
-                      <Button className="mt-4" asChild>
-                        <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Today */}
-                  {todayLessons.length > 0 && (
-                    <>
-                      <h2 className="text-2xl font-semibold mb-3">{"Today's Lessons"}</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Today&apos;s Lessons</h2>
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                  >
+                    {todayLessons.map((lp) => (
                       <motion.div
-                        layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                        layoutId={lp.id}
+                        key={lp.id}
+                        className="cursor-pointer h-full"
+                        onClick={() => setSelectedLesson(lp)}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                       >
-                        {todayLessons.map((lp) => (
-                          <motion.div
-                            layoutId={lp.id}
-                            key={lp.id}
-                            className="cursor-pointer h-full"
-                            onClick={() => setSelectedLesson(lp)}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 300,
-                              damping: 20,
-                            }}
-                          >
-                            {renderLessonCard(lp)}
-                          </motion.div>
-                        ))}
+                        {renderLessonCard(lp)}
                       </motion.div>
-                    </>
-                  )}
+                    ))}
+                  </motion.div>
+                </>
+              )}
 
-                  {/* Tomorrow */}
-                  {tomorrowLessons.length > 0 && (
-                    <>
-                      <h2 className="text-2xl font-semibold mb-3">{"Tomorrow's Lessons"}</h2>
+              {/* Tomorrow's Lessons */}
+              {tomorrowLessons.length > 0 && (
+                <>
+                  <h2 className="text-2xl font-semibold mb-3">Tomorrow&apos;s Lessons</h2>
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                  >
+                    {tomorrowLessons.map((lp) => (
                       <motion.div
-                        layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                        layoutId={lp.id}
+                        key={lp.id}
+                        className="cursor-pointer h-full"
+                        onClick={() => setSelectedLesson(lp)}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                       >
-                        {tomorrowLessons.map((lp) => (
-                          <motion.div
-                            layoutId={lp.id}
-                            key={lp.id}
-                            className="cursor-pointer h-full"
-                            onClick={() => setSelectedLesson(lp)}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 300,
-                              damping: 20,
-                            }}
-                          >
-                            {renderLessonCard(lp)}
-                          </motion.div>
-                        ))}
+                        {renderLessonCard(lp)}
                       </motion.div>
-                    </>
-                  )}
+                    ))}
+                  </motion.div>
+                </>
+              )}
 
-                  {/* Upcoming */}
-                  {upcoming.length > 0 && (
-                    <>
-                      <h2 className="text-2xl font-semibold mb-3">Upcoming Lessons</h2>
+              {/* Upcoming Lessons */}
+              {upcoming.length > 0 && (
+                <>
+                  <h2 className="text-2xl font-semibold mb-3">Upcoming Lessons</h2>
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                  >
+                    {paginatedUpcoming.map((lp) => (
                       <motion.div
-                        layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                        layoutId={lp.id}
+                        key={lp.id}
+                        className="cursor-pointer h-full"
+                        onClick={() => setSelectedLesson(lp)}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                       >
-                        {paginatedUpcoming.map((lp) => (
-                          <motion.div
-                            layoutId={lp.id}
-                            key={lp.id}
-                            className="cursor-pointer h-full"
-                            onClick={() => setSelectedLesson(lp)}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 300,
-                              damping: 20,
-                            }}
-                          >
-                            {renderLessonCard(lp)}
-                          </motion.div>
-                        ))}
+                        {renderLessonCard(lp)}
                       </motion.div>
+                    ))}
+                  </motion.div>
+                  {upcoming.length > ITEMS_PER_PAGE && (
+                    <div className="mb-8">
                       <Pagination
                         totalItems={upcoming.length}
                         currentPage={upcomingPage}
                         onPageChange={setUpcomingPage}
                       />
-                    </>
+                    </div>
                   )}
+                </>
+              )}
 
-                  {/* Previous */}
-                  {previous.length > 0 && (
-                    <>
-                      <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
+              {/* Previous Lessons */}
+              {previous.length > 0 && (
+                <>
+                  <h2 className="text-2xl font-semibold mb-3">Previous Lessons</h2>
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                  >
+                    {paginatedPrevious.map((lp) => (
                       <motion.div
-                        layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+                        layoutId={lp.id}
+                        key={lp.id}
+                        className="cursor-pointer h-full"
+                        onClick={() => setSelectedLesson(lp)}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                       >
-                        {paginatedPrevious.map((lp) => (
-                          <motion.div
-                            layoutId={lp.id}
-                            key={lp.id}
-                            className="cursor-pointer h-full"
-                            onClick={() => setSelectedLesson(lp)}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 300,
-                              damping: 20,
-                            }}
-                          >
-                            {renderLessonCard(lp)}
-                          </motion.div>
-                        ))}
+                        {renderLessonCard(lp)}
                       </motion.div>
+                    ))}
+                  </motion.div>
+                  {previous.length > ITEMS_PER_PAGE && (
+                    <div className="mb-8">
                       <Pagination
                         totalItems={previous.length}
                         currentPage={previousPage}
                         onPageChange={setPreviousPage}
                       />
-                    </>
+                    </div>
                   )}
                 </>
               )}
@@ -476,7 +540,7 @@ export default function LessonPlansDashboard() {
           )}
         </div>
 
-        {/* Expanded modal */}
+                {/* Expanded modal */}
         <AnimatePresence>
           {selectedLesson && (
             <MobileResponsiveModal
