@@ -251,7 +251,8 @@ export default function TutorLessonPlansDashboard() {
 
   async function handleDuplicateLesson(lesson: LessonPlanTutor) {
     try {
-      const { id, created_at, updated_at, ...lessonData } = lesson;
+      // Destructure and exclude auto-generated fields
+      const { id: _id, created_at: _created_at, updated_at: _updated_at, ...lessonData } = lesson;
 
       const copy = {
         ...lessonData,
