@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StudentProfileTeacher } from "../types/student_profile_teacher";
-import { FiltersCardNoDate } from "../components/FiltersCardNoDate";
+import { StudentProfileTeacherFiltersCard } from "../../filters/student-teacher";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,10 +18,10 @@ const supabase = createClient();
 export default function StudentProfilesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedClass, setSelectedClass] = useState<string | "">("");
+  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
-  const [selectedStudent, ] = useState(null);
   const [userId, setUserId] = useState("");
 
   const ITEMS_PER_PAGE = 6;
@@ -39,20 +39,16 @@ export default function StudentProfilesDashboard() {
         return;
       }
 
-      // Store userId if you want to reuse it elsewhere
       setUserId(user.id);
-
       fetchStudents(user.id);
     }
 
     load();
   }, []);
 
-
   // ---------------------------
   // FETCH STUDENTS
   // ---------------------------
-
   async function fetchStudents(userId: string) {
     setLoading(true);
     setError(null);
@@ -61,7 +57,7 @@ export default function StudentProfilesDashboard() {
       const { data, error } = await supabase
         .from("teacher_student_profiles")
         .select("*")
-        .eq("user_id", userId)                // ← same fix here
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -76,50 +72,64 @@ export default function StudentProfilesDashboard() {
       setLoading(false);
     }
   }
-  
-  // Extract unique "classes" (students)
-    const extractedClasses = useMemo(() => {
-      const set = new Set<string>();
-      students.forEach((s: StudentProfileTeacher) => {
-        const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
-        if (name) set.add(name);
-      });
-      return Array.from(set).sort();
-    }, [students]);
-  
-    // Apply filters
-    const filtered = useMemo(() => {
-      return students.filter((s: StudentProfileTeacher) => {
-        const studentName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
-  
-        if (selectedClass && studentName !== selectedClass) return false;
-  
-        if (!search) return true;
-        const srch = search.toLowerCase();
-  
-        return (
-          (s.first_name ?? "").toLowerCase().includes(srch) ||
-          (s.last_name ?? "").toLowerCase().includes(srch) ||
-          (s.goals ?? "").toLowerCase().includes(srch) ||
-          (s.strengths ?? "").toLowerCase().includes(srch) ||
-          (s.weaknesses ?? "").toLowerCase().includes(srch) ||
-          (s.notes ?? "").toLowerCase().includes(srch) ||
-          (s.interests ?? "").toLowerCase().includes(srch) ||
-          studentName.toLowerCase().includes(srch)
-        );
-      });
-    }, [students, search, selectedClass]);
 
-  
+  // --- Memo for filter options ---
+  // Extract unique classes
+  const classes = useMemo(() => {
+    const set = new Set<string>();
+    students.forEach((s: StudentProfileTeacher) => {
+      if (s.class_name) set.add(s.class_name);
+    });
+    return Array.from(set).sort();
+  }, [students]);
+
+  // Extract unique student names
+  const studentNames = useMemo(() => {
+    const set = new Set<string>();
+    students.forEach((s: StudentProfileTeacher) => {
+      const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+      if (name) set.add(name);
+    });
+    return Array.from(set).sort();
+  }, [students]);
+
+  // Apply filters
+  const filtered = useMemo(() => {
+    return students.filter((s: StudentProfileTeacher) => {
+      const studentName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+
+      // Class filter
+      if (selectedClass && s.class_name !== selectedClass) return false;
+
+      // Student name filter
+      if (selectedStudent && studentName !== selectedStudent) return false;
+
+      // Search filter
+      if (!search) return true;
+      const srch = search.toLowerCase();
+
+      return (
+        (s.first_name ?? "").toLowerCase().includes(srch) ||
+        (s.last_name ?? "").toLowerCase().includes(srch) ||
+        (s.class_name ?? "").toLowerCase().includes(srch) ||
+        (s.goals ?? "").toLowerCase().includes(srch) ||
+        (s.strengths ?? "").toLowerCase().includes(srch) ||
+        (s.weaknesses ?? "").toLowerCase().includes(srch) ||
+        (s.notes ?? "").toLowerCase().includes(srch) ||
+        (s.interests ?? "").toLowerCase().includes(srch) ||
+        (s.learning_preferences ?? "").toLowerCase().includes(srch) ||
+        (s.special_educational_needs ?? "").toLowerCase().includes(srch) ||
+        studentName.toLowerCase().includes(srch)
+      );
+    });
+  }, [students, search, selectedClass, selectedStudent]);
+
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
 
-  const backgroundClass =
-    selectedStudent 
-      ? "scale-[0.987] blur-sm transition-all duration-300"
-      : "transition-all duration-300";
+  const backgroundClass = "transition-all duration-300";
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
@@ -147,16 +157,19 @@ export default function StudentProfilesDashboard() {
           <Separator className="my-6" />
 
           {/* Filters */}
-          <FiltersCardNoDate
+          <StudentProfileTeacherFiltersCard
             search={search}
             setSearch={setSearch}
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
-            classes={extractedClasses}
+            selectedStudent={selectedStudent}
+            setSelectedStudent={setSelectedStudent}
+            classes={classes}
+            students={studentNames}
           />
 
           <Separator className="my-6" />
-          
+
           {error ? (
             <p className="text-destructive">{error}</p>
           ) : loading ? (
@@ -167,7 +180,7 @@ export default function StudentProfilesDashboard() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-10">
-              <p>No students found.</p>
+              <p>No students found. Try adjusting your filters.</p>
               <Button className="mt-4" asChild>
                 <Link href="/dashboard/student-profiles/new">Add Student</Link>
               </Button>
@@ -188,12 +201,9 @@ export default function StudentProfilesDashboard() {
                       href={`/dashboard/student-profiles/teacher/${student.student_id}`}
                       className="block cursor-pointer h-full"
                     >
-                      <StudentCardTeacher
-                        student={student}
-                      />
+                      <StudentCardTeacher student={student} />
                     </Link>
                   </motion.div>
-
                 ))}
               </motion.div>
 

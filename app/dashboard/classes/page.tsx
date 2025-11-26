@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FiltersCardNoDate } from "../lesson-plans/components/FiltersCardNoDate";
+import { ClassesFiltersCard } from "../filters/class";
 import { Pagination } from "@/components/pagination";
 import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
 import Link from "next/link";
@@ -21,43 +21,44 @@ export default function ClassesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [classes, setClasses] = useState<ClassWithStudents[]>([]); // ✅ Changed from Class[]
+  const [classes, setClasses] = useState<ClassWithStudents[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
+  const [selectedYearGroup, setSelectedYearGroup] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
   const [userId, setUserId] = useState("");
 
   const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
 
   const { mode } = useUserMode();
-  if (mode === 'tutor') redirect('/dashboard/student-profiles')
+  if (mode === 'tutor') redirect('/dashboard/student-profiles');
 
-  
-      // Inline fetchClasses so it's NOT a dependency
+  // Inline fetchClasses so it's NOT a dependency
   const fetchClasses = useCallback(async (userId: string) => {
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  try {
-    const { data, error } = await supabase
-      .from("classes")
-      .select(`
-        *,
-        students:class_students(
-          student:teacher_student_profiles(*)
-        )
-      `)
-      .eq("user_id", userId) // safe: always a string
-      .returns<(Class & { students: ClassStudentJoin[] })[]>();
+    try {
+      const { data, error } = await supabase
+        .from("classes")
+        .select(`
+          *,
+          students:class_students(
+            student:teacher_student_profiles(*)
+          )
+        `)
+        .eq("user_id", userId)
+        .returns<(Class & { students: ClassStudentJoin[] })[]>();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const normalized: ClassWithStudents[] =
-      (data ?? []).map((cls) => ({
-        ...cls,
-        students: cls.students
-          .map((s) => s.student)
-          .filter((s): s is StudentProfileTeacher => s !== null),
-      }));
+      const normalized: ClassWithStudents[] =
+        (data ?? []).map((cls) => ({
+          ...cls,
+          students: cls.students
+            .map((s) => s.student)
+            .filter((s): s is StudentProfileTeacher => s !== null),
+        }));
 
       setClasses(normalized);
     } catch (err) {
@@ -81,19 +82,62 @@ export default function ClassesDashboard() {
       }
 
       setUserId(user.id);
-
-      await fetchClasses(user.id); // safe
+      await fetchClasses(user.id);
     }
 
     load();
   }, [fetchClasses]);
 
+  // --- Memo for filter options ---
+  // Extract unique class names
+  const classNames = useMemo(() => {
+    const set = new Set<string>();
+    classes.forEach((c) => c.class_name && set.add(c.class_name));
+    return Array.from(set).sort();
+  }, [classes]);
+
+  // Extract unique year groups
+  const yearGroups = useMemo(() => {
+    const set = new Set<string>();
+    classes.forEach((c) => c.year_group && set.add(c.year_group));
+    return Array.from(set).sort();
+  }, [classes]);
+
+  // Extract unique student names from all classes
+  const studentNames = useMemo(() => {
+    const set = new Set<string>();
+    classes.forEach((c) => {
+      c.students?.forEach((s: StudentProfileTeacher) => {
+        const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+        if (name) set.add(name);
+      });
+    });
+    return Array.from(set).sort();
+  }, [classes]);
+
+  // Apply filters
   const filtered = useMemo(() => {
     return classes.filter((c) => {
+      // Class name filter
+      if (selectedClass && c.class_name !== selectedClass) return false;
+
+      // Year group filter
+      if (selectedYearGroup && c.year_group !== selectedYearGroup) return false;
+
+      // Student filter - check if selected student is in this class
+      if (selectedStudent) {
+        const hasStudent = c.students?.some((s: StudentProfileTeacher) => {
+          const studentFullName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+          return studentFullName === selectedStudent;
+        });
+        if (!hasStudent) return false;
+      }
+
+      // Search filter
+      if (!search) return true;
       const searchLower = search.toLowerCase();
 
-      const matchesSearch =
-        !search ||
+      return (
         c.class_name?.toLowerCase().includes(searchLower) ||
         c.year_group?.toLowerCase().includes(searchLower) ||
         c.students?.some((s: StudentProfileTeacher) => {
@@ -106,20 +150,10 @@ export default function ClassesDashboard() {
             last.includes(searchLower) ||
             full.includes(searchLower)
           );
-        });
-
-      const matchesClass =
-        !selectedClass || c.class_name === selectedClass;
-
-      return matchesSearch && matchesClass;
+        })
+      );
     });
-  }, [classes, search, selectedClass]);
-
-  const filteredClasses = useMemo(() => {
-      const set = new Set<string>();
-      classes.forEach((l) => l.class_name && set.add(l.class_name));
-      return Array.from(set).sort();
-    }, [classes]);
+  }, [classes, search, selectedClass, selectedYearGroup, selectedStudent]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -148,12 +182,18 @@ export default function ClassesDashboard() {
         <Separator className="my-6" />
 
         {/* Filters */}
-        <FiltersCardNoDate
+        <ClassesFiltersCard
           search={search}
           setSearch={setSearch}
           selectedClass={selectedClass}
           setSelectedClass={setSelectedClass}
-          classes={filteredClasses}
+          selectedYearGroup={selectedYearGroup}
+          setSelectedYearGroup={setSelectedYearGroup}
+          selectedStudent={selectedStudent}
+          setSelectedStudent={setSelectedStudent}
+          classes={classNames}
+          yearGroups={yearGroups}
+          students={studentNames}
         />
 
         <Separator className="my-6" />
@@ -168,7 +208,7 @@ export default function ClassesDashboard() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-10">
-            <p>No classes found.</p>
+            <p>No classes found. Try adjusting your filters.</p>
           </div>
         ) : (
           <>

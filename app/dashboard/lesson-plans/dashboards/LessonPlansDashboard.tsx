@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { LessonPlanTeacher } from "../types/lesson_teacher";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { MobileResponsiveModal } from "../components/MobileResponsiveModal";
-import { FiltersCard } from "../components/FiltersCard";
+import { LessonTeacherFiltersCard } from "../../filters/lesson-teacher";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { useUserMode } from "@/components/UserModeContext";
 import { Pagination } from "@/components/pagination";
@@ -25,8 +25,15 @@ export default function LessonPlansDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [userId, setUserId] = useState("");
-  const [selectedClass, setSelectedClass] = useState<string | "">("");
-  const [dateFilter, setDateFilter] = useState<string | "">("");
+  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedYearGroup, setSelectedYearGroup] = useState<string>("");
+  const [selectedExamBoard, setSelectedExamBoard] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({ from: undefined, to: undefined });
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonPlanTeacher | LessonPlanTutor | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LessonPlanTeacher | null>(null);
@@ -34,6 +41,8 @@ export default function LessonPlansDashboard() {
   const ITEMS_PER_PAGE = 6;
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [previousPage, setPreviousPage] = useState(1);
+
+  const { mode } = useUserMode();
 
   useEffect(() => {
     async function load() {
@@ -46,7 +55,7 @@ export default function LessonPlansDashboard() {
         setLoading(false);
         return;
       }
-      setUserId(user.id)
+      setUserId(user.id);
       fetchLessonPlans(user.id);
     }
 
@@ -82,27 +91,86 @@ export default function LessonPlansDashboard() {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
-  // --- Memo for classes ---
+  // --- Memo for filter options ---
   const classes = useMemo(() => {
     const set = new Set<string>();
     lessons.forEach((l) => l.class && set.add(l.class));
     return Array.from(set).sort();
   }, [lessons]);
 
+  const subjects = useMemo(() => {
+    const set = new Set<string>();
+    lessons.forEach((l) => l.subject && set.add(l.subject));
+    return Array.from(set).sort();
+  }, [lessons]);
+
+  const yearGroups = useMemo(() => {
+    const set = new Set<string>();
+    lessons.forEach((l) => l.year_group && set.add(l.year_group));
+    return Array.from(set).sort();
+  }, [lessons]);
+
+  const examBoards = useMemo(() => {
+    const set = new Set<string>();
+    lessons.forEach((l) => {
+      if (l.exam_board) set.add(l.exam_board);
+      if (l.custom_exam_board) set.add(l.custom_exam_board);
+    });
+    return Array.from(set).sort();
+  }, [lessons]);
+
   // --- Filtered lessons ---
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
+      // Class filter
       if (selectedClass && l.class !== selectedClass) return false;
+
+      // Subject filter
+      if (selectedSubject && l.subject !== selectedSubject) return false;
+
+      // Year group filter
+      if (selectedYearGroup && l.year_group !== selectedYearGroup) return false;
+
+      // Exam board filter
+      if (selectedExamBoard) {
+        const lessonBoard = l.exam_board || l.custom_exam_board;
+        if (lessonBoard !== selectedExamBoard) return false;
+      }
+
+      // Specific date filter
       if (dateFilter && l.date_of_lesson !== dateFilter) return false;
+
+      // Date range filter
+      if (dateRange.from && l.date_of_lesson) {
+        const lessonDate = new Date(l.date_of_lesson);
+        if (lessonDate < dateRange.from) return false;
+        if (dateRange.to && lessonDate > dateRange.to) return false;
+      }
+
+      // Search filter
       if (!search) return true;
       const s = search.toLowerCase();
       return (
         (l.topic ?? "").toLowerCase().includes(s) ||
         (l.objectives ?? "").toLowerCase().includes(s) ||
-        (l.class ?? "").toLowerCase().includes(s)
+        (l.class ?? "").toLowerCase().includes(s) ||
+        (l.subject ?? "").toLowerCase().includes(s) ||
+        (l.year_group ?? "").toLowerCase().includes(s) ||
+        (l.exam_board ?? "").toLowerCase().includes(s) ||
+        (l.custom_exam_board ?? "").toLowerCase().includes(s) ||
+        (l.student ?? "").toLowerCase().includes(s)
       );
     });
-  }, [lessons, search, selectedClass, dateFilter]);
+  }, [
+    lessons,
+    search,
+    selectedClass,
+    selectedSubject,
+    selectedYearGroup,
+    selectedExamBoard,
+    dateFilter,
+    dateRange,
+  ]);
 
   // --- Memo using today + tomorrowStr ---
   const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {
@@ -156,9 +224,9 @@ export default function LessonPlansDashboard() {
       };
 
       // Explicitly remove fields not allowed during insert
-      delete (copy).id;
-      delete (copy).created_at; // replace with new timestamp above
-      delete (copy).updated_at;
+      delete (copy as any).id;
+      delete (copy as any).created_at; // replace with new timestamp above
+      delete (copy as any).updated_at;
 
       const { data, error } = await supabase
         .from("lesson_plans")
@@ -195,8 +263,6 @@ export default function LessonPlansDashboard() {
     selectedLesson || confirmDelete
       ? "scale-[0.987] blur-sm transition-all duration-300"
       : "transition-all duration-300";
-
-  const { mode } = useUserMode();
 
   const renderLessonCard = (lp: LessonPlanTeacher | LessonPlanTutor) => {
     const commonProps = {
@@ -238,8 +304,7 @@ export default function LessonPlansDashboard() {
 
           <Separator className="my-6" />
 
-          {/* Filters */}
-          <FiltersCard
+          <LessonTeacherFiltersCard
             search={search}
             setSearch={setSearch}
             selectedClass={selectedClass}
@@ -247,10 +312,13 @@ export default function LessonPlansDashboard() {
             dateFilter={dateFilter}
             setDateFilter={setDateFilter}
             classes={classes}
+            subjects={subjects}
+            yearGroups={yearGroups}
+            examBoards={examBoards}
           />
 
           <Separator className="my-6" />
-          
+
           {/* Lessons */}
           {error ? (
             <div className="text-destructive">{error}</div>
@@ -271,12 +339,16 @@ export default function LessonPlansDashboard() {
                   {/* No Lessons Available */}
                   {!loading && filtered.length === 0 && (
                     <div className="text-center py-10 text-muted-foreground">
-                      <p>No lessons found. Try adjusting your filters or create a new lesson plan.</p>
+                      <p>
+                        No lessons found. Try adjusting your filters or create a new lesson
+                        plan.
+                      </p>
                       <Button className="mt-4" asChild>
                         <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
                       </Button>
                     </div>
                   )}
+
                   {/* Today */}
                   {todayLessons.length > 0 && (
                     <>

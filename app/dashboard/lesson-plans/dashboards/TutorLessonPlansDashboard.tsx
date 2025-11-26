@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { MobileResponsiveModal } from "../components/MobileResponsiveModal";
-import { FiltersCard } from "../components/FiltersCard";
+import { LessonTutorFiltersCard } from "../../filters/lesson-tutor";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
@@ -22,9 +22,15 @@ export default function TutorLessonPlansDashboard() {
   const [lessons, setLessons] = useState<LessonPlanTutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedClass, setSelectedClass] = useState<string | "">("");
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [userId, setUserId] = useState("");
-  const [dateFilter, setDateFilter] = useState<string | "">("");
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedExamBoard, setSelectedExamBoard] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({ from: undefined, to: undefined });
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonPlanTutor | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LessonPlanTutor | null>(null);
@@ -44,7 +50,7 @@ export default function TutorLessonPlansDashboard() {
         setLoading(false);
         return;
       }
-      setUserId(user.id)
+      setUserId(user.id);
       fetchTutorLessonPlans(user.id);
     }
 
@@ -73,51 +79,90 @@ export default function TutorLessonPlansDashboard() {
     }
   }
 
+  // --- Compute dates OUTSIDE memos ---
+  const today = new Date().toISOString().split("T")[0];
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
-  // Extract unique "classes" (students)
-  const classes = useMemo(() => {
+  // --- Memo for filter options ---
+  // Extract unique students
+  const students = useMemo(() => {
     const set = new Set<string>();
     lessons.forEach((l: LessonPlanTutor) => {
-      const name = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
+      const name = `${l.first_name ?? ""} ${l.last_name ?? ""}`.trim();
       if (name) set.add(name);
     });
     return Array.from(set).sort();
   }, [lessons]);
 
-  // Apply filters
+  const subjects = useMemo(() => {
+    const set = new Set<string>();
+    lessons.forEach((l) => l.subject && set.add(l.subject));
+    return Array.from(set).sort();
+  }, [lessons]);
+
+  const examBoards = useMemo(() => {
+    const set = new Set<string>();
+    lessons.forEach((l) => {
+      if (l.exam_board) set.add(l.exam_board);
+    });
+    return Array.from(set).sort();
+  }, [lessons]);
+
+  // --- Filtered lessons ---
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
-      const studentName = `${l.student_profiles?.first_name ?? ""} ${l.student_profiles?.last_name ?? ""}`.trim();
+      const studentName = `${l.first_name ?? ""} ${l.last_name ?? ""}`.trim();
 
-      if (selectedClass && studentName !== selectedClass) return false;
+      // Student filter
+      if (selectedStudent && studentName !== selectedStudent) return false;
+
+      // Subject filter
+      if (selectedSubject && l.subject !== selectedSubject) return false;
+
+      // Exam board filter
+      if (selectedExamBoard && l.exam_board !== selectedExamBoard) return false;
+
+      // Specific date filter
       if (dateFilter && l.date_of_lesson !== dateFilter) return false;
 
+      // Date range filter
+      if (dateRange.from && l.date_of_lesson) {
+        const lessonDate = new Date(l.date_of_lesson);
+        if (lessonDate < dateRange.from) return false;
+        if (dateRange.to && lessonDate > dateRange.to) return false;
+      }
+
+      // Search filter
       if (!search) return true;
       const s = search.toLowerCase();
-
       return (
         (l.topic ?? "").toLowerCase().includes(s) ||
         (l.objectives ?? "").toLowerCase().includes(s) ||
-        studentName.toLowerCase().includes(s)
+        studentName.toLowerCase().includes(s) ||
+        (l.subject ?? "").toLowerCase().includes(s) ||
+        (l.exam_board ?? "").toLowerCase().includes(s)
       );
     });
-  }, [lessons, search, selectedClass, dateFilter]);
+  }, [
+    lessons,
+    search,
+    selectedStudent,
+    selectedSubject,
+    selectedExamBoard,
+    dateFilter,
+    dateRange,
+  ]);
 
-  const today = new Date().toISOString().split("T")[0];
-
+  // --- Memo using today + tomorrowStr ---
   const { todayLessons, tomorrowLessons, upcoming, previous } = useMemo(() => {
     const todayLessons = filtered.filter((l) => l.date_of_lesson === today);
     const tomorrowLessons = filtered.filter((l) => l.date_of_lesson === tomorrowStr);
 
     const upcoming = filtered
-      .filter(
-        (l) =>
-          l.date_of_lesson &&
-          l.date_of_lesson > tomorrowStr
-      )
+      .filter((l) => l.date_of_lesson && l.date_of_lesson > tomorrowStr)
       .sort((a, b) => a.date_of_lesson!.localeCompare(b.date_of_lesson!));
 
     const previous = filtered
@@ -125,7 +170,7 @@ export default function TutorLessonPlansDashboard() {
       .sort((a, b) => b.date_of_lesson!.localeCompare(a.date_of_lesson!));
 
     return { todayLessons, tomorrowLessons, upcoming, previous };
-  }, [filtered, today, tomorrowStr]);  // <-- FIXED
+  }, [filtered, today, tomorrowStr]);
 
   async function handleDeleteConfirm() {
     if (!confirmDelete) return;
@@ -194,11 +239,11 @@ export default function TutorLessonPlansDashboard() {
 
       if (error) throw error;
 
-      setLessons(prev => [data, ...prev]);
-      toast.success("Tutor lesson duplicated successfully!");
+      setLessons((prev) => [data, ...prev]);
+      toast.success("Lesson duplicated successfully!");
     } catch (err) {
       console.error("Duplicate error:", err);
-      toast.error("Failed to duplicate tutor lesson.");
+      toast.error("Failed to duplicate lesson.");
     }
   }
 
@@ -252,18 +297,20 @@ export default function TutorLessonPlansDashboard() {
           <Separator className="my-6" />
 
           {/* Filters */}
-          <FiltersCard
+          <LessonTutorFiltersCard
             search={search}
             setSearch={setSearch}
-            selectedClass={selectedClass}
-            setSelectedClass={setSelectedClass}
+            selectedStudent={selectedStudent}
+            setSelectedStudent={setSelectedStudent}
             dateFilter={dateFilter}
             setDateFilter={setDateFilter}
-            classes={classes}
+            students={students}
+            subjects={subjects}
+            examBoards={examBoards}
           />
 
           <Separator className="my-6" />
-          
+
           {/* Lessons */}
           {error ? (
             <div className="text-destructive">{error}</div>
@@ -284,16 +331,20 @@ export default function TutorLessonPlansDashboard() {
                   {/* No Lessons Available */}
                   {!loading && filtered.length === 0 && (
                     <div className="text-center py-10 text-muted-foreground">
-                      <p>No lessons found. Try adjusting your filters or create a new lesson plan.</p>
+                      <p>
+                        No lessons found. Try adjusting your filters or create a new lesson
+                        plan.
+                      </p>
                       <Button className="mt-4" asChild>
-                        <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
+                        <Link href="/dashboard/lesson-plans/new">Create Lesson Plan</Link>
                       </Button>
                     </div>
                   )}
+
                   {/* Today */}
                   {todayLessons.length > 0 && (
                     <>
-                      <h2 className="text-2xl font-semibold mb-3">Today’s Lessons</h2>
+                      <h2 className="text-2xl font-semibold mb-3">{"Today's Lessons"}</h2>
                       <motion.div
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
@@ -321,7 +372,7 @@ export default function TutorLessonPlansDashboard() {
                   {/* Tomorrow */}
                   {tomorrowLessons.length > 0 && (
                     <>
-                      <h2 className="text-2xl font-semibold mb-3">Tomorrow’s Lessons</h2>
+                      <h2 className="text-2xl font-semibold mb-3">{"Tomorrow's Lessons"}</h2>
                       <motion.div
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
