@@ -53,13 +53,20 @@ export default function NewTeacherStudentProfileForm() {
     }
   }, [error, formErrors]);
 
-  // Fetch class list
   useEffect(() => {
     async function fetchClasses() {
       try {
+        // Get the current authenticated user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          throw new Error("No authenticated user");
+        }
+
         const { data, error } = await supabase
           .from("classes")
           .select("class_name")
+          .eq("user_id", user.id) // Filter by logged-in user's ID
           .order("class_name", { ascending: true });
 
         if (error) throw error;
