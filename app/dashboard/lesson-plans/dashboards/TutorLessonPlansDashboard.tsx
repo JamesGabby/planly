@@ -89,7 +89,13 @@ export default function TutorLessonPlansDashboard() {
     try {
       const { data, error: fetchError } = await supabase
         .from("tutor_lesson_plans")
-        .select("*")
+        .select(`
+          *,
+          student_profiles!fk_student (
+            first_name,
+            last_name
+          )
+        `)
         .eq("user_id", userId)
         .order("date_of_lesson", { ascending: true });
 

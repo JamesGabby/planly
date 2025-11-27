@@ -160,12 +160,17 @@ export default function TutorStudentProfilesDashboard() {
         .eq("student_id", confirmDelete.student_id);
 
       if (deleteError) throw deleteError;
+      console.log(deleteError);
 
       setStudents((prev) => prev.filter((s) => s.student_id !== confirmDelete.student_id));
       toast.success("Student profile deleted successfully!");
     } catch (err) {
       console.error("Delete error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete student profile";
+
+      const errorMessage =
+        (typeof err === 'object' && err !== null && 'code' in err && err.code === '23503')
+          ? "You have lessons created with this student. To remove the student, remove any lessons you have with the student first."
+          : (err instanceof Error ? err.message : "Failed to delete student profile");
       toast.error(errorMessage);
     } finally {
       setConfirmDelete(null);
@@ -221,8 +226,8 @@ export default function TutorStudentProfilesDashboard() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => userId && fetchStudents(userId)}
                 disabled={loading || !userId}
               >
@@ -255,8 +260,8 @@ export default function TutorStudentProfilesDashboard() {
             <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
               <p className="text-destructive font-semibold mb-2">Error Loading Student Profiles</p>
               <p className="text-sm text-muted-foreground mb-4">{error}</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => userId && fetchStudents(userId)}
                 disabled={loading}
               >
@@ -301,7 +306,7 @@ export default function TutorStudentProfilesDashboard() {
                       damping: 20,
                     }}
                   >
-                    <StudentCard 
+                    <StudentCard
                       student={student}
                       onDelete={() => setConfirmDelete(student)}
                       onDuplicate={() => handleDuplicateStudent(student)}

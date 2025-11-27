@@ -234,7 +234,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
               className="flex items-center gap-2 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
             >
               <User size={18} className="flex-shrink-0" />
-              <span className="truncate">{lesson.first_name} {lesson.last_name}</span>
+              <span className="truncate">{lesson.student_profiles?.first_name}{" "}{lesson.student_profiles?.last_name}</span>
             </Link>
             <span className="hidden sm:inline text-muted-foreground">•</span>
             <span className="flex items-center gap-2 text-muted-foreground">
