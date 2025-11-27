@@ -123,8 +123,8 @@ export default function NewLessonFormTutor() {
     firstName?: string,
     lastName?: string
   ): Promise<string> {
-    if (!firstName?.trim() || !lastName?.trim()) {
-      throw new Error("Student first and last name are required.");
+    if (!firstName?.trim()) {
+      throw new Error("Student firstname is required.");
     }
 
     const {
@@ -148,7 +148,7 @@ export default function NewLessonFormTutor() {
       .insert([
         {
           first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          last_name: lastName?.trim(),
           user_id: user.id,
           created_at: timestamp,
           updated_at: timestamp,

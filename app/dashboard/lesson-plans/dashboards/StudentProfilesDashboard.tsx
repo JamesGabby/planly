@@ -2,18 +2,23 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StudentProfileTeacher } from "../types/student_profile_teacher";
 import { StudentProfileTeacherFiltersCard } from "../../filters/student-teacher";
 import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { StudentCardTeacher } from "../components/lesson-cards/StudentCardTeacher";
+import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
+import { MobileResponsiveModalStudent } from "../components/MobileResponsiveModalStudent";
 
 const supabase = createClient();
+
+const ITEMS_PER_PAGE = 6;
 
 export default function StudentProfilesDashboard() {
   const [loading, setLoading] = useState(true);
@@ -23,61 +28,72 @@ export default function StudentProfilesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentProfileTeacher[]>([]);
   const [userId, setUserId] = useState("");
-
-  const ITEMS_PER_PAGE = 6;
   const [page, setPage] = useState(1);
+  const [selectedStudentProfile, setSelectedStudentProfile] = useState<StudentProfileTeacher | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<StudentProfileTeacher | null>(null);
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        setError("Not logged in");
+        if (authError) throw authError;
+
+        if (!user) {
+          setError("Not logged in");
+          setLoading(false);
+          return;
+        }
+
+        setUserId(user.id);
+        await fetchStudents(user.id);
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError(err instanceof Error ? err.message : "Failed to authenticate");
         setLoading(false);
-        return;
       }
-
-      setUserId(user.id);
-      fetchStudents(user.id);
     }
 
     load();
   }, []);
 
-  // ---------------------------
-  // FETCH STUDENTS
-  // ---------------------------
   async function fetchStudents(userId: string) {
+    if (!userId) {
+      setError("User ID is required");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from("teacher_student_profiles")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
       setStudents(data ?? []);
-    } catch (err: unknown) {
-      console.error(err);
-      const message =
-        err instanceof Error ? err.message : "Error fetching students";
-      setError(message);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to load student profiles";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   }
 
-  // --- Memo for filter options ---
   // Extract unique classes
   const classes = useMemo(() => {
     const set = new Set<string>();
-    students.forEach((s: StudentProfileTeacher) => {
+    students.forEach((s) => {
       if (s.class_name) set.add(s.class_name);
     });
     return Array.from(set).sort();
@@ -86,7 +102,7 @@ export default function StudentProfilesDashboard() {
   // Extract unique student names
   const studentNames = useMemo(() => {
     const set = new Set<string>();
-    students.forEach((s: StudentProfileTeacher) => {
+    students.forEach((s) => {
       const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
       if (name) set.add(name);
     });
@@ -95,7 +111,7 @@ export default function StudentProfilesDashboard() {
 
   // Apply filters
   const filtered = useMemo(() => {
-    return students.filter((s: StudentProfileTeacher) => {
+    return students.filter((s) => {
       const studentName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
 
       // Class filter
@@ -129,23 +145,87 @@ export default function StudentProfilesDashboard() {
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
 
-  const backgroundClass = "transition-all duration-300";
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, selectedClass, selectedStudent]);
+
+  async function handleDeleteConfirm() {
+    if (!confirmDelete) return;
+
+    try {
+      const { error: deleteError } = await supabase
+        .from("teacher_student_profiles")
+        .delete()
+        .eq("student_id", confirmDelete.student_id);
+
+      if (deleteError) throw deleteError;
+
+      setStudents((prev) => prev.filter((s) => s.student_id !== confirmDelete.student_id));
+      toast.success("Student profile deleted successfully!");
+    } catch (err) {
+      console.error("Delete error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete student profile";
+      toast.error(errorMessage);
+    } finally {
+      setConfirmDelete(null);
+    }
+  }
+
+  async function handleDuplicateStudent(student: StudentProfileTeacher) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { student_id, created_at, ...studentData } = student;
+
+      const copy = {
+        ...studentData,
+        first_name: `${student.first_name} (Copy)`,
+      };
+
+      const { data, error: duplicateError } = await supabase
+        .from("teacher_student_profiles")
+        .insert([copy])
+        .select()
+        .single();
+
+      if (duplicateError) throw duplicateError;
+
+      if (data) {
+        setStudents((prev) => [data, ...prev]);
+        toast.success("Student profile duplicated successfully!");
+      }
+    } catch (err) {
+      console.error("Duplicate error:", err);
+      const errorMessage = err instanceof Error
+        ? `Failed to duplicate: ${err.message}`
+        : "Failed to duplicate student profile";
+      toast.error(errorMessage);
+    }
+  }
+
+  const backgroundClass = selectedStudentProfile || confirmDelete
+    ? "scale-[0.987] blur-sm transition-all duration-300"
+    : "transition-all duration-300";
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Student Profiles</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage your student roster
+                Manage and browse your student profiles
               </p>
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" onClick={() => fetchStudents(userId)}>
+              <Button 
+                variant="outline" 
+                onClick={() => userId && fetchStudents(userId)}
+                disabled={loading || !userId}
+              >
                 Refresh
               </Button>
               <Button asChild>
@@ -170,51 +250,99 @@ export default function StudentProfilesDashboard() {
 
           <Separator className="my-6" />
 
+          {/* Students */}
           {error ? (
-            <p className="text-destructive">{error}</p>
-          ) : loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <LessonCardSkeleton key={i} />
-              ))}
+            <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
+              <p className="text-destructive font-semibold mb-2">Error Loading Student Profiles</p>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button 
+                variant="outline" 
+                onClick={() => userId && fetchStudents(userId)}
+                disabled={loading}
+              >
+                Try Again
+              </Button>
             </div>
+          ) : loading ? (
+            <motion.div
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <LessonCardSkeleton key={`skeleton-${i}`} />
+              ))}
+            </motion.div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-10">
-              <p>No students found. Try adjusting your filters.</p>
-              <Button className="mt-4" asChild>
-                <Link href="/dashboard/student-profiles/new">Add Student</Link>
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg font-medium mb-2">No student profiles found</p>
+              <p className="text-sm mb-6">
+                Try adjusting your filters or add a new student profile
+              </p>
+              <Button asChild>
+                <Link href="/dashboard/student-profiles/new">Add Student Profile</Link>
               </Button>
             </div>
           ) : (
             <>
               <motion.div
                 layout
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
               >
                 {paginated.map((student) => (
                   <motion.div
+                    layoutId={student.student_id}
                     key={student.student_id}
+                    className="cursor-pointer h-full"
+                    onClick={() => setSelectedStudentProfile(student)}
                     whileHover={{ scale: 1.02 }}
-                    className="h-full"
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20,
+                    }}
                   >
-                    <Link
-                      href={`/dashboard/student-profiles/teacher/${student.student_id}`}
-                      className="block cursor-pointer h-full"
-                    >
-                      <StudentCardTeacher student={student} />
-                    </Link>
+                    <StudentCardTeacher 
+                      student={student}
+                      onDelete={() => setConfirmDelete(student)}
+                      onDuplicate={() => handleDuplicateStudent(student)}
+                    />
                   </motion.div>
                 ))}
               </motion.div>
 
-              <Pagination
-                totalItems={filtered.length}
-                currentPage={page}
-                onPageChange={setPage}
-              />
+              {filtered.length > ITEMS_PER_PAGE && (
+                <div className="mb-8">
+                  <Pagination
+                    totalItems={filtered.length}
+                    currentPage={page}
+                    onPageChange={setPage}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
+
+        {/* Expanded modal */}
+        <AnimatePresence>
+          {selectedStudentProfile && (
+            <MobileResponsiveModalStudent
+              student={selectedStudentProfile}
+              onClose={() => setSelectedStudentProfile(null)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {confirmDelete && (
+            <DeleteConfirmModal
+              onCancel={() => setConfirmDelete(null)}
+              onConfirm={handleDeleteConfirm}
+              data={confirmDelete}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
