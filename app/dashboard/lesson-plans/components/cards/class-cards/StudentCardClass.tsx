@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { StudentProfileTeacher } from "../../types/student_profile_teacher";
+import { StudentProfileTeacher } from "../../../types/student_profile_teacher";
 
 export function StudentCardClass({
   student,

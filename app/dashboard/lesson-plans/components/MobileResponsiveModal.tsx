@@ -2,7 +2,7 @@ import { FocusTrap } from "focus-trap-react";
 import { useScroll, useTransform, AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
 import { useUserMode } from "@/components/UserModeContext";
-import { DetailedExpandedLessonView } from "./expanded-lesson-card/DetailedExpandedLessonView";
+import { DetailedExpandedLessonView } from "./expanded-lesson-card/TeacherExpandedLessonView";
 import { TutorExpandedLessonView } from "./expanded-lesson-card/TutorExpandedLessonView";
 import { LessonPlanTeacher } from "../types/lesson_teacher";
 import { LessonPlanTutor } from "../types/lesson_tutor";

@@ -21,7 +21,7 @@ import { Info, Loader2, Sparkles } from "lucide-react";
 
 const supabase = createClient();
 
-export default function NewLessonFormStudent() {
+export default function NewLessonFormTeacher() {
   const router = useRouter();
 
   const [lesson, setLesson] = useState<Partial<LessonPlanTeacher>>({

@@ -1,7 +1,7 @@
 'use client'
 
 import { useUserMode } from "@/components/UserModeContext";
-import LessonPlansDashboard from "./dashboards/LessonPlansDashboard";
+import TeacherLessonPlansDashboard from "./dashboards/TeacherLessonPlansDashboard";
 import TutorLessonPlansDashboard from "./dashboards/TutorLessonPlansDashboard";
 
 export default function LessonPlansPage() {
@@ -10,7 +10,7 @@ export default function LessonPlansPage() {
   switch (mode) {
     case "tutor":
       return <TutorLessonPlansDashboard />;
-    default:
-      return <LessonPlansDashboard />;
+    case "teacher":
+      return <TeacherLessonPlansDashboard />;
   }
 }

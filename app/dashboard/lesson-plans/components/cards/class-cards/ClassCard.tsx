@@ -20,8 +20,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ClassWithStudents } from "../../types/class";
-import { StudentProfileTeacher } from "../../types/student_profile_teacher";
+import { ClassWithStudents } from "../../../types/class";
+import { StudentProfileTeacher } from "../../../types/student_profile_teacher";
 
 export function ClassCard({ class_data }: { class_data: ClassWithStudents }) {
   

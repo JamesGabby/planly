@@ -9,7 +9,7 @@ import { StudentProfileTeacher } from "../../lesson-plans/types/student_profile_
 import { LessonCardSkeleton } from "@/app/dashboard/lesson-plans/skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import Link from "next/link";
-import { StudentCardClass } from "../../lesson-plans/components/lesson-cards/StudentCardClass";
+import { StudentCardClass } from "../../lesson-plans/components/cards/class-cards/StudentCardClass";
 import { ClassStudentJoin } from "../../lesson-plans/types/class";
 
 interface Props {

@@ -12,7 +12,7 @@ import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import { StudentCardTeacher } from "../components/lesson-cards/StudentCardTeacher";
+import { StudentCardTeacher } from "../components/cards/student-cards/StudentCardTeacher";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { MobileResponsiveModalStudent } from "../components/MobileResponsiveModalStudent";
 
@@ -20,7 +20,7 @@ const supabase = createClient();
 
 const ITEMS_PER_PAGE = 6;
 
-export default function StudentProfilesDashboard() {
+export default function TeacherStudentProfilesDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState<string>("");

@@ -2,7 +2,7 @@
 
 import { useUserMode } from "@/components/UserModeContext";
 import TutorStudentProfilesDashboard from "../lesson-plans/dashboards/TutorStudentProfilesDashboard";
-import StudentProfilesDashboard from "../lesson-plans/dashboards/StudentProfilesDashboard";
+import TeacherStudentProfilesDashboard from "../lesson-plans/dashboards/TeacherStudentProfilesDashboard";
 
 export default function LessonPlansPage() {
   const { mode } = useUserMode();
@@ -11,6 +11,6 @@ export default function LessonPlansPage() {
     case "tutor":
       return <TutorStudentProfilesDashboard />;
     default:
-      return <StudentProfilesDashboard />;
+      return <TeacherStudentProfilesDashboard />;
   }
 }

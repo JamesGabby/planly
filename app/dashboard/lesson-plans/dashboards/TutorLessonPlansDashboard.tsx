@@ -12,7 +12,7 @@ import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LessonCardTutor } from "../components/lesson-cards/LessonCardTutor";
+import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
 import Link from "next/link";
 

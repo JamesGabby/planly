@@ -14,15 +14,15 @@ import { useUserMode } from "@/components/UserModeContext";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LessonCardStudent } from "../components/lesson-cards/LessonCardStudent";
-import { LessonCardTutor } from "../components/lesson-cards/LessonCardTutor";
+import { LessonCardStudent } from "../components/cards/lesson-cards/LessonCardTeacher";
+import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
 
 const supabase = createClient();
 
 const ITEMS_PER_PAGE = 6;
 
-export default function LessonPlansDashboard() {
+export default function TeacherLessonPlansDashboard() {
   const [lessons, setLessons] = useState<LessonPlanTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

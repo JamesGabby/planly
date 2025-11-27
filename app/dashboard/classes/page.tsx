@@ -9,7 +9,7 @@ import { ClassesFiltersCard } from "../filters/class";
 import { Pagination } from "@/components/pagination";
 import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
 import Link from "next/link";
-import { ClassCard } from "../lesson-plans/components/lesson-cards/ClassCard";
+import { ClassCard } from "../lesson-plans/components/cards/class-cards/ClassCard";
 import { Class, ClassStudentJoin, ClassWithStudents } from "../lesson-plans/types/class";
 import { StudentProfileTeacher } from "../lesson-plans/types/student_profile_teacher";
 import { useUserMode } from "@/components/UserModeContext";

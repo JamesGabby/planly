@@ -10,7 +10,7 @@ import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { StudentCard } from "../components/lesson-cards/StudentCard";
+import { StudentCard } from "../components/cards/student-cards/StudentCardTutor";
 import Link from "next/link";
 import { StudentProfileTutor } from "../types/student_profile_tutor";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";

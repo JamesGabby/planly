@@ -2,15 +2,15 @@
 
 import { useUserMode } from "@/components/UserModeContext";
 
-import NewLessonFormStudent from "../forms/new-lesson/NewLessonFormStudent";
 import NewLessonFormTutor from "../forms/new-lesson/NewLessonFormTutor";
+import NewLessonFormTeacher from "../forms/new-lesson/NewLessonFormTeacher";
 
 export default function NewLessonPage() {
   const { mode } = useUserMode();
 
   switch (mode) {
     case "teacher":
-      return <NewLessonFormStudent />;
+      return <NewLessonFormTeacher />
     case "tutor":
       return <NewLessonFormTutor />;
   }
