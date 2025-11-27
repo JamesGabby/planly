@@ -184,7 +184,7 @@ export default function NewTeacherStudentProfileForm() {
             New Student Profile
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm max-w-2xl">
-            Create a detailed profile to personalize learning and track student progress.
+            Create a detailed profile to personalise learning and track student progress.
           </p>
         </div>
 

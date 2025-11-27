@@ -73,7 +73,7 @@ export default function LandingPage() {
     {
       step: "01",
       title: "Build Your Teaching Hub",
-      desc: "Set up class groups, create detailed student profiles, and organize your teaching schedule. Separate teacher and tutor workflows while managing everything from one powerful dashboard.",
+      desc: "Set up class groups, create detailed student profiles, and organise your teaching schedule. Separate teacher and tutor workflows while managing everything from one powerful dashboard.",
       icon: <LayoutDashboard className="w-8 h-8" />
     },
     {
@@ -354,7 +354,7 @@ export default function LandingPage() {
                 school: "Birmingham"
               },
               {
-                quote: "Managing both my school classes and private tutoring used to be chaotic. Now everything is in one place, beautifully organized. Game changer for busy tutors!",
+                quote: "Managing both my school classes and private tutoring used to be chaotic. Now everything is in one place, beautifully organised. Game changer for busy tutors!",
                 name: "Priya Sharma",
                 role: "Maths Teacher & Tutor",
                 school: "London"

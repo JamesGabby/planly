@@ -348,7 +348,7 @@ export default function NewLessonFormTutor() {
         setStages(generatedPlan.lesson_structure);
       }
 
-      toast.success("✨ Tutoring session plan generated successfully! Review and personalize as needed.");
+      toast.success("✨ Tutoring session plan generated successfully! Review and personalise as needed.");
 
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
@@ -433,7 +433,7 @@ export default function NewLessonFormTutor() {
             New Tutoring Session Plan
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm max-w-2xl">
-            Create a personalized 1-on-1 tutoring session plan, or let AI help you generate one.
+            Create a personalised 1-on-1 tutoring session plan, or let AI help you generate one.
           </p>
         </div>
 
@@ -757,7 +757,7 @@ export default function NewLessonFormTutor() {
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Plan each phase of your tutoring session with personalized support strategies.
+                  Plan each phase of your tutoring session with personalised support strategies.
                 </p>
 
                 <div className="space-y-4">

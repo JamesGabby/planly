@@ -312,7 +312,7 @@ export default function EditLessonFormTutor() {
         setStages(generatedPlan.lesson_structure);
       }
 
-      toast.success("✨ Tutoring session plan regenerated successfully! Review and personalize as needed.");
+      toast.success("✨ Tutoring session plan regenerated successfully! Review and personalise as needed.");
 
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
@@ -813,7 +813,7 @@ useEffect(() => {
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Plan each phase of your tutoring session with personalized support strategies.
+                  Plan each phase of your tutoring session with personalised support strategies.
                 </p>
 
                 <div className="space-y-4">
