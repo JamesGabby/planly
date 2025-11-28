@@ -37,8 +37,8 @@ export function Navbar() {
       : baseLinks;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md transition-colors">
-      <div className="max-w-6xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md transition-colors m-0!">
+      <div className="mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className={`${poppins.className} text-xl font-semibold tracking-tight text-primary hover:opacity-80 transition`}

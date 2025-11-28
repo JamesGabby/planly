@@ -18,7 +18,7 @@ export const metadata = {
 export function NavbarLanding() {
   return (
     <nav className="absolute top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md transition-colors">
-      <div className="max-w-6xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
         
         {/* Logo */}
         <Link
