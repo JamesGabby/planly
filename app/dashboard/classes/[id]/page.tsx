@@ -11,6 +11,7 @@ import { Pagination } from "@/components/pagination";
 import Link from "next/link";
 import { StudentCardClass } from "../../lesson-plans/components/cards/class-cards/StudentCardClass";
 import { ClassStudentJoin } from "../../lesson-plans/types/class";
+import { ArrowLeft } from "lucide-react";
 
 interface Props {
   params: Promise<{ id: string }>; // params is now a Promise
@@ -106,6 +107,19 @@ export default function ClassStudentsPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-background text-foreground p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
+        <div className="pb-8">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+          >
+            <Link href="/dashboard/classes">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Classes
+            </Link>
+          </Button>
+        </div>
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
