@@ -162,146 +162,154 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
     if (!newWindow) return;
 
     newWindow.document.write(`
-      <html>
-        <head>
-          <title>Lesson Plan - ${lesson.topic || 'Untitled'}</title>
-          <style>
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              margin: 30px;
-              color: #1a1a1a;
-              background: #fff;
-              line-height: 1.6;
-            }
-            h2 { 
-              color: #2563eb; 
-              border-bottom: 3px solid #2563eb;
-              padding-bottom: 10px;
-              margin-bottom: 20px;
-            }
-            h3 { 
-              color: #1e40af; 
-              margin-top: 25px;
-              margin-bottom: 15px;
-              font-size: 1.3em;
-            }
-            h4 {
-              color: #334155;
-              margin-bottom: 8px;
-              font-size: 1.1em;
-            }
-            h5 {
-              color: #475569;
-              font-size: 0.95em;
-              margin-top: 12px;
-              margin-bottom: 6px;
-            }
-            .stage-block, .info-card {
-              border: 1px solid #e2e8f0;
-              border-radius: 8px;
-              padding: 20px;
-              margin-bottom: 20px;
-              page-break-inside: avoid;
-              background: #f8fafc;
-            }
-            .stage-header {
-              background: #e0e7ff;
-              padding: 15px;
-              border-radius: 6px 6px 0 0;
-              margin: -20px -20px 15px -20px;
-              border-bottom: 2px solid #cbd5e1;
-            }
-            .grid-2 {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 20px;
-              margin-top: 15px;
-            }
-            .content-section {
-              margin-bottom: 20px;
-              padding-bottom: 15px;
-              border-bottom: 1px solid #e2e8f0;
-            }
-            .content-section:last-child {
-              border-bottom: none;
-            }
-            ul {
-              padding-left: 20px;
-              margin: 8px 0;
-            }
-            li {
-              margin-bottom: 8px;
-            }
-            strong {
-              color: #1e293b;
-              font-weight: 600;
-            }
-            button, input, textarea {
-              display: none !important;
-            }
-            .meta-info {
-          background: #f1f5f9;
-          padding: 15px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-        }
-        .meta-info > div {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 12px;
-        }
-        .meta-info a,
-        .meta-info span {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          margin-right: 8px;
-        }
-        .meta-info svg {
-          flex-shrink: 0;
-        }
-            .objectives-outcomes {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 20px;
-              margin-bottom: 25px;
-            }
-            .section-icon {
-              display: inline-block;
-              width: 8px;
-              height: 8px;
-              border-radius: 50%;
-              margin-right: 8px;
-            }
-            .icon-blue { background: #3b82f6; }
-            .icon-green { background: #10b981; }
-            .icon-amber { background: #f59e0b; }
-            .icon-purple { background: #8b5cf6; }
-            .lesson-structure-section {
-          page-break-before: always;
-        }
-            @media print {
-              .stage-block, .info-card {
-                page-break-inside: avoid;
-              }
-              body {
-                margin: 15px;
-              }
-              .objectives-outcomes {
-                grid-template-columns: 1fr;
-              }
-                .meta-info > div {
-            gap: 15px;
+    <html>
+      <head>
+        <title>Lesson Plan - ${lesson.topic || 'Untitled'}</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 30px;
+            color: #1a1a1a;
+            background: #fff;
+            line-height: 1.6;
           }
+          h2 { 
+            color: #2563eb; 
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+          }
+          h3 { 
+            color: #1e40af; 
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+          }
+          h4 {
+            color: #334155;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+          }
+          h5 {
+            color: #475569;
+            font-size: 0.95em;
+            margin-top: 12px;
+            margin-bottom: 6px;
+          }
+          .stage-block, .info-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8fafc;
+          }
+          .info-card {
+            page-break-inside: avoid;
+          }
+          .stage-header {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 6px 6px 0 0;
+            margin: -20px -20px 15px -20px;
+            border-bottom: 2px solid #cbd5e1;
+          }
+          .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+          }
+          .content-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+          }
+          .content-section:last-child {
+            border-bottom: none;
+          }
+          ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 8px 0;
+          }
+          li {
+            margin-bottom: 8px;
+            padding-left: 0;
+          }
+          strong {
+            color: #1e293b;
+            font-weight: 600;
+          }
+          button, input, textarea {
+            display: none !important;
+          }
+          .meta-info {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+          }
+          .meta-info > div {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+          }
+          .meta-info a,
+          .meta-info span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 8px;
+          }
+          .meta-info svg {
+            flex-shrink: 0;
+          }
+          .objectives-outcomes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+          }
+          .section-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+          }
+          .icon-blue { background: #3b82f6; }
+          .icon-green { background: #10b981; }
+          .icon-amber { background: #f59e0b; }
+          .icon-purple { background: #8b5cf6; }
+          .lesson-structure-section {
+            page-break-before: always;
+          }
+          .lesson-structure-section h3 {
+            margin-top: 0;
+            page-break-after: avoid;
+          }
+          @media print {
+            .info-card {
+              page-break-inside: avoid;
             }
-          </style>
-        </head>
-        <body>
-          ${clone.outerHTML}
-        </body>
-      </html>
-    `);
+            body {
+              margin: 15px;
+            }
+            .objectives-outcomes {
+              grid-template-columns: 1fr;
+            }
+            .meta-info > div {
+              gap: 15px;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        ${clone.outerHTML}
+      </body>
+    </html>
+  `);
 
     newWindow.document.close();
     newWindow.focus();

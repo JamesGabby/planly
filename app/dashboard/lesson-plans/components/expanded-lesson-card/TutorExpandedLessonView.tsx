@@ -118,8 +118,10 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
               border-radius: 8px;
               padding: 20px;
               margin-bottom: 20px;
-              page-break-inside: avoid;
               background: #f8fafc;
+            }
+            .info-card {
+              page-break-inside: avoid;
             }
             .stage-header {
               background: #e0e7ff;
@@ -137,11 +139,13 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
               border-bottom: none;
             }
             ul {
-              padding-left: 20px;
+              list-style: none;
+              padding-left: 0;
               margin: 8px 0;
             }
             li {
               margin-bottom: 8px;
+              padding-left: 0;
             }
             strong {
               color: #1e293b;
@@ -151,50 +155,54 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
               display: none !important;
             }
             .meta-info {
-          background: #f1f5f9;
-          padding: 15px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-        }
-        .meta-info > div {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 12px;
-        }
-        .meta-info a,
-        .meta-info span {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          margin-right: 8px;
-        }
-        .meta-info svg {
-          flex-shrink: 0;
-        }
-        .objectives-outcomes {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 25px;
-        }
-          .lesson-structure-section {
-          page-break-before: always;
-        }
-        @media print {
-          .stage-block, .info-card {
-            page-break-inside: avoid;
-          }
-          body {
-            margin: 15px;
-          }
-          .objectives-outcomes {
-            grid-template-columns: 1fr;
-          }
-          .meta-info > div {
-            gap: 15px;
-          }
-        }
+              background: #f1f5f9;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .meta-info > div {
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              gap: 12px;
+            }
+            .meta-info a,
+            .meta-info span {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              margin-right: 8px;
+            }
+            .meta-info svg {
+              flex-shrink: 0;
+            }
+            .objectives-outcomes {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin-bottom: 25px;
+            }
+            .lesson-structure-section {
+              page-break-before: always;
+            }
+            .lesson-structure-section h3 {
+              margin-top: 0;
+              page-break-after: avoid;
+            }
+            @media print {
+              .info-card {
+                page-break-inside: avoid;
+              }
+              body {
+                margin: 15px;
+              }
+              .objectives-outcomes {
+                grid-template-columns: 1fr;
+              }
+              .meta-info > div {
+                gap: 15px;
+              }
+            }
           </style>
         </head>
         <body>
