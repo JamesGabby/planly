@@ -588,30 +588,12 @@ export default function NewLessonFormTeacher() {
                     <Label className={`text-sm ${formErrors.subject ? "text-destructive" : ""}`}>
                       Subject <span className="text-destructive">*</span>
                     </Label>
-                    <Select
+                    <Input
                       value={lesson.subject || ""}
-                      onValueChange={(value) => updateField("subject", value)}
-                    >
-                      <SelectTrigger className={`mt-1 w-full ${formErrors.subject ? "border-destructive" : ""}`}>
-                        <SelectValue placeholder="Select subject..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Maths">Maths</SelectItem>
-                        <SelectItem value="English">English</SelectItem>
-                        <SelectItem value="Science">Science</SelectItem>
-                        <SelectItem value="Biology">Biology</SelectItem>
-                        <SelectItem value="Chemistry">Chemistry</SelectItem>
-                        <SelectItem value="Physics">Physics</SelectItem>
-                        <SelectItem value="Computer Science">Computer Science</SelectItem>
-                        <SelectItem value="Geography">Geography</SelectItem>
-                        <SelectItem value="History">History</SelectItem>
-                        <SelectItem value="Business">Business</SelectItem>
-                        <SelectItem value="Languages">Languages</SelectItem>
-                        <SelectItem value="Art">Art</SelectItem>
-                        <SelectItem value="Music">Music</SelectItem>
-                        <SelectItem value="Drama">Drama</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) => updateField("subject", e.target.value)}
+                      placeholder="e.g., Maths, English, Science..."
+                      className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}
+                    />
                     {formErrors.subject && (
                       <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
                     )}
