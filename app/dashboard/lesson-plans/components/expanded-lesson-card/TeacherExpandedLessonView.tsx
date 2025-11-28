@@ -331,9 +331,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-x-4 sm:gap-y-2 text-sm">
             <span className="flex items-center gap-2 font-medium">
               <GraduationCap size={18} className="text-primary flex-shrink-0" />
-              <span className="truncate">{lesson.year_group}</span>
             </span>
-            <span className="hidden sm:inline text-muted-foreground">•</span>
             {classId ? (
               <Link
                 href={`/dashboard/classes/${classId}`}
@@ -344,6 +342,8 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
             ) : (
               <span className="font-medium truncate">{lesson.class}</span>
             )}
+            <span className="hidden sm:inline text-muted-foreground">•</span>
+            <span className="truncate">{lesson.year_group}</span>
             {lesson.exam_board && (
               <>
                 <span className="hidden sm:inline text-muted-foreground">•</span>
