@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sparkles } from "lucide-react";
 import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -17,8 +17,17 @@ const poppins = Poppins({
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { mode } = useUserMode();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const baseLinks = [
     { name: "Lessons", href: "/dashboard/lesson-plans" },
@@ -36,14 +45,33 @@ export function Navbar() {
       : baseLinks;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl shadow-sm transition-all duration-300 m-0!">
-      <div className="mx-auto flex justify-between items-center h-20 px-6 sm:px-8 lg:px-12">
-        {/* Logo */}
+    <nav 
+      className={`
+        sticky top-0 z-50 w-full 
+        border-b border-border/40 
+        bg-background/80 backdrop-blur-xl 
+        supports-[backdrop-filter]:bg-background/60
+        transition-all duration-300
+        ${scrolled ? "shadow-lg shadow-primary/5" : "shadow-sm"}
+      `}
+    >
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+      
+      <div className="relative mx-auto flex justify-between items-center h-16 px-6 sm:px-8 lg:px-12 max-w-7xl">
+        {/* Logo with premium styling */}
         <Link
           href="/"
-          className={`${poppins.className} text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent hover:opacity-90 transition-opacity duration-300`}
+          className={`${poppins.className} group flex items-center gap-2.5 text-2xl font-bold tracking-tight transition-all duration-300 hover:scale-[1.02]`}
         >
-          Lessonly
+          {/* Icon container */}
+          <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-300">
+            <Sparkles className="w-5 h-5 text-primary group-hover:rotate-12 transition-transform duration-300" />
+          </div>
+          
+          <span className="bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-accent transition-all duration-500">
+            Lessonly
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -55,21 +83,22 @@ export function Navbar() {
                 key={link.name}
                 href={link.href}
                 className={`
-                  relative px-4 py-2 rounded-full
+                  relative px-5 py-2.5 rounded-full
                   transition-all duration-300 ease-out
                   ${isActive ? 
-                    "text-primary font-semibold bg-primary/10" : 
-                    "text-foreground/70 hover:text-foreground hover:bg-accent/50"
+                    "text-primary font-semibold bg-primary/10 shadow-sm" : 
+                    "text-foreground/70 hover:text-foreground hover:bg-accent/50 active:scale-[0.97]"
                   }
                   group
                 `}
               >
                 {link.name}
-                {/* Premium underline effect */}
+                {/* Premium animated underline */}
                 <span 
                   className={`
-                    absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full
-                    transition-all duration-300 ease-out
+                    absolute left-1/2 -translate-x-1/2 bottom-1 h-0.5 
+                    bg-gradient-to-r from-transparent via-primary to-transparent 
+                    rounded-full transition-all duration-300 ease-out
                     ${isActive ? "w-3/4 opacity-100" : "w-0 opacity-0 group-hover:w-1/2 group-hover:opacity-70"}
                   `}
                 />
@@ -77,33 +106,46 @@ export function Navbar() {
             );
           })}
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-border/50 mx-2" />
+          {/* Premium divider with gradient */}
+          <div className="w-px h-6 bg-gradient-to-b from-transparent via-border/50 to-transparent mx-3" />
 
           <div className="flex items-center gap-2">
-            <ThemeSwitcher />
+            <div className="p-1.5 rounded-xl hover:bg-accent/50 active:scale-95 transition-all duration-200">
+              <ThemeSwitcher />
+            </div>
             <LogoutButton />
           </div>
         </div>
 
-        {/* Mobile Menu Toggle */}
+        {/* Mobile Menu Toggle with premium animation */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2.5 rounded-xl hover:bg-accent/70 active:scale-95 transition-all duration-200"
+          className={`
+            md:hidden p-2.5 rounded-xl 
+            hover:bg-accent/70 active:scale-95 
+            transition-all duration-200
+            ${menuOpen ? "bg-accent/50" : ""}
+          `}
           aria-label="Toggle menu"
         >
           {menuOpen ? (
-            <X size={22} className="transition-transform duration-200" />
+            <X size={22} className="rotate-90 transition-transform duration-300" />
           ) : (
             <Menu size={22} className="transition-transform duration-200" />
           )}
         </button>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Premium gradient line at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+
+      {/* Mobile Dropdown with enhanced styling */}
       {menuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-xl shadow-lg animate-in slide-in-from-top-2 duration-300">
-          <div className="flex flex-col px-6 py-6 space-y-1 max-w-7xl mx-auto">
+        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-xl shadow-xl animate-in slide-in-from-top-2 duration-300">
+          {/* Gradient overlay for mobile menu */}
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+          
+          <div className="relative flex flex-col px-6 py-6 space-y-2 max-w-7xl mx-auto">
             {navLinks.map((link) => {
               const isActive = pathname.startsWith(link.href);
               return (
@@ -112,23 +154,32 @@ export function Navbar() {
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
                   className={`
-                    px-4 py-3 rounded-xl
+                    px-5 py-3.5 rounded-xl font-medium
                     transition-all duration-300 ease-out
                     ${isActive ? 
-                      "text-primary font-semibold bg-primary/10 shadow-sm" : 
-                      "text-foreground/80 hover:text-foreground hover:bg-accent/50 active:scale-[0.98]"
+                      "text-primary font-semibold bg-primary/10 shadow-md border border-primary/20" : 
+                      "text-foreground/80 hover:text-foreground hover:bg-accent/50 active:scale-[0.98] border border-transparent hover:border-border/50"
                     }
                   `}
                 >
-                  {link.name}
+                  <span className="flex items-center justify-between">
+                    {link.name}
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    )}
+                  </span>
                 </Link>
               );
             })}
 
-            {/* Mobile Actions */}
-            <div className="pt-4 mt-2 border-t border-border/40 flex items-center justify-between gap-3">
-              <LogoutButton />
-              <ThemeSwitcher />
+            {/* Mobile Actions with premium styling */}
+            <div className="pt-5 mt-3 border-t border-border/40 flex items-center justify-between gap-3">
+              <div className="flex-1">
+                <LogoutButton />
+              </div>
+              <div className="p-1.5 rounded-xl hover:bg-accent/50 active:scale-95 transition-all duration-200">
+                <ThemeSwitcher />
+              </div>
             </div>
           </div>
         </div>
