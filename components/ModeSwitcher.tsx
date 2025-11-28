@@ -6,17 +6,15 @@ export function ModeSwitcher() {
   const { mode, setMode } = useUserMode();
 
   const items = [
-    // { value: "teacher", label: "Teacher", description: "A minimal teacher view showing only the essentials so you can plan quickly" },
-    // { value: "detailed", label: "Detailed", description: "A detailed teacher view covering all lesson considerations so you can plan carefully and thoroughly" },
-    { value: "teacher", label: "Teaching", description: "Same as detailed view but with tips and guidance to plan your lessons following best teaching practices" },
-    { value: "tutor", label: "Tutoring", description: "Plan and view your one-to-one lessons" },
+    { value: "teacher", label: "Teacher Mode", description: "Manage your lessons, classes & students" },
+    { value: "tutor", label: "Tutor Mode", description: "Manage your tutor sessions & students" },
   ];
 
   return (
     <TooltipProvider delayDuration={200}>
       <Select value={mode} onValueChange={(value) => setMode(value as UserMode)}>
-        <SelectTrigger className="w-[110px]">
-          <span className="capitalize">{mode}</span>
+        <SelectTrigger className="w-[135px]">
+          <span className="capitalize">{mode} Mode</span>
         </SelectTrigger>
         <SelectContent>
           {items.map(({ value, label, description }) => (
