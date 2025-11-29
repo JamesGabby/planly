@@ -246,30 +246,84 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           </div>
         </div>
 
-        {/* Meta Information Card */}
-        <div className="meta-info rounded-lg border border-border bg-card p-4 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-x-4 sm:gap-y-2 text-sm">
+        {/* Meta Information Card - Improved Tutor Version */}
+        <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+          {/* Desktop View */}
+          <div className="hidden sm:flex sm:flex-wrap sm:items-center gap-x-4 gap-y-2 p-4 text-sm">
             <Link
               href={`/dashboard/student-profiles/${lesson.student_id}`}
               className="flex items-center gap-2 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
             >
               <User size={18} className="flex-shrink-0" />
-              <span className="truncate">{lesson.student_profiles?.first_name}{" "}{lesson.student_profiles?.last_name}</span>
+              <span>{lesson.student_profiles?.first_name} {lesson.student_profiles?.last_name}</span>
             </Link>
-            <span className="hidden sm:inline text-muted-foreground">•</span>
+
+            <span className="text-muted-foreground">•</span>
+
             <span className="flex items-center gap-2 text-muted-foreground">
               <Calendar size={16} className="flex-shrink-0" />
-              <span className="truncate">{prettyDate(lesson.date_of_lesson)}</span>
+              <span>{prettyDate(lesson.date_of_lesson)}</span>
             </span>
+
             {lesson.time_of_lesson && (
               <>
-                <span className="hidden sm:inline text-muted-foreground">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span className="flex items-center gap-2 text-muted-foreground">
                   <Clock size={16} className="flex-shrink-0" />
-                  <span className="truncate">{prettyTime(lesson.time_of_lesson)}</span>
+                  <span>{prettyTime(lesson.time_of_lesson)}</span>
                 </span>
               </>
             )}
+          </div>
+
+          {/* Mobile View - Card Grid */}
+          <div className="sm:hidden">
+            {/* Student Info - Prominent */}
+            <Link
+              href={`/dashboard/student-profiles/${lesson.student_id}`}
+              className="block bg-gradient-to-r from-primary/5 to-primary/10 p-4 border-b border-border hover:from-primary/10 hover:to-primary/15 transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User size={20} className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground mb-0.5">Student</p>
+                  <p className="text-base font-semibold text-primary truncate">
+                    {lesson.student_profiles?.first_name} {lesson.student_profiles?.last_name}
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Date & Time - Clean Grid */}
+            <div className="grid grid-cols-2 divide-x divide-border">
+              <div className="p-3 flex items-center gap-2">
+                <Calendar size={16} className="text-primary flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Date</p>
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {prettyDate(lesson.date_of_lesson)}
+                  </p>
+                </div>
+              </div>
+
+              {lesson.time_of_lesson ? (
+                <div className="p-3 flex items-center gap-2">
+                  <Clock size={16} className="text-primary flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Time</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {prettyTime(lesson.time_of_lesson)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 flex items-center justify-center">
+                  <p className="text-xs text-muted-foreground italic">No time set</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

@@ -351,39 +351,99 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
         </div>
 
         {/* Meta Information Card */}
-        <div className="meta-info rounded-lg border border-border bg-card p-4 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-x-4 sm:gap-y-2 text-sm">
-            <span className="flex items-center gap-2 font-medium">
+        {/* Meta Information Card - Improved */}
+        <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+          {/* Desktop View */}
+          <div className="hidden sm:flex sm:flex-wrap sm:items-center gap-x-4 gap-y-2 p-4 text-sm">
+            <div className="flex items-center gap-2 font-medium">
               <GraduationCap size={18} className="text-primary flex-shrink-0" />
-            </span>
-            {classId ? (
-              <Link
-                href={`/dashboard/classes/${classId}`}
-                className="text-primary hover:underline hover:text-primary/80 transition-colors font-medium truncate"
-              >
-                {lesson.class}
-              </Link>
-            ) : (
-              <span className="font-medium truncate">{lesson.class}</span>
-            )}
-            <span className="hidden sm:inline text-muted-foreground">•</span>
-            <span className="truncate">{lesson.year_group}</span>
+              {classId ? (
+                <Link
+                  href={`/dashboard/classes/${classId}`}
+                  className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                >
+                  {lesson.class}
+                </Link>
+              ) : (
+                <span>{lesson.class}</span>
+              )}
+            </div>
+
+            <span className="text-muted-foreground">•</span>
+            <span className="text-muted-foreground">{lesson.year_group}</span>
+
             {lesson.exam_board && (
               <>
-                <span className="hidden sm:inline text-muted-foreground">•</span>
-                <span className="text-muted-foreground truncate">{lesson.exam_board}</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">{lesson.exam_board}</span>
               </>
             )}
-            <div className="flex flex-col sm:flex-row sm:ml-auto gap-2 sm:gap-4 w-full sm:w-auto">
+
+            <div className="flex items-center gap-4 ml-auto">
               <span className="flex items-center gap-2 text-muted-foreground">
                 <Calendar size={16} className="flex-shrink-0" />
-                <span className="truncate">{prettyDate(lesson.date_of_lesson)}</span>
+                <span>{prettyDate(lesson.date_of_lesson)}</span>
               </span>
               {lesson.time_of_lesson && (
                 <span className="flex items-center gap-2 text-muted-foreground">
                   <Clock size={16} className="flex-shrink-0" />
-                  <span className="truncate">{prettyTime(lesson.time_of_lesson)}</span>
+                  <span>{prettyTime(lesson.time_of_lesson)}</span>
                 </span>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile View - Card Grid */}
+          <div className="sm:hidden">
+            {/* Class & Year Group - Prominent */}
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 border-b border-border">
+              <div className="flex items-start gap-3">
+                <GraduationCap size={20} className="text-primary flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  {classId ? (
+                    <Link
+                      href={`/dashboard/classes/${classId}`}
+                      className="text-base font-semibold text-primary hover:underline block truncate"
+                    >
+                      {lesson.class}
+                    </Link>
+                  ) : (
+                    <p className="text-base font-semibold text-foreground truncate">
+                      {lesson.class}
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {lesson.year_group}
+                    {lesson.exam_board && (
+                      <span className="ml-2">• {lesson.exam_board}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Date & Time - Clean Grid */}
+            <div className="grid grid-cols-2 divide-x divide-border">
+              <div className="p-3 flex items-center gap-2">
+                <Calendar size={16} className="text-primary flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Date</p>
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {prettyDate(lesson.date_of_lesson)}
+                  </p>
+                </div>
+              </div>
+
+              {lesson.time_of_lesson && (
+                <div className="p-3 flex items-center gap-2">
+                  <Clock size={16} className="text-primary flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Time</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {prettyTime(lesson.time_of_lesson)}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
