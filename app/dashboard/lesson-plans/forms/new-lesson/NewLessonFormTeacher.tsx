@@ -439,17 +439,74 @@ export default function NewLessonFormTeacher() {
 
       await insertClass(lesson.class, user.id);
 
+      // CAPITALIZATION HELPER FUNCTIONS
+      const capitalizeFirstLetter = (str: string | undefined | null): string => {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      };
+
+      const toProperTitleCase = (str: string | undefined | null): string => {
+        if (!str) return "";
+
+        // Words that should remain lowercase unless they're the first or last word
+        const minorWords = new Set([
+          'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'at', 'by', 'for', 'from',
+          'in', 'into', 'of', 'on', 'onto', 'to', 'with', 'as', 'up', 'yet', 'so'
+        ]);
+
+        return str.replace(/\w\S*/g, (word, index, array) => {
+          const lowerWord = word.toLowerCase();
+          const isFirstWord = index === 0;
+          const isLastWord = index + word.length === str.length;
+
+          // Always capitalize first and last words, or if not a minor word
+          if (isFirstWord || isLastWord || !minorWords.has(lowerWord)) {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          }
+
+          // Keep minor words lowercase
+          return lowerWord;
+        });
+      };
+
+      const capitalizeText = (str: string | undefined | null): string => {
+        if (!str) return "";
+        // For longer text fields, capitalize first letter while preserving bullet points and formatting
+        return str.replace(/^(\s*[•\-*]?\s*)([a-z])/, (match, prefix, firstChar) => {
+          return prefix + firstChar.toUpperCase();
+        });
+      };
+
+      const capitalizeMultilineText = (str: string | undefined | null): string => {
+        if (!str) return "";
+        // Capitalize first letter of each line that starts with bullet points
+        return str.replace(/^(\s*[•\-*]?\s*)([a-z])/gm, (match, prefix, firstChar) => {
+          return prefix + firstChar.toUpperCase();
+        });
+      };
+
+      // Format resources with capitalized titles
       const formattedResources =
         Array.isArray(lesson.resources)
           ? lesson.resources.map((res: Resource) => ({
-            title: res.title || res.url || "",
+            title: capitalizeFirstLetter(res.title || res.url || ""),
             url: res.url?.trim() || "",
           }))
           : [];
 
+      // Format lesson structure with capitalized content
+      const formattedStages = stages.map(stage => ({
+        ...stage,
+        stage: capitalizeFirstLetter(stage.stage),
+        teaching: capitalizeText(stage.teaching),
+        learning: capitalizeText(stage.learning),
+        assessing: capitalizeText(stage.assessing),
+        adapting: capitalizeText(stage.adapting),
+      }));
+
       const finalExamBoard = showExamBoard
         ? (lesson.exam_board === "Other"
-          ? lesson.custom_exam_board?.trim() || "Other (unspecified)"
+          ? capitalizeFirstLetter(lesson.custom_exam_board?.trim()) || "Other (unspecified)"
           : lesson.exam_board)
         : null;
 
@@ -458,9 +515,29 @@ export default function NewLessonFormTeacher() {
         .insert([
           {
             ...lesson,
+            // Basic fields - capitalize first letter
+            class: lesson.class?.toUpperCase(), // Class codes are typically uppercase (e.g., "7S")
+            subject: capitalizeFirstLetter(lesson.subject),
+            topic: toProperTitleCase(lesson.topic), // Proper English title case
+            custom_exam_board: capitalizeFirstLetter(lesson.custom_exam_board),
+
+            // Longer text fields - capitalize appropriately while preserving formatting
+            objectives: capitalizeMultilineText(lesson.objectives),
+            outcomes: capitalizeMultilineText(lesson.outcomes),
+            homework: capitalizeMultilineText(lesson.homework),
+            evaluation: capitalizeMultilineText(lesson.evaluation),
+            notes: capitalizeMultilineText(lesson.notes),
+            specialist_subject_knowledge_required: capitalizeMultilineText(lesson.specialist_subject_knowledge_required),
+            knowledge_revisited: capitalizeMultilineText(lesson.knowledge_revisited),
+            numeracy_opportunities: capitalizeMultilineText(lesson.numeracy_opportunities),
+            literacy_opportunities: capitalizeMultilineText(lesson.literacy_opportunities),
+            subject_pedagogies: capitalizeMultilineText(lesson.subject_pedagogies),
+            health_and_safety_considerations: capitalizeMultilineText(lesson.health_and_safety_considerations),
+
+            // Other fields
             user_id: user.id,
             resources: formattedResources,
-            lesson_structure: stages,
+            lesson_structure: formattedStages,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             exam_board: finalExamBoard,

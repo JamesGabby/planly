@@ -72,9 +72,42 @@ export default function NewTutorStudentProfileForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a student profile.");
 
+      // CAPITALIZATION HELPER FUNCTIONS
+      const capitalizeProperName = (str: string | undefined | null): string => {
+        if (!str) return "";
+        return str.split(' ').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+      };
+
+      const capitalizeMultilineText = (str: string | undefined | null): string => {
+        if (!str) return "";
+        // Capitalize first letter of each sentence and preserve formatting
+        return str.replace(/^([a-z])/gm, (match, firstChar) => {
+          return firstChar.toUpperCase();
+        }).replace(/(\.\s+)([a-z])/g, (match, punctuation, firstChar) => {
+          return punctuation + firstChar.toUpperCase();
+        });
+      };
+
+      // Format the student data with proper capitalization
+      const formattedStudent = {
+        ...student,
+        first_name: capitalizeProperName(student.first_name),
+        last_name: capitalizeProperName(student.last_name),
+        level: student.level, // Keep as-is since it's from a dropdown with predefined values
+        goals: capitalizeMultilineText(student.goals),
+        interests: capitalizeMultilineText(student.interests),
+        learning_preferences: capitalizeMultilineText(student.learning_preferences),
+        strengths: capitalizeMultilineText(student.strengths),
+        weaknesses: capitalizeMultilineText(student.weaknesses),
+        sen: capitalizeMultilineText(student.sen),
+        notes: capitalizeMultilineText(student.notes),
+      };
+
       const { error: insertError } = await supabase.from("student_profiles").insert([
         {
-          ...student,
+          ...formattedStudent,
           created_by: user.id,
           user_id: user.id,
           created_at: new Date().toISOString(),

@@ -58,7 +58,7 @@ export default function NewTeacherStudentProfileForm() {
       try {
         // Get the current authenticated user
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           throw new Error("No authenticated user");
         }
@@ -115,12 +115,50 @@ export default function NewTeacherStudentProfileForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to create a student profile.");
 
+      // CAPITALIZATION HELPER FUNCTIONS
+      const capitalizeProperName = (str: string | undefined | null): string => {
+        if (!str) return "";
+        return str.split(' ').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+      };
+
+      const capitalizeFirstLetter = (str: string | undefined | null): string => {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      };
+
+      const capitalizeMultilineText = (str: string | undefined | null): string => {
+        if (!str) return "";
+        // Capitalize first letter of each sentence and preserve formatting
+        return str.replace(/^([a-z])/gm, (match, firstChar) => {
+          return firstChar.toUpperCase();
+        }).replace(/(\.\s+)([a-z])/g, (match, punctuation, firstChar) => {
+          return punctuation + firstChar.toUpperCase();
+        });
+      };
+
+      // Format the student data with proper capitalization
+      const formattedStudent = {
+        ...student,
+        first_name: capitalizeProperName(student.first_name),
+        last_name: capitalizeProperName(student.last_name),
+        class_name: student.class_name?.toUpperCase(), // Class codes are typically uppercase
+        goals: capitalizeMultilineText(student.goals),
+        interests: capitalizeMultilineText(student.interests),
+        learning_preferences: capitalizeMultilineText(student.learning_preferences),
+        strengths: capitalizeMultilineText(student.strengths),
+        weaknesses: capitalizeMultilineText(student.weaknesses),
+        special_educational_needs: capitalizeMultilineText(student.special_educational_needs),
+        notes: capitalizeMultilineText(student.notes),
+      };
+
       // Insert student
       const { data: newStudent, error: insertError } = await supabase
         .from("teacher_student_profiles")
         .insert([
           {
-            ...student,
+            ...formattedStudent,
             created_by: user.id,
             user_id: user.id,
             created_at: new Date().toISOString(),
@@ -132,18 +170,27 @@ export default function NewTeacherStudentProfileForm() {
 
       if (insertError) throw insertError;
 
+      // Use the formatted class_name for class operations
+      const finalClassName = formattedStudent.class_name;
+
       // 1. Check if class already exists
       let { data: classRow } = await supabase
         .from("classes")
         .select("class_id")
-        .eq("class_name", student.class_name)
+        .eq("class_name", finalClassName)
         .maybeSingle(); // IMPORTANT: allows 0 rows without throwing
 
       // 2. If class doesn't exist, create it
       if (!classRow) {
         const { data: newClass, error: insertClassError } = await supabase
           .from("classes")
-          .insert([{ class_name: student.class_name }])
+          .insert([{
+            class_name: finalClassName,
+            user_id: user.id,
+            created_by: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }])
           .select("class_id")
           .single();
 
