@@ -25,8 +25,9 @@ import {
 import Link from "next/link";
 
 // Component to format content with bullets and bold text
-function FormattedContent({ content }: { content: string }) {
-  if (!content) return null;
+function FormattedContent({ content }: { content: string | null | undefined }) {
+  // Handle null, undefined, or non-string content
+  if (!content || typeof content !== 'string') return null;
 
   // Parse bullet points and bold text
   const parts = content.split(/•\s+/).filter(item => item.trim());
@@ -74,9 +75,12 @@ function InfoCard({
 }: {
   icon: React.ElementType;
   title: string;
-  content: string;
+  content: string | null | undefined;
   iconColor?: string;
 }) {
+  // Don't render if content is empty
+  if (!content) return null;
+
   return (
     <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
       <div className="flex items-start gap-3">

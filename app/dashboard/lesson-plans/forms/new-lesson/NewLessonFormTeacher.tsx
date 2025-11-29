@@ -704,7 +704,7 @@ export default function NewLessonFormTeacher() {
                   {generating ? (
                     <>
                       <Loader2 className="mr-2 h-4 sm:h-5 w-4 sm:w-5 animate-spin" />
-                      Generating Detailed Plan...
+                      Generating Lesson Plan...
                     </>
                   ) : (
                     <>

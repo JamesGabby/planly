@@ -611,7 +611,7 @@ export default function NewLessonFormTutor() {
                   {generating ? (
                     <>
                       <Loader2 className="mr-2 h-4 sm:h-5 w-4 sm:w-5 animate-spin" />
-                      <span className="text-sm sm:text-base">Generating Tutoring Plan...</span>
+                      <span className="text-sm sm:text-base">Generating Tutoring Session...</span>
                     </>
                   ) : (
                     <>
