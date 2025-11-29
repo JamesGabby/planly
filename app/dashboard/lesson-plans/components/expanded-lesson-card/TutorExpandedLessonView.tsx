@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { LessonPlanTutor } from "../../types/lesson_tutor";
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 
 // Component to format content with bullets and bold text
 function FormattedContent({ content }: { content: string }) {
@@ -61,9 +62,12 @@ function FormattedContent({ content }: { content: string }) {
 /* --- EXPANDED LESSON VIEW --- */
 export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor }) {
   const resources = parseResources(lesson.resources);
+  const pathname = usePathname(); // Get current pathname
   const lessonStructure = Array.isArray(lesson.lesson_structure)
     ? lesson.lesson_structure
     : [];
+
+  const isOnLessonDetailPage = pathname?.includes('/dashboard/lesson-plans/lesson/tutor/');
 
   const handlePrint = () => {
     const printElement = document.getElementById('lesson-print');
@@ -227,15 +231,19 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
             {lesson.topic ?? "Untitled"}
           </h2>
+          
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Link
-              href={`/dashboard/lesson-plans/lesson/tutor/${lesson.id}`}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm border border-border"
-            >
-              <ExternalLink size={18} />
-              <span>View</span>
-            </Link>
+            {/* Only show View button if NOT on the lesson detail page */}
+            {!isOnLessonDetailPage && (
+              <Link
+                href={`/dashboard/lesson-plans/lesson/tutor/${lesson.id}`}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm border border-border"
+              >
+                <ExternalLink size={18} />
+                <span>View</span>
+              </Link>
+            )}
             <Button
               onClick={handlePrint}
               className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
