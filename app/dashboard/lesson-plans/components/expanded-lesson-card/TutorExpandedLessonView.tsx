@@ -10,10 +10,12 @@ import {
   Package,
   ClipboardList,
   StickyNote,
-  CheckCircle2
+  CheckCircle2,
+  ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 import { LessonPlanTutor } from "../../types/lesson_tutor";
+import { Button } from "@/components/ui/button";
 
 // Component to format content with bullets and bold text
 function FormattedContent({ content }: { content: string }) {
@@ -225,13 +227,23 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
             {lesson.topic ?? "Untitled"}
           </h2>
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm w-full sm:w-auto"
-          >
-            <Printer size={18} />
-            <span>Print / Export PDF</span>
-          </button>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Link
+              href={`/dashboard/lesson-plans/lesson/tutor/${lesson.id}`}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm border border-border"
+            >
+              <ExternalLink size={18} />
+              <span>View</span>
+            </Link>
+            <Button
+              onClick={handlePrint}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Printer size={18} />
+              <span>Print / Export PDF</span>
+            </Button>
+          </div>
         </div>
 
         {/* Meta Information Card */}
