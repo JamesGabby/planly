@@ -397,7 +397,7 @@ export default function NewLessonFormTutor() {
           'in', 'into', 'of', 'on', 'onto', 'to', 'with', 'as', 'up', 'yet', 'so'
         ]);
 
-        return str.replace(/\w\S*/g, (word, index, array) => {
+        return str.replace(/\w\S*/g, (word, index) => {
           const lowerWord = word.toLowerCase();
           const isFirstWord = index === 0;
           const isLastWord = index + word.length === str.length;

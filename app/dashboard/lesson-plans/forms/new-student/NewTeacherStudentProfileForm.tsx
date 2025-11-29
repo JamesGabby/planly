@@ -123,11 +123,6 @@ export default function NewTeacherStudentProfileForm() {
         ).join(' ');
       };
 
-      const capitalizeFirstLetter = (str: string | undefined | null): string => {
-        if (!str) return "";
-        return str.charAt(0).toUpperCase() + str.slice(1);
-      };
-
       const capitalizeMultilineText = (str: string | undefined | null): string => {
         if (!str) return "";
         // Capitalize first letter of each sentence and preserve formatting
