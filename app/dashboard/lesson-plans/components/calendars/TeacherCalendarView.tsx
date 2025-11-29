@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Grid3x3 } from "lucide-react";
 import { LessonPlanTeacher } from "../../types/lesson_teacher";
-import { LessonPlanTutor } from "../../types/lesson_tutor";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
