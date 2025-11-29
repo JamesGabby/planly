@@ -17,6 +17,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { LessonCardStudent } from "../components/cards/lesson-cards/LessonCardTeacher";
 import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
+import { LayoutGrid, Calendar } from "lucide-react";
+import { TeacherCalendarView } from "../components/calendars/TeacherCalendarView";
 
 const supabase = createClient();
 
@@ -41,12 +43,13 @@ export default function TeacherLessonPlansDashboard() {
   const [confirmDelete, setConfirmDelete] = useState<LessonPlanTeacher | null>(null);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [previousPage, setPreviousPage] = useState(1);
+  const [viewType, setViewType] = useState<"grid" | "calendar">("grid");
 
   const { mode } = useUserMode();
 
   // Memoize date calculations to prevent hydration issues
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
-  
+
   const tomorrowStr = useMemo(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -68,7 +71,7 @@ export default function TeacherLessonPlansDashboard() {
           setLoading(false);
           return;
         }
-        
+
         setUserId(user.id);
         await fetchLessonPlans(user.id);
       } catch (err) {
@@ -173,9 +176,9 @@ export default function TeacherLessonPlansDashboard() {
         const lessonDate = new Date(l.date_of_lesson);
         const fromDate = new Date(dateRange.from);
         fromDate.setHours(0, 0, 0, 0);
-        
+
         if (lessonDate < fromDate) return false;
-        
+
         if (dateRange.to) {
           const toDate = new Date(dateRange.to);
           toDate.setHours(23, 59, 59, 999);
@@ -295,8 +298,8 @@ export default function TeacherLessonPlansDashboard() {
       }
     } catch (err) {
       console.error("Duplicate error:", err);
-      const errorMessage = err instanceof Error 
-        ? `Failed to duplicate: ${err.message}` 
+      const errorMessage = err instanceof Error
+        ? `Failed to duplicate: ${err.message}`
         : "Failed to duplicate lesson";
       toast.error(errorMessage);
     }
@@ -327,6 +330,7 @@ export default function TeacherLessonPlansDashboard() {
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
+
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
@@ -336,9 +340,31 @@ export default function TeacherLessonPlansDashboard() {
               </p>
             </div>
 
-            <div className="flex gap-2 shrink-0">
-              <Button 
-                variant="outline" 
+            <div className="flex gap-2 shrink-0 flex-wrap">
+              {/* View Toggle */}
+              <div className="flex items-center bg-muted rounded-lg p-1">
+                <Button
+                  variant={viewType === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewType("grid")}
+                  className="h-9"
+                >
+                  <LayoutGrid className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Grid</span>
+                </Button>
+                <Button
+                  variant={viewType === "calendar" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewType("calendar")}
+                  className="h-9"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Calendar</span>
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
                 onClick={() => userId && fetchLessonPlans(userId)}
                 disabled={loading || !userId}
               >
@@ -376,12 +402,14 @@ export default function TeacherLessonPlansDashboard() {
           <Separator className="my-6" />
 
           {/* Lessons */}
+
+          {/* Conditional View Rendering */}
           {error ? (
             <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
               <p className="text-destructive font-semibold mb-2">Error Loading Lessons</p>
               <p className="text-sm text-muted-foreground mb-4">{error}</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => userId && fetchLessonPlans(userId)}
                 disabled={loading}
               >
@@ -407,7 +435,15 @@ export default function TeacherLessonPlansDashboard() {
                 <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
               </Button>
             </div>
+          ) : viewType === "calendar" ? (
+            /* Calendar View */
+            <TeacherCalendarView
+              lessons={filtered}
+              onLessonClick={setSelectedLesson}
+              loading={loading}
+            />
           ) : (
+            /* Grid View (existing layout) */
             <>
               {/* Today's Lessons */}
               {todayLessons.length > 0 && (
@@ -542,7 +578,7 @@ export default function TeacherLessonPlansDashboard() {
           )}
         </div>
 
-                {/* Expanded modal */}
+        {/* Expanded modal */}
         <AnimatePresence>
           {selectedLesson && (
             <MobileResponsiveModal

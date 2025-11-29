@@ -14,7 +14,9 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
+import { TutorCalendarView } from "../components/calendars/TutorCalendarView";
 import Link from "next/link";
+import { LayoutGrid, Calendar } from "lucide-react";
 
 const supabase = createClient();
 
@@ -38,6 +40,7 @@ export default function TutorLessonPlansDashboard() {
   const [confirmDelete, setConfirmDelete] = useState<LessonPlanTutor | null>(null);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [previousPage, setPreviousPage] = useState(1);
+  const [viewType, setViewType] = useState<"grid" | "calendar">("grid");
 
   // Memoize date calculations to prevent hydration issues
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -314,7 +317,29 @@ export default function TutorLessonPlansDashboard() {
               </p>
             </div>
 
-            <div className="flex gap-2 shrink-0">
+            <div className="flex gap-2 shrink-0 flex-wrap">
+              {/* View Toggle */}
+              <div className="flex items-center bg-muted rounded-lg p-1">
+                <Button
+                  variant={viewType === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewType("grid")}
+                  className="h-9"
+                >
+                  <LayoutGrid className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Grid</span>
+                </Button>
+                <Button
+                  variant={viewType === "calendar" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewType("calendar")}
+                  className="h-9"
+                >
+                  <Calendar className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Calendar</span>
+                </Button>
+              </div>
+
               <Button 
                 variant="outline" 
                 onClick={() => userId && fetchTutorLessonPlans(userId)}
@@ -351,7 +376,7 @@ export default function TutorLessonPlansDashboard() {
 
           <Separator className="my-6" />
 
-          {/* Lessons */}
+          {/* Conditional View Rendering */}
           {error ? (
             <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
               <p className="text-destructive font-semibold mb-2">Error Loading Lessons</p>
@@ -383,7 +408,15 @@ export default function TutorLessonPlansDashboard() {
                 <Link href="/dashboard/lesson-plans/new">Create Lesson Plan</Link>
               </Button>
             </div>
+          ) : viewType === "calendar" ? (
+            /* Calendar View */
+            <TutorCalendarView
+              lessons={filtered}
+              onLessonClick={setSelectedLesson}
+              loading={loading}
+            />
           ) : (
+            /* Grid View */
             <>
               {/* Today's Lessons */}
               {todayLessons.length > 0 && (
