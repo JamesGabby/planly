@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 interface CalendarViewProps {
-  lessons: (LessonPlanTeacher | LessonPlanTutor)[];
-  onLessonClick: (lesson: LessonPlanTeacher | LessonPlanTutor) => void;
+  lessons: LessonPlanTeacher[];  // Changed from (LessonPlanTeacher | LessonPlanTutor)[]
+  onLessonClick: (lesson: LessonPlanTeacher) => void;  // Changed from union type
   loading?: boolean;
 }
 
@@ -35,15 +35,15 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
 
   // Group lessons by date
   const lessonsByDate = useMemo(() => {
-    const map = new Map<string, (LessonPlanTeacher | LessonPlanTutor)[]>();
-    
+    const map = new Map<string, LessonPlanTeacher[]>();  // Changed from union type
+
     lessons.forEach((lesson) => {
       if (lesson.date_of_lesson) {
         const existing = map.get(lesson.date_of_lesson) || [];
         map.set(lesson.date_of_lesson, [...existing, lesson]);
       }
     });
-    
+
     return map;
   }, [lessons]);
 
@@ -51,31 +51,31 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const startPadding = firstDay.getDay();
     const endPadding = 6 - lastDay.getDay();
-    
+
     const days: Date[] = [];
-    
+
     // Previous month days
     for (let i = startPadding - 1; i >= 0; i--) {
       const date = new Date(year, month, -i);
       days.push(date);
     }
-    
+
     // Current month days
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push(new Date(year, month, i));
     }
-    
+
     // Next month days
     for (let i = 1; i <= endPadding; i++) {
       days.push(new Date(year, month + 1, i));
     }
-    
+
     return days;
   }, [currentDate]);
 
@@ -158,7 +158,7 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
 
   const getSubjectColor = (subject?: string): string => {
     if (!subject) return "bg-gray-500";
-    
+
     const colors: Record<string, string> = {
       Mathematics: "bg-blue-500",
       English: "bg-red-500",
@@ -169,7 +169,7 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
       Chemistry: "bg-pink-500",
       Biology: "bg-emerald-500",
     };
-    
+
     return colors[subject] || "bg-gray-500";
   };
 
@@ -318,7 +318,7 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
                                 "w-1.5 h-1.5 rounded-full",
                                 getSubjectColor(lesson.subject)
                               )}
-                              title={lesson.topic}
+                              title={lesson.topic ?? undefined}
                             />
                           ))}
                           {dayLessons.length > 3 && (
