@@ -10,7 +10,7 @@ import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { StudentCard } from "../components/cards/student-cards/StudentCardTutor";
+import { StudentCardTutor } from "../components/cards/student-cards/StudentCardTutor";
 import Link from "next/link";
 import { StudentProfileTutor } from "../types/student_profile_tutor";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
@@ -306,7 +306,7 @@ export default function TutorStudentProfilesDashboard() {
                       damping: 20,
                     }}
                   >
-                    <StudentCard
+                    <StudentCardTutor
                       student={student}
                       onDelete={() => setConfirmDelete(student)}
                       onDuplicate={() => handleDuplicateStudent(student)}
