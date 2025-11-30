@@ -17,7 +17,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { LessonCardStudent } from "../components/cards/lesson-cards/LessonCardTeacher";
 import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
-import { LayoutGrid, Calendar } from "lucide-react";
 import { TeacherCalendarView } from "../components/calendars/TeacherCalendarView";
 
 const supabase = createClient();
@@ -340,29 +339,7 @@ export default function TeacherLessonPlansDashboard() {
               </p>
             </div>
 
-            <div className="flex gap-2 shrink-0 flex-wrap">
-              {/* View Toggle */}
-              <div className="flex items-center bg-muted rounded-lg p-1">
-                <Button
-                  variant={viewType === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewType("grid")}
-                  className="h-9"
-                >
-                  <LayoutGrid className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Grid</span>
-                </Button>
-                <Button
-                  variant={viewType === "calendar" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewType("calendar")}
-                  className="h-9"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Calendar</span>
-                </Button>
-              </div>
-
+            <div className="flex gap-2 shrink-0">
               <Button
                 variant="outline"
                 onClick={() => userId && fetchLessonPlans(userId)}
@@ -397,6 +374,8 @@ export default function TeacherLessonPlansDashboard() {
             subjects={subjects}
             yearGroups={yearGroups}
             examBoards={examBoards}
+            viewType={viewType}
+            setViewType={setViewType}
           />
 
           <Separator className="my-6" />

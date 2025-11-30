@@ -318,28 +318,6 @@ export default function TutorLessonPlansDashboard() {
             </div>
 
             <div className="flex gap-2 shrink-0 flex-wrap">
-              {/* View Toggle */}
-              <div className="flex items-center bg-muted rounded-lg p-1">
-                <Button
-                  variant={viewType === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewType("grid")}
-                  className="h-9"
-                >
-                  <LayoutGrid className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Grid</span>
-                </Button>
-                <Button
-                  variant={viewType === "calendar" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewType("calendar")}
-                  className="h-9"
-                >
-                  <Calendar className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Calendar</span>
-                </Button>
-              </div>
-
               <Button 
                 variant="outline" 
                 onClick={() => userId && fetchTutorLessonPlans(userId)}
@@ -372,6 +350,8 @@ export default function TutorLessonPlansDashboard() {
             students={students}
             subjects={subjects}
             examBoards={examBoards}
+            viewType={viewType}
+            setViewType={setViewType}
           />
 
           <Separator className="my-6" />

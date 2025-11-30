@@ -26,6 +26,8 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   RotateCcw,
+  LayoutGrid,
+  Calendar1
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -61,6 +63,8 @@ interface FiltersCardProps {
   yearGroups?: string[];
   examBoards?: string[];
   onFiltersChange?: (filters: Partial<FilterState>) => void;
+  viewType: "grid" | "calendar";
+  setViewType: (value: "grid" | "calendar") => void;
 }
 
 export function LessonTeacherFiltersCard({
@@ -83,6 +87,8 @@ export function LessonTeacherFiltersCard({
   yearGroups = [],
   examBoards = [],
   onFiltersChange,
+  viewType,
+  setViewType,
 }: FiltersCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -104,7 +110,7 @@ export function LessonTeacherFiltersCard({
     setSelectedYearGroup("");
     setSelectedExamBoard("");
     setDateRange({ from: undefined, to: undefined });
-    
+
     onFiltersChange?.({
       search: "",
       selectedClass: "",
@@ -130,13 +136,36 @@ export function LessonTeacherFiltersCard({
       {/* Primary Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <ModeSwitcher />
+        
+        {/* View Toggle */}
+        <div className="flex items-center bg-muted rounded-lg p-1 h-10">
+          <Button
+            variant={viewType === "grid" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewType("grid")}
+            className="h-8"
+          >
+            <LayoutGrid className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Grid</span>
+          </Button>
+          <Button
+            variant={viewType === "calendar" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewType("calendar")}
+            className="h-8"
+          >
+            <Calendar1 className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Calendar</span>
+          </Button>
+        </div>  
+        
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search by topic, objectives, or class..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-10"
+            className="pl-9 pr-10 h-10"
           />
           {search && (
             <Button
@@ -155,7 +184,7 @@ export function LessonTeacherFiltersCard({
           <Button
             variant={activeFilterCount > 0 ? "default" : "outline"}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="shrink-0"
+            className="shrink-0 h-10"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
@@ -173,7 +202,7 @@ export function LessonTeacherFiltersCard({
           </Button>
 
           {activeFilterCount > 0 && (
-            <Button variant="ghost" onClick={handleClearAll} className="shrink-0">
+            <Button variant="ghost" onClick={handleClearAll} className="shrink-0 h-10">
               <RotateCcw className="h-4 w-4 mr-2" />
               Clear
             </Button>
@@ -338,7 +367,7 @@ export function LessonTeacherFiltersCard({
                       setSelectedClass(value === "all-classes" ? "" : value)
                     }
                   >
-                    <SelectTrigger id="class-filter">
+                    <SelectTrigger id="class-filter" className="h-10">
                       <SelectValue placeholder="All Classes" />
                     </SelectTrigger>
                     <SelectContent>
@@ -362,7 +391,7 @@ export function LessonTeacherFiltersCard({
                         setSelectedSubject(value === "all-subjects" ? "" : value)
                       }
                     >
-                      <SelectTrigger id="subject-filter">
+                      <SelectTrigger id="subject-filter" className="h-10">
                         <SelectValue placeholder="All Subjects" />
                       </SelectTrigger>
                       <SelectContent>
@@ -387,7 +416,7 @@ export function LessonTeacherFiltersCard({
                         setSelectedYearGroup(value === "all-years" ? "" : value)
                       }
                     >
-                      <SelectTrigger id="year-filter">
+                      <SelectTrigger id="year-filter" className="h-10">
                         <SelectValue placeholder="All Years" />
                       </SelectTrigger>
                       <SelectContent>
@@ -412,7 +441,7 @@ export function LessonTeacherFiltersCard({
                         setSelectedExamBoard(value === "all-boards" ? "" : value)
                       }
                     >
-                      <SelectTrigger id="exam-board-filter">
+                      <SelectTrigger id="exam-board-filter" className="h-10">
                         <SelectValue placeholder="All Exam Boards" />
                       </SelectTrigger>
                       <SelectContent>
@@ -435,7 +464,7 @@ export function LessonTeacherFiltersCard({
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal h-10",
                           !dateFilter && "text-muted-foreground"
                         )}
                       >
@@ -470,7 +499,7 @@ export function LessonTeacherFiltersCard({
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal h-10",
                           !dateRange.from && "text-muted-foreground"
                         )}
                       >

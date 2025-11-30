@@ -26,6 +26,8 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   RotateCcw,
+  Calendar1,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -57,6 +59,8 @@ interface TutorFiltersCardProps {
   subjects?: string[];
   examBoards?: string[];
   onFiltersChange?: (filters: Partial<TutorFilterState>) => void;
+  viewType: "grid" | "calendar";
+  setViewType: (value: "grid" | "calendar") => void;
 }
 
 export function LessonTutorFiltersCard({
@@ -76,6 +80,8 @@ export function LessonTutorFiltersCard({
   subjects = [],
   examBoards = [],
   onFiltersChange,
+  viewType,
+  setViewType,
 }: TutorFiltersCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -120,13 +126,36 @@ export function LessonTutorFiltersCard({
       {/* Primary Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <ModeSwitcher />
+
+        {/* View Toggle */}
+        <div className="flex items-center bg-muted rounded-lg p-1 h-10">
+          <Button
+            variant={viewType === "grid" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewType("grid")}
+            className="h-8"
+          >
+            <LayoutGrid className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Grid</span>
+          </Button>
+          <Button
+            variant={viewType === "calendar" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewType("calendar")}
+            className="h-8"
+          >
+            <Calendar1 className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Calendar</span>
+          </Button>
+        </div>
+        
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search by topic, objectives, or student..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-10"
+            className="pl-9 h-10 pr-10"
           />
           {search && (
             <Button
