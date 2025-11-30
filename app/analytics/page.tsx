@@ -1,8 +1,8 @@
 // app/analytics/page.tsx
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { AnalyticsDashboard } from '../lesson-plans/dashboards/AnalyticsDashboard';
-import { AnalyticsData } from '../lesson-plans/types/analytics';
+import { AnalyticsDashboard } from '../dashboard/lesson-plans/dashboards/AnalyticsDashboard';
+import { AnalyticsData } from '../dashboard/lesson-plans/types/analytics';
 
 export const metadata = {
   title: 'Analytics Dashboard',
