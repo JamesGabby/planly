@@ -16,7 +16,6 @@ import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTuto
 import { LessonPlanTutor } from "../types/lesson_tutor";
 import { TutorCalendarView } from "../components/calendars/TutorCalendarView";
 import Link from "next/link";
-import { LayoutGrid, Calendar } from "lucide-react";
 
 const supabase = createClient();
 
