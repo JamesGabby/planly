@@ -38,5 +38,6 @@ export type LessonPlanTutor = {
     last_name?: string,
   },
   exam_board?: string,
+  created_with_ai?: boolean;
 };
 

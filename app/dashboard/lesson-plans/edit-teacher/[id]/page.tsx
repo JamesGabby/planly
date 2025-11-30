@@ -23,7 +23,7 @@ import { EditLessonFormSkeleton } from "../../skeletons/EditLessonFormSkeleton";
 
 const supabase = createClient();
 
-export default function EditLessonFormStudent() {
+export default function EditLessonFormTeacher() {
   const { id } = useParams();
   const router = useRouter();
   const { mode } = useUserMode();
@@ -48,6 +48,7 @@ export default function EditLessonFormStudent() {
     literacy_opportunities: "",
     subject_pedagogies: "",
     health_and_safety_considerations: "",
+    created_with_ai: false,
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -355,6 +356,7 @@ export default function EditLessonFormStudent() {
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
       updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
+      updateField("created_with_ai", true);
 
       updateField("specialist_subject_knowledge_required",
         formatAsBulletPoints(generatedPlan.specialist_subject_knowledge_required) || ""
@@ -383,7 +385,7 @@ export default function EditLessonFormStudent() {
         setStages(generatedPlan.lesson_structure);
       }
 
-      toast.success("✨ Lesson plan generated successfully! Review and edit as needed.");
+      toast.success("✨ Lesson plan regenerated successfully! Review and personalise as needed.");
 
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
@@ -437,6 +439,7 @@ export default function EditLessonFormStudent() {
           lesson_structure: stages,
           updated_at: new Date().toISOString(),
           exam_board: finalExamBoard,
+          created_with_ai: lesson.created_with_ai || false,
         })
         .eq("id", id)
         .eq("user_id", user.id);

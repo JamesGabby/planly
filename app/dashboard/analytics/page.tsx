@@ -86,6 +86,10 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
     ? Math.round((lessonsWithEvaluation / allTeacherLessons.length) * 100)
     : 0;
 
+  const aiGeneratedLessons = allTeacherLessons.filter(l => 
+    l.created_with_ai === true
+  ).length;
+
   // Process data for charts
   const lessonsBySubject = processLessonsBySubject(allLessons);
   const lessonsByMonth = processLessonsByMonth(allLessons);
@@ -104,6 +108,7 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
       lessonsLast30Days,
       upcomingLessons: upcomingLessons.length,
       completionRate,
+      aiGeneratedLessons, 
     },
     lessonsBySubject,
     lessonsByMonth,

@@ -29,6 +29,7 @@ import {
   Clock,
   BarChart3,
   PieChart as PieChartIcon,
+  Sparkles,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { AnalyticsData } from '../types/analytics';
@@ -402,6 +403,51 @@ export function AnalyticsDashboard({ data }: Props) {
           color="amber"
           subtitle="Lessons with evaluation"
         />
+      </div>
+
+      {/* NEW: AI Insights Section */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800 p-6">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              AI-Assisted Teaching
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Leveraging artificial intelligence to enhance lesson planning
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                  {data.overview.aiGeneratedLessons}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  AI-Generated Lessons
+                </p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                  {data.overview.totalTeacherLessons > 0
+                    ? Math.round((data.overview.aiGeneratedLessons / data.overview.totalTeacherLessons) * 100)
+                    : 0}%
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Of Total Lessons
+                </p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                  {data.overview.totalTeacherLessons - data.overview.aiGeneratedLessons}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Manual Lessons
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Alert for SEN Students */}

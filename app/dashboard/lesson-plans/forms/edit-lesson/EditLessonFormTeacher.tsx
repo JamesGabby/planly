@@ -22,7 +22,7 @@ import { useUserMode } from "@/components/UserModeContext";
 
 const supabase = createClient();
 
-export default function EditLessonFormStudent() {
+export default function EditLessonFormTeacher() {
   const { id } = useParams();
   const router = useRouter();
   const { mode } = useUserMode();
@@ -47,6 +47,7 @@ export default function EditLessonFormStudent() {
     literacy_opportunities: "",
     subject_pedagogies: "",
     health_and_safety_considerations: "",
+    created_with_ai: false,
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -76,9 +77,9 @@ export default function EditLessonFormStudent() {
 
   useEffect(() => {
     if (mode !== "teacher") {
-      return ;
+      return;
     }
-    
+
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -373,6 +374,7 @@ export default function EditLessonFormStudent() {
       updateField("health_and_safety_considerations",
         formatAsBulletPoints(generatedPlan.health_and_safety_considerations) || ""
       );
+      updateField("created_with_ai", true);
 
       if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
         updateField("resources", generatedPlan.resources);
@@ -382,7 +384,7 @@ export default function EditLessonFormStudent() {
         setStages(generatedPlan.lesson_structure);
       }
 
-      toast.success("✨ Lesson plan generated successfully! Review and edit as needed.");
+      toast.success("✨ Lesson plan regenerated successfully! Review and personalise as needed.");
 
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
@@ -428,14 +430,34 @@ export default function EditLessonFormStudent() {
           : lesson.exam_board)
         : null;
 
+      // UPDATED: Remove the explicit created_with_ai assignment
+      // Let the spread operator handle it from lesson state
       const { error: updateError } = await supabase
         .from("teacher_lesson_plans")
         .update({
-          ...lesson,
+          class: lesson.class,
+          date_of_lesson: lesson.date_of_lesson,
+          time_of_lesson: lesson.time_of_lesson,
+          topic: lesson.topic,
+          objectives: lesson.objectives,
+          outcomes: lesson.outcomes,
+          homework: lesson.homework,
+          evaluation: lesson.evaluation,
+          notes: lesson.notes,
+          subject: lesson.subject,
+          year_group: lesson.year_group,
+          specialist_subject_knowledge_required: lesson.specialist_subject_knowledge_required,
+          knowledge_revisited: lesson.knowledge_revisited,
+          numeracy_opportunities: lesson.numeracy_opportunities,
+          literacy_opportunities: lesson.literacy_opportunities,
+          subject_pedagogies: lesson.subject_pedagogies,
+          health_and_safety_considerations: lesson.health_and_safety_considerations,
           resources: formattedResources,
           lesson_structure: stages,
-          updated_at: new Date().toISOString(),
           exam_board: finalExamBoard,
+          custom_exam_board: lesson.custom_exam_board,
+          created_with_ai: lesson.created_with_ai, // Explicitly include without || false
+          updated_at: new Date().toISOString(),
         })
         .eq("id", id)
         .eq("user_id", user.id);

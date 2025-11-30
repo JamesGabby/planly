@@ -35,6 +35,7 @@ export default function NewLessonFormTutor() {
     first_name: "",
     last_name: "",
     subject: "",
+    created_with_ai: false, 
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -339,6 +340,7 @@ export default function NewLessonFormTutor() {
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
       updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
+      updateField("created_with_ai", true);
 
       if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
         updateField("resources", generatedPlan.resources);
@@ -488,6 +490,7 @@ export default function NewLessonFormTutor() {
             lesson_structure: formattedStages,
             created_at: timestamp,
             updated_at: timestamp,
+            created_with_ai: lesson.created_with_ai || false,
           },
         ]);
 

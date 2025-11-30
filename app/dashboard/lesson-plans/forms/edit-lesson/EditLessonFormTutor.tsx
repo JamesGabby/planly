@@ -38,6 +38,7 @@ export default function EditLessonFormTutor() {
     first_name: "",
     last_name: "",
     subject: "",
+    created_with_ai: false,
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -302,6 +303,7 @@ export default function EditLessonFormTutor() {
       updateField("homework", generatedPlan.homework || "");
       updateField("evaluation", generatedPlan.evaluation || "");
       updateField("notes", generatedPlan.notes || "");
+      updateField("created_with_ai", true);
 
       if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
         updateField("resources", generatedPlan.resources);
@@ -311,7 +313,7 @@ export default function EditLessonFormTutor() {
         setStages(generatedPlan.lesson_structure);
       }
 
-      toast.success("✨ Tutoring session plan regenerated successfully! Review and personalize as needed.");
+      toast.success("✨ Tutoring session plan regenerated successfully! Review and personalise as needed.");
 
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
@@ -439,6 +441,7 @@ useEffect(() => {
           resources: formattedResources,
           lesson_structure: stages,
           updated_at: new Date().toISOString(),
+          created_with_ai: lesson.created_with_ai || false,
         })
         .eq("id", id)
         .eq("user_id", user.id);

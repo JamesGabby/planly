@@ -8,6 +8,7 @@ export interface AnalyticsOverview {
   lessonsLast30Days: number;
   upcomingLessons: number;
   completionRate: number;
+  aiGeneratedLessons: number;
 }
 
 export interface ChartData {

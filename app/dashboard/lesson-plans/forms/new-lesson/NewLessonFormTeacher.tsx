@@ -44,6 +44,7 @@ export default function NewLessonFormTeacher() {
     literacy_opportunities: "",
     subject_pedagogies: "",
     health_and_safety_considerations: "",
+    created_with_ai: false, // ADD THIS LINE
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -351,6 +352,7 @@ export default function NewLessonFormTeacher() {
       updateField("health_and_safety_considerations",
         formatAsBulletPoints(generatedPlan.health_and_safety_considerations) || ""
       );
+      updateField("created_with_ai", true);
 
       if (generatedPlan.resources && Array.isArray(generatedPlan.resources)) {
         updateField("resources", generatedPlan.resources);
@@ -541,6 +543,7 @@ export default function NewLessonFormTeacher() {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             exam_board: finalExamBoard,
+            created_with_ai: lesson.created_with_ai || false,
           },
         ]);
 
