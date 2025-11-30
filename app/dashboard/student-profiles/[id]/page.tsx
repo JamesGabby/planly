@@ -237,7 +237,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
   async function fetchStudent(userId: string) {
     try {
       const { data, error } = await supabase
-        .from("student_profiles")
+        .from("tutor_student_profiles")
         .select("*")
         .eq("student_id", id)
         .eq("user_id", userId)
@@ -276,7 +276,7 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
       try {
         const payload: Record<string, string> = { [field]: value };
         const { error } = await supabase
-          .from("student_profiles")
+          .from("tutor_student_profiles")
           .update(payload)
           .eq("student_id", id);
 

@@ -511,7 +511,7 @@ export default function NewLessonFormTeacher() {
         : null;
 
       const { error: insertError } = await supabase
-        .from("lesson_plans")
+        .from("teacher_lesson_plans")
         .insert([
           {
             ...lesson,

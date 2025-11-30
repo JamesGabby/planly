@@ -125,7 +125,7 @@ export function LessonCardTutor({
                 <span className="flex items-center gap-1.5" aria-label="Student information">
                   <User className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
                   <span className="font-medium">
-                    {lesson.student_profiles?.first_name} {lesson.student_profiles?.last_name}
+                    {lesson.tutor_student_profiles?.first_name} {lesson.tutor_student_profiles?.last_name}
                   </span>
                 </span>
                 <span className="flex items-center gap-1.5" aria-label="Lesson date">

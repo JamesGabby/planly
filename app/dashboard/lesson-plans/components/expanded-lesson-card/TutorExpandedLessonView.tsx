@@ -231,7 +231,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
             {lesson.topic ?? "Untitled"}
           </h2>
-          
+
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {/* Only show View button if NOT on the lesson detail page */}
@@ -263,7 +263,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
               className="flex items-center gap-2 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
             >
               <User size={18} className="flex-shrink-0" />
-              <span>{lesson.student_profiles?.first_name} {lesson.student_profiles?.last_name}</span>
+              <span>{lesson.tutor_student_profiles?.first_name} {lesson.tutor_student_profiles?.last_name}</span>
             </Link>
 
             <span className="text-muted-foreground">•</span>
@@ -298,7 +298,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground mb-0.5">Student</p>
                   <p className="text-base font-semibold text-primary truncate">
-                    {lesson.student_profiles?.first_name} {lesson.student_profiles?.last_name}
+                    {lesson.tutor_student_profiles?.first_name} {lesson.tutor_student_profiles?.last_name}
                   </p>
                 </div>
               </div>

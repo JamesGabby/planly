@@ -33,7 +33,7 @@ export default function ViewLessonPage() {
 
         // Fetch the lesson from Supabase
         const { data, error: fetchError } = await supabase
-          .from("lesson_plans")
+          .from("teacher_lesson_plans")
           .select("*")
           .eq("id", lessonId)
           .single();

@@ -33,7 +33,7 @@ export type LessonPlanTutor = {
   subject?: string;
   first_name?: string,
   last_name?: string,
-  student_profiles?: {
+  tutor_student_profiles?: {
     first_name?: string,
     last_name?: string,
   },

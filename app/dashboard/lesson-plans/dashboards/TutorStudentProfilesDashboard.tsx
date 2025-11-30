@@ -72,7 +72,7 @@ export default function TutorStudentProfilesDashboard() {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from("student_profiles")
+        .from("tutor_student_profiles")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
@@ -155,7 +155,7 @@ export default function TutorStudentProfilesDashboard() {
 
     try {
       const { error: deleteError } = await supabase
-        .from("student_profiles")
+        .from("tutor_student_profiles")
         .delete()
         .eq("student_id", confirmDelete.student_id);
 
@@ -188,7 +188,7 @@ export default function TutorStudentProfilesDashboard() {
       };
 
       const { data, error: duplicateError } = await supabase
-        .from("student_profiles")
+        .from("tutor_student_profiles")
         .insert([copy])
         .select()
         .single();

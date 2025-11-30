@@ -35,7 +35,7 @@ export default function ViewTutorLessonPage() {
           .from("tutor_lesson_plans")
           .select(`
             *,
-            student_profiles (
+            tutor_student_profiles (
               first_name,
               last_name
             )

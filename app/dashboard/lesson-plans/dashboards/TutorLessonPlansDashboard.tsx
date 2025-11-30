@@ -93,7 +93,7 @@ export default function TutorLessonPlansDashboard() {
         .from("tutor_lesson_plans")
         .select(`
           *,
-          student_profiles!fk_student (
+          tutor_student_profiles!fk_student (
             first_name,
             last_name
           )

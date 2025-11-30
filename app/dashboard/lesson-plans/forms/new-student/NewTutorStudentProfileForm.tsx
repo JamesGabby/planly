@@ -105,7 +105,7 @@ export default function NewTutorStudentProfileForm() {
         notes: capitalizeMultilineText(student.notes),
       };
 
-      const { error: insertError } = await supabase.from("student_profiles").insert([
+      const { error: insertError } = await supabase.from("tutor_student_profiles").insert([
         {
           ...formattedStudent,
           created_by: user.id,

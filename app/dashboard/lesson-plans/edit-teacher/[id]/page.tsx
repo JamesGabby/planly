@@ -97,7 +97,7 @@ export default function EditLessonFormStudent() {
         if (!user) throw new Error("You must be logged in");
 
         const { data, error: fetchError } = await supabase
-          .from("lesson_plans")
+          .from("teacher_lesson_plans")
           .select("*")
           .eq("id", id)
           .eq("user_id", user.id)
@@ -430,7 +430,7 @@ export default function EditLessonFormStudent() {
         : null;
 
       const { error: updateError } = await supabase
-        .from("lesson_plans")
+        .from("teacher_lesson_plans")
         .update({
           ...lesson,
           resources: formattedResources,

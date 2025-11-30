@@ -84,7 +84,7 @@ export default function NewLessonFormTutor() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("student_profiles")
+        .from("tutor_student_profiles")
         .select("student_id, first_name, last_name")
         .eq("user_id", user.id)
         .order("first_name", { ascending: true });
@@ -144,7 +144,7 @@ export default function NewLessonFormTutor() {
     const timestamp = new Date().toISOString();
 
     const { data, error } = await supabase
-      .from("student_profiles")
+      .from("tutor_student_profiles")
       .insert([
         {
           first_name: firstName.trim(),

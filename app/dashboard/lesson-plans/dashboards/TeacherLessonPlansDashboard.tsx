@@ -95,7 +95,7 @@ export default function TeacherLessonPlansDashboard() {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from("lesson_plans")
+        .from("teacher_lesson_plans")
         .select("*")
         .eq("user_id", userId)
         .order("date_of_lesson", { ascending: true });
@@ -255,7 +255,7 @@ export default function TeacherLessonPlansDashboard() {
 
     try {
       const { error: deleteError } = await supabase
-        .from("lesson_plans")
+        .from("teacher_lesson_plans")
         .delete()
         .eq("id", confirmDelete.id);
 
@@ -284,7 +284,7 @@ export default function TeacherLessonPlansDashboard() {
       };
 
       const { data, error: duplicateError } = await supabase
-        .from("lesson_plans")
+        .from("teacher_lesson_plans")
         .insert([copy])
         .select()
         .single();

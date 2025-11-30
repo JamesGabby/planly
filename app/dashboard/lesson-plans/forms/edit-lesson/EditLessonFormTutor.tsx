@@ -356,7 +356,7 @@ const fetchStudents = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from("student_profiles")
+      .from("tutor_student_profiles")
       .select("student_id, first_name, last_name")
       .eq("user_id", user.id)
       .order("first_name", { ascending: true });
@@ -410,7 +410,7 @@ useEffect(() => {
         const timestamp = new Date().toISOString();
 
         const { data: newStudent, error: studentError } = await supabase
-          .from("student_profiles")
+          .from("tutor_student_profiles")
           .insert([
             {
               first_name: lesson.first_name.trim(),
