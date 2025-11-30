@@ -174,7 +174,7 @@ export function LessonTutorFiltersCard({
           <Button
             variant={activeFilterCount > 0 ? "default" : "outline"}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="shrink-0"
+            className="shrink-0 h-10"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
@@ -192,7 +192,7 @@ export function LessonTutorFiltersCard({
           </Button>
 
           {activeFilterCount > 0 && (
-            <Button variant="ghost" onClick={handleClearAll} className="shrink-0">
+            <Button variant="ghost" onClick={handleClearAll} className="shrink-0 h-10">
               <RotateCcw className="h-4 w-4 mr-2" />
               Clear
             </Button>

@@ -91,7 +91,7 @@ export function ClassesFiltersCard({
             placeholder="Search by class name, year group, or student..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-10"
+            className="pl-9 h-10 pr-10"
           />
           {search && (
             <Button
@@ -109,7 +109,7 @@ export function ClassesFiltersCard({
           <Button
             variant={activeFilterCount > 0 ? "default" : "outline"}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="shrink-0"
+            className="shrink-0 h-10"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
@@ -127,7 +127,7 @@ export function ClassesFiltersCard({
           </Button>
 
           {activeFilterCount > 0 && (
-            <Button variant="ghost" onClick={handleClearAll} className="shrink-0">
+            <Button variant="ghost" onClick={handleClearAll} className="shrink-0 h-10">
               <RotateCcw className="h-4 w-4 mr-2" />
               Clear
             </Button>

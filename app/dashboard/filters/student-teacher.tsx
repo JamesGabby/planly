@@ -74,13 +74,14 @@ export function StudentProfileTeacherFiltersCard({
       {/* Primary Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <ModeSwitcher />
+
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, goals, strengths, interests..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-10"
+            className="pl-9 h-10 pr-10"
           />
           {search && (
             <Button
@@ -98,7 +99,7 @@ export function StudentProfileTeacherFiltersCard({
           <Button
             variant={activeFilterCount > 0 ? "default" : "outline"}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="shrink-0"
+            className="shrink-0 h-10"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
@@ -116,7 +117,7 @@ export function StudentProfileTeacherFiltersCard({
           </Button>
 
           {activeFilterCount > 0 && (
-            <Button variant="ghost" onClick={handleClearAll} className="shrink-0">
+            <Button variant="ghost" onClick={handleClearAll} className="shrink-0 h-10">
               <RotateCcw className="h-4 w-4 mr-2" />
               Clear
             </Button>
