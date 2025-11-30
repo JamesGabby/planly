@@ -26,6 +26,7 @@ const MONTHS = [
 export function TutorCalendarView({ lessons, onLessonClick, loading = false }: TutorCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
 
   const today = useMemo(() => {
     const date = new Date();
@@ -94,6 +95,7 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
   const goToToday = () => {
     setCurrentDate(new Date());
     setSelectedDate(null);
+    setSelectedLessonId(null);
   };
 
   const formatDateKey = (date: Date): string => {
@@ -186,6 +188,11 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
     const first = firstName?.charAt(0)?.toUpperCase() || "";
     const last = lastName?.charAt(0)?.toUpperCase() || "";
     return first + last || "?";
+  };
+
+  const handleLessonClick = (lesson: LessonPlanTutor) => {
+    setSelectedLessonId(lesson.id);
+    onLessonClick(lesson);
   };
 
   if (loading) {
@@ -308,7 +315,10 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2, delay: index * 0.01 }}
-                    onClick={() => setSelectedDate(date)}
+                    onClick={() => {
+                      setSelectedDate(date);
+                      setSelectedLessonId(null);
+                    }}
                     className={cn(
                       "aspect-square p-1 rounded-lg border transition-all duration-200",
                       "hover:border-primary/50 hover:bg-accent/30 hover:scale-105",
@@ -388,51 +398,58 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
 
                 {selectedDateLessons.length > 0 ? (
                   <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-                    {selectedDateLessons.map((lesson, idx) => (
-                      <motion.button
-                        key={lesson.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        onClick={() => onLessonClick(lesson)}
-                        className={cn(
-                          "w-full text-left p-3 rounded-lg border transition-all",
-                          "hover:border-primary hover:bg-accent/30 hover:scale-[1.02]",
-                          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-8 w-8 flex-shrink-0">
-                            <AvatarFallback className="text-xs">
-                              {getStudentInitials(lesson.first_name, lesson.last_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">{lesson.topic}</h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {lesson.first_name} {lesson.last_name}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div
-                                className={cn(
-                                  "w-2 h-2 rounded-full",
-                                  getSubjectColor(lesson.subject)
-                                )}
-                              />
-                              <p className="text-xs text-muted-foreground">
-                                {lesson.subject}
-                                {lesson.exam_board && ` • ${lesson.exam_board}`}
+                    {selectedDateLessons.map((lesson, idx) => {
+                      const isSelected = selectedLessonId === lesson.id;
+                      
+                      return (
+                        <motion.button
+                          key={lesson.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          onClick={() => handleLessonClick(lesson)}
+                          className={cn(
+                            "w-full text-left p-3 rounded-lg border-2 transition-all duration-200",
+                            "hover:border-primary/60 hover:bg-accent/50 hover:scale-[1.02]",
+                            "active:scale-[0.98]",
+                            isSelected 
+                              ? "border-primary bg-primary/5 shadow-sm" 
+                              : "border-border hover:shadow-sm"
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-8 w-8 flex-shrink-0">
+                              <AvatarFallback className="text-xs">
+                                {getStudentInitials(lesson.first_name, lesson.last_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">{lesson.topic}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {lesson.first_name} {lesson.last_name}
                               </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div
+                                  className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    getSubjectColor(lesson.subject)
+                                  )}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  {lesson.subject}
+                                  {lesson.exam_board && ` • ${lesson.exam_board}`}
+                                </p>
+                              </div>
+                              {lesson.objectives && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  {lesson.objectives}
+                                </p>
+                              )}
                             </div>
-                            {lesson.objectives && (
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {lesson.objectives}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      </motion.button>
-                    ))}
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
@@ -466,7 +483,11 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded ring-2 ring-primary bg-primary/10" />
-            <span className="text-muted-foreground">Selected</span>
+            <span className="text-muted-foreground">Selected Date</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded border-2 border-primary bg-primary/5" />
+            <span className="text-muted-foreground">Selected Lesson</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex gap-0.5">

@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 interface CalendarViewProps {
-  lessons: LessonPlanTeacher[];  // Changed from (LessonPlanTeacher | LessonPlanTutor)[]
-  onLessonClick: (lesson: LessonPlanTeacher) => void;  // Changed from union type
+  lessons: LessonPlanTeacher[];
+  onLessonClick: (lesson: LessonPlanTeacher) => void;
   loading?: boolean;
 }
 
@@ -25,6 +25,7 @@ const MONTHS = [
 export function TeacherCalendarView({ lessons, onLessonClick, loading = false }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
 
   const today = useMemo(() => {
     const date = new Date();
@@ -34,7 +35,7 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
 
   // Group lessons by date
   const lessonsByDate = useMemo(() => {
-    const map = new Map<string, LessonPlanTeacher[]>();  // Changed from union type
+    const map = new Map<string, LessonPlanTeacher[]>();
 
     lessons.forEach((lesson) => {
       if (lesson.date_of_lesson) {
@@ -93,6 +94,7 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
   const goToToday = () => {
     setCurrentDate(new Date());
     setSelectedDate(null);
+    setSelectedLessonId(null);
   };
 
   const formatDateKey = (date: Date): string => {
@@ -170,6 +172,11 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
     };
 
     return colors[subject] || "bg-gray-500";
+  };
+
+  const handleLessonClick = (lesson: LessonPlanTeacher) => {
+    setSelectedLessonId(lesson.id);
+    onLessonClick(lesson);
   };
 
   if (loading) {
@@ -286,7 +293,10 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2, delay: index * 0.01 }}
-                    onClick={() => setSelectedDate(date)}
+                    onClick={() => {
+                      setSelectedDate(date);
+                      setSelectedLessonId(null);
+                    }}
                     className={cn(
                       "aspect-square p-1 rounded-lg border transition-all duration-200",
                       "hover:border-primary/50 hover:bg-accent/30 hover:scale-105",
@@ -366,41 +376,48 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
 
                 {selectedDateLessons.length > 0 ? (
                   <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-                    {selectedDateLessons.map((lesson, idx) => (
-                      <motion.button
-                        key={lesson.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        onClick={() => onLessonClick(lesson)}
-                        className={cn(
-                          "w-full text-left p-3 rounded-lg border transition-all",
-                          "hover:border-primary hover:bg-accent/30 hover:scale-[1.02]",
-                          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={cn(
-                              "w-3 h-3 rounded-full mt-1 flex-shrink-0",
-                              getSubjectColor(lesson.subject)
-                            )}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">{lesson.topic}</h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {lesson.subject}
-                              {lesson.class && ` • ${lesson.class}`}
-                            </p>
-                            {lesson.objectives && (
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {lesson.objectives}
+                    {selectedDateLessons.map((lesson, idx) => {
+                      const isSelected = selectedLessonId === lesson.id;
+                      
+                      return (
+                        <motion.button
+                          key={lesson.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          onClick={() => handleLessonClick(lesson)}
+                          className={cn(
+                            "w-full text-left p-3 rounded-lg border-2 transition-all duration-200",
+                            "hover:border-primary/60 hover:bg-accent/50 hover:scale-[1.02]",
+                            "active:scale-[0.98]",
+                            isSelected 
+                              ? "border-primary bg-primary/5 shadow-sm" 
+                              : "border-border hover:shadow-sm"
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={cn(
+                                "w-3 h-3 rounded-full mt-1 flex-shrink-0",
+                                getSubjectColor(lesson.subject)
+                              )}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">{lesson.topic}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {lesson.subject}
+                                {lesson.class && ` • ${lesson.class}`}
                               </p>
-                            )}
+                              {lesson.objectives && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  {lesson.objectives}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </motion.button>
-                    ))}
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
@@ -434,7 +451,11 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded ring-2 ring-primary bg-primary/10" />
-            <span className="text-muted-foreground">Selected</span>
+            <span className="text-muted-foreground">Selected Date</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded border-2 border-primary bg-primary/5" />
+            <span className="text-muted-foreground">Selected Lesson</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex gap-0.5">
