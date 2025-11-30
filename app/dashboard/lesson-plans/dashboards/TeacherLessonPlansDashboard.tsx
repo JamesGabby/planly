@@ -14,7 +14,7 @@ import { useUserMode } from "@/components/UserModeContext";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LessonCardStudent } from "../components/cards/lesson-cards/LessonCardTeacher";
+import { LessonCardTeacher } from "../components/cards/lesson-cards/LessonCardTeacher";
 import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
 import { LessonPlanTutor } from "../types/lesson_tutor";
 import { TeacherCalendarView } from "../components/calendars/TeacherCalendarView";
@@ -319,7 +319,7 @@ export default function TeacherLessonPlansDashboard() {
     }
 
     if (mode === "teacher") {
-      return <LessonCardStudent lesson={lp as LessonPlanTeacher} {...commonProps} />;
+      return <LessonCardTeacher lesson={lp as LessonPlanTeacher} {...commonProps} />;
     }
 
     return null;
