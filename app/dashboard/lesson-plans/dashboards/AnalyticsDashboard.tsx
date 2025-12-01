@@ -4,8 +4,6 @@
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -61,7 +59,18 @@ interface Props {
   data: AnalyticsData;
 }
 
-// components/analytics/AnalyticsDashboard.tsx (continued - add these to the same file)
+// Define Lesson interface
+interface Lesson {
+  id: string | number;
+  topic: string;
+  subject: string;
+  first_name?: string;
+  last_name?: string;
+  class?: string;
+  date_of_lesson?: string;
+  time_of_lesson?: string;
+  evaluation?: string | boolean;
+}
 
 // MetricCard Component
 interface MetricCardProps {
@@ -255,7 +264,7 @@ function InsightCard({ title, data }: InsightCardProps) {
 interface LessonListProps {
   title: string;
   subtitle: string;
-  lessons: any[];
+  lessons: Lesson[];
   emptyMessage: string;
   isUpcoming?: boolean;
 }
@@ -266,14 +275,14 @@ function LessonList({ title, subtitle, lessons, emptyMessage, isUpcoming = false
       <div className="flex items-start gap-3 mb-4">
         <div className={clsx(
           'p-2 rounded-lg',
-          isUpcoming 
-            ? 'bg-blue-100 dark:bg-blue-900/30' 
+          isUpcoming
+            ? 'bg-blue-100 dark:bg-blue-900/30'
             : 'bg-gray-100 dark:bg-gray-700'
         )}>
           <Calendar className={clsx(
             'w-5 h-5',
-            isUpcoming 
-              ? 'text-blue-600 dark:text-blue-400' 
+            isUpcoming
+              ? 'text-blue-600 dark:text-blue-400'
               : 'text-gray-600 dark:text-gray-400'
           )} />
         </div>
@@ -302,7 +311,7 @@ function LessonList({ title, subtitle, lessons, emptyMessage, isUpcoming = false
 
 // LessonItem Component
 interface LessonItemProps {
-  lesson: any;
+  lesson: Lesson;
   isUpcoming?: boolean;
 }
 
@@ -405,7 +414,7 @@ export function AnalyticsDashboard({ data }: Props) {
         />
       </div>
 
-      {/* NEW: AI Insights Section */}
+      {/* AI Insights Section */}
       <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800 p-6">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg">
@@ -455,9 +464,8 @@ export function AnalyticsDashboard({ data }: Props) {
         <Alert
           type="info"
           title="Special Educational Needs"
-          message={`You have ${data.overview.studentsWithSEN} student${
-            data.overview.studentsWithSEN !== 1 ? 's' : ''
-          } with documented SEN. Review their profiles for tailored lesson planning.`}
+          message={`You have ${data.overview.studentsWithSEN} student${data.overview.studentsWithSEN !== 1 ? 's' : ''
+            } with documented SEN. Review their profiles for tailored lesson planning.`}
         />
       )}
 
@@ -569,9 +577,10 @@ export function AnalyticsDashboard({ data }: Props) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
+                  label={(props) => {
+                    const { name, percent } = props;
+                    return `${name || ''}: ${((percent ?? 0) * 100).toFixed(0)}%`;
+                  }}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
@@ -639,7 +648,7 @@ export function AnalyticsDashboard({ data }: Props) {
             { name: 'Without Homework', value: data.lessonsWithHomework.without, color: COLORS.danger },
           ]}
         />
-        
+
         <InsightCard
           title="Lesson Evaluation"
           data={[
@@ -682,7 +691,7 @@ export function AnalyticsDashboard({ data }: Props) {
           emptyMessage="No upcoming lessons scheduled"
           isUpcoming
         />
-        
+
         <LessonList
           title="Recent Lessons"
           subtitle="Your recently taught lessons"
@@ -693,5 +702,3 @@ export function AnalyticsDashboard({ data }: Props) {
     </div>
   );
 }
-
-// Sub-components will be in the next part
