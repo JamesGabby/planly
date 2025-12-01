@@ -22,13 +22,13 @@ export default function ClassesOverview({ classes }: ClassesOverviewProps) {
         </h2>
         <div className="flex items-center gap-3">
           <Link
-            href="/classes"
+            href="/dashboard/classes"
             className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
           >
             View all
           </Link>
           <Link
-            href="/classes/new"
+            href="/dashboard/classes/new"
             className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -44,7 +44,7 @@ export default function ClassesOverview({ classes }: ClassesOverviewProps) {
             No classes created yet
           </p>
           <Link
-            href="/classes/new"
+            href="/dashboard/classes/new"
             className="inline-block px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
             Create your first class
@@ -58,7 +58,7 @@ export default function ClassesOverview({ classes }: ClassesOverviewProps) {
             return (
               <Link
                 key={classItem.class_id}
-                href={`/classes/${classItem.class_id}`}
+                href={`/dashboard/classes/${classItem.class_id}`}
                 className="block p-5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all group"
               >
                 <div className="flex items-start justify-between mb-3">
@@ -67,7 +67,7 @@ export default function ClassesOverview({ classes }: ClassesOverviewProps) {
                   </div>
                   {classItem.year_group && (
                     <span className="px-2 py-1 rounded text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-                      Year {classItem.year_group}
+                      {classItem.year_group}
                     </span>
                   )}
                 </div>

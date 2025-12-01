@@ -51,7 +51,7 @@ export default function RecentLessons({ lessons }: RecentLessonsProps) {
           {lessons.map((lesson) => (
             <Link
               key={lesson.id}
-              href={`/${lesson.type === 'teacher' ? 'teacher' : 'tutor'}-lessons/${lesson.id}`}
+              href={`/dashboard/lesson-plans/lesson/${lesson.type === 'teacher' ? 'teacher' : 'tutor'}/${lesson.id}`}
               className="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
             >
               <div className="flex items-start gap-3">

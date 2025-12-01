@@ -4,7 +4,7 @@ import { Plus, Users, GraduationCap, Sparkles } from 'lucide-react';
 export default function QuickActions() {
   const actions = [
     {
-      href: '/lessons/new',
+      href: '/dashboard/lesson-plans/new',
       label: 'Create Lesson Plan',
       icon: <Plus className="w-5 h-5" />,
       color: 'bg-blue-500 hover:bg-blue-600',
@@ -16,13 +16,13 @@ export default function QuickActions() {
       color: 'bg-purple-500 hover:bg-purple-600',
     },
     {
-      href: '/students',
+      href: '/dashboard/student-profiles',
       label: 'Manage Students',
       icon: <Users className="w-5 h-5" />,
       color: 'bg-green-500 hover:bg-green-600',
     },
     {
-      href: '/classes',
+      href: '/dashboard/classes',
       label: 'View Classes',
       icon: <GraduationCap className="w-5 h-5" />,
       color: 'bg-orange-500 hover:bg-orange-600',

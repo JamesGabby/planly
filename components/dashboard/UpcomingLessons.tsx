@@ -81,7 +81,7 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
           {lessons.map((lesson) => (
             <Link
               key={lesson.id}
-              href={`/${lesson.type === 'teacher' ? 'teacher' : 'tutor'}-lessons/${lesson.id}`}
+              href={`/dashboard/lesson-plans/lesson/${lesson.type === 'teacher' ? 'teacher' : 'tutor'}/${lesson.id}`}
               className="block p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all"
             >
               <div className="flex items-start justify-between gap-4">
