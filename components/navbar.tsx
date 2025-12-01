@@ -30,6 +30,7 @@ export function Navbar() {
   }, []);
 
   const baseLinks = [
+    { name: "Dashboard", href: "/dashboard" },
     { name: "Lessons", href: "/dashboard/lesson-plans" },
     { name: "Students", href: "/dashboard/student-profiles" },
     { name: "Analytics", href: "/dashboard/analytics" },
