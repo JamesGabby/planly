@@ -26,9 +26,9 @@ import {
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { StudentProfileTutor } from "../../lesson-plans/types/student_profile_tutor";
+import { StudentProfileTutor } from "../../../lesson-plans/types/student_profile_tutor";
 import { motion, AnimatePresence } from "framer-motion";
-import StudentProfileSkeleton from "../../lesson-plans/skeletons/StudentProfileSkeleton";
+import StudentProfileSkeleton from "../../../lesson-plans/skeletons/StudentProfileSkeleton";
 
 interface Props {
   params: Promise<{ id: string }>;
