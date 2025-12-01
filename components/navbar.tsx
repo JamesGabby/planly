@@ -78,7 +78,11 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1 text-sm font-medium">
           {navLinks.map((link) => {
-            const isActive = pathname.startsWith(link.href);
+            // Fix: Use exact match for dashboard, startsWith for sub-routes
+            const isActive = link.href === "/dashboard" 
+              ? pathname === "/dashboard"
+              : pathname.startsWith(link.href);
+            
             return (
               <Link
                 key={link.name}
@@ -148,7 +152,11 @@ export function Navbar() {
           
           <div className="relative flex flex-col px-6 py-6 space-y-2 max-w-7xl mx-auto">
             {navLinks.map((link) => {
-              const isActive = pathname.startsWith(link.href);
+              // Fix: Use exact match for dashboard, startsWith for sub-routes
+              const isActive = link.href === "/dashboard" 
+                ? pathname === "/dashboard"
+                : pathname.startsWith(link.href);
+              
               return (
                 <Link
                   key={link.name}
