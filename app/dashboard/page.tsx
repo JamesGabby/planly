@@ -167,7 +167,7 @@ export default async function DashboardPage() {
             Welcome back! 👋
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Here's what's happening with your lessons today
+            {"Here's what's happening with your lessons today"}
           </p>
         </div>
 

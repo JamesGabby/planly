@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Plus, Users, BookOpen, GraduationCap, Sparkles } from 'lucide-react';
+import { Plus, Users, GraduationCap, Sparkles } from 'lucide-react';
 
 export default function QuickActions() {
   const actions = [
