@@ -1,6 +1,5 @@
 'use client'
 
-import { use } from 'react'
 import { useFormStatus } from 'react-dom'
 import { signIn } from '@/app/actions/auth'
 import Link from 'next/link'
@@ -49,11 +48,8 @@ function SubmitButton() {
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>
+  searchParams: { next?: string; error?: string }
 }) {
-  // Unwrap the searchParams promise
-  const params = use(searchParams)
-  
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
@@ -77,7 +73,7 @@ export default function LoginPage({
           </div>
 
           {/* Error Message */}
-          {params.error && (
+          {searchParams.error && (
             <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-800 ring-1 ring-red-200">
               <div className="flex items-start">
                 <svg
@@ -91,7 +87,7 @@ export default function LoginPage({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>{decodeURIComponent(params.error)}</span>
+                <span>{decodeURIComponent(searchParams.error)}</span>
               </div>
             </div>
           )}
@@ -99,8 +95,8 @@ export default function LoginPage({
           {/* Form */}
           <form action={signIn} className="space-y-6">
             {/* Hidden next parameter */}
-            {params.next && (
-              <input type="hidden" name="next" value={params.next} />
+            {searchParams.next && (
+              <input type="hidden" name="next" value={searchParams.next} />
             )}
 
             {/* Email Field */}
@@ -231,7 +227,7 @@ export default function LoginPage({
         <p className="mt-8 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="font-semibold text-blue-600 hover:text-blue-500"
           >
             Sign up for free
