@@ -39,9 +39,10 @@ export function Navbar() {
   const navLinks =
     mode !== "tutor"
       ? [
-          baseLinks[0],
-          { name: "Classes", href: "/dashboard/classes" },
-          ...baseLinks.slice(1),
+          baseLinks[0],  // Dashboard
+          baseLinks[1],  // Lessons
+          { name: "Classes", href: "/dashboard/classes" },  // Classes
+          ...baseLinks.slice(2),  // Students, Analytics
         ]
       : baseLinks;
 
