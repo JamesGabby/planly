@@ -70,7 +70,7 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
             No upcoming lessons scheduled
           </p>
           <Link
-            href="/lessons/new"
+            href="/dashboard/lesson-plans/new"
             className="inline-block mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
             Create a lesson
