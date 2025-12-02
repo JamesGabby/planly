@@ -14,6 +14,7 @@ import {
   MoreVertical,
   Info,
   ExternalLink,
+  Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { StudentProfileTeacher } from "../../../types/student_profile_teacher";
 import {
@@ -32,11 +34,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface StudentCardTeacherProps {
   student: StudentProfileTeacher;
   onDelete: () => void;
   onDuplicate: () => void;
+}
+
+interface StudentClass {
+  class_id: string;
+  class_name: string;
 }
 
 export function StudentCardTeacher({
@@ -45,10 +60,58 @@ export function StudentCardTeacher({
   onDuplicate,
 }: StudentCardTeacherProps) {
   const router = useRouter();
+  const supabase = createClient();
+  const [classes, setClasses] = useState<StudentClass[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [showAllClasses, setShowAllClasses] = useState(false);
+
+  const MAX_VISIBLE_CLASSES = 3;
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      setLoadingClasses(true);
+      try {
+        const { data, error } = await supabase
+          .from("class_students")
+          .select(`
+            class_id,
+            classes:class_id (
+              class_id,
+              class_name
+            )
+          `)
+          .eq("student_id", student.student_id);
+
+        if (error) throw error;
+
+        const studentClasses = data
+          ?.map((item: any) => item.classes)
+          .filter(Boolean)
+          .map((c: any) => ({
+            class_id: c.class_id,
+            class_name: c.class_name,
+          })) || [];
+
+        setClasses(studentClasses);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+        setClasses([]);
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+
+    fetchClasses();
+  }, [student.student_id, supabase]);
 
   const fullName =
     `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||
     "Unnamed Student";
+
+  const visibleClasses = showAllClasses 
+    ? classes 
+    : classes.slice(0, MAX_VISIBLE_CLASSES);
+  const remainingCount = classes.length - MAX_VISIBLE_CLASSES;
 
   const sections = [
     {
@@ -103,6 +166,11 @@ export function StudentCardTeacher({
     onDelete();
   };
 
+  const handleClassClick = (classId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/dashboard/classes/${classId}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -120,7 +188,7 @@ export function StudentCardTeacher({
         <CardHeader className="p-4 sm:p-5 pb-3 space-y-3">
           <div className="flex items-start justify-between gap-3">
             {/* Student Info */}
-            <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex-1 min-w-0 space-y-2.5">
               <div className="flex items-start gap-2">
                 <CardTitle
                   className={cn(
@@ -132,12 +200,90 @@ export function StudentCardTeacher({
                 </CardTitle>
               </div>
 
-              {/* Class Info */}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">
-                  {student.class_name || "No class assigned"}
-                </span>
+              {/* Classes Info */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+                  <span className="font-medium">
+                    {loadingClasses 
+                      ? "Loading classes..." 
+                      : classes.length === 0 
+                        ? "No classes" 
+                        : `${classes.length} ${classes.length === 1 ? "class" : "classes"}`
+                    }
+                  </span>
+                </div>
+
+                {/* Class Badges */}
+                {!loadingClasses && classes.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {visibleClasses.map((cls) => (
+                      <TooltipProvider key={cls.class_id}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-secondary/80 transition-colors text-xs px-2 py-0.5 max-w-[120px]"
+                              onClick={(e) => handleClassClick(cls.class_id, e)}
+                            >
+                              <span className="truncate">{cls.class_name}</span>
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Click to view {cls.class_name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+
+                    {/* Show More Button */}
+                    {!showAllClasses && remainingCount > 0 && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="outline"
+                              className="cursor-pointer hover:bg-accent transition-colors text-xs px-2 py-0.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAllClasses(true);
+                              }}
+                            >
+                              <Plus className="w-3 h-3 mr-0.5" />
+                              {remainingCount}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Show {remainingCount} more {remainingCount === 1 ? "class" : "classes"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+
+                    {/* Show Less Button */}
+                    {showAllClasses && classes.length > MAX_VISIBLE_CLASSES && (
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer hover:bg-accent transition-colors text-xs px-2 py-0.5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAllClasses(false);
+                        }}
+                      >
+                        Show less
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* No Classes State */}
+                {!loadingClasses && classes.length === 0 && (
+                  <div className="mt-1">
+                    <Badge variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground">
+                      Not assigned to any class
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
 
