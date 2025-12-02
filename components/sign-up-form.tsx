@@ -16,6 +16,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+function capitalizeName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => 
+      word
+        .split('-')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('-')
+    )
+    .join(' ')
+    .replace(/'\w/g, match => match.toUpperCase()); // Handle O'Brien, etc.
+}
+
 export function SignUpForm({
   className,
   ...props
@@ -40,6 +55,9 @@ export function SignUpForm({
       return;
     }
 
+    // Capitalize the name before storing
+    const capitalizedName = capitalizeName(name);
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -47,8 +65,8 @@ export function SignUpForm({
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: name,
-            display_name: name,
+            full_name: capitalizedName,
+            display_name: capitalizedName,
           },
         },
       });
