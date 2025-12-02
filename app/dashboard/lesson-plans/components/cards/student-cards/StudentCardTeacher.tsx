@@ -54,6 +54,14 @@ interface StudentClass {
   class_name: string;
 }
 
+interface ClassStudentData {
+  class_id: string;
+  classes: {
+    class_id: string;
+    class_name: string;
+  } | null;
+}
+
 export function StudentCardTeacher({
   student,
   onDelete,
@@ -84,10 +92,12 @@ export function StudentCardTeacher({
 
         if (error) throw error;
 
-        const studentClasses = data
-          ?.map((item: any) => item.classes)
-          .filter(Boolean)
-          .map((c: any) => ({
+        const typedData = data as unknown as ClassStudentData[];
+        
+        const studentClasses = typedData
+          ?.map((item) => item.classes)
+          .filter((c): c is NonNullable<typeof c> => c !== null)
+          .map((c) => ({
             class_id: c.class_id,
             class_name: c.class_name,
           })) || [];
