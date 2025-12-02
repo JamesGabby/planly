@@ -331,7 +331,7 @@ export async function POST(request: NextRequest) {
     const body: GenerateLessonRequest = await request.json();
 
     if (!body.planType) {
-      body.planType = "standard"; // Default to standard if not specified
+      body.planType = "standard";
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -368,7 +368,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
     let text = data.candidates[0].content.parts[0].text;
 
-    // Clean up response (remove markdown code blocks if present)
+    // Clean up response
     text = text.trim();
     if (text.startsWith("```json")) {
       text = text.replace(/^```json\n?/g, "").replace(/\n?```$/g, "");
@@ -385,11 +385,112 @@ export async function POST(request: NextRequest) {
       throw new Error("AI returned invalid JSON. Please try again.");
     }
 
+    // ============================================
+    // ENSURE REQUIRED FIELDS EXIST
+    // ============================================
+    const ensureFieldsExist = (
+      plan: Record<string, unknown>,
+      planType: string,
+      studentName?: string
+    ) => {
+      const name = studentName || "the student";
+
+      // Evaluation defaults - with examples
+      if (
+        !plan.evaluation ||
+        (Array.isArray(plan.evaluation) && plan.evaluation.length === 0)
+      ) {
+        if (planType === "tutor") {
+          plan.evaluation = [
+            `**Student Progress:** (e.g., ${name} made good progress toward today's objectives, demonstrating understanding of the core concept)`,
+            "**Concepts Grasped:** (e.g., Quickly understood how to set up equations, showed confidence with basic problems)",
+            "**Areas Needing Support:** (e.g., Still struggling with word problems - needs more practice translating words to equations)",
+            "**Effective Strategies:** (e.g., Visual diagrams really helped, breaking problems into smaller steps reduced anxiety)",
+            "**Confidence Level:** (e.g., Started at 4/10, ended at 7/10 - noticeable improvement mid-session)",
+            "**Next Session Focus:** (e.g., Revisit word problems with simpler examples before progressing)",
+          ];
+        } else {
+          plan.evaluation = [
+            "**Objectives Achieved:** (e.g., Most students met learning objectives, evidenced by exit ticket results)",
+            "**Evidence of Learning:** (e.g., Student discussions showed good understanding of key concepts)",
+            "**Misconceptions Observed:** (e.g., Several students confused X with Y - address next lesson)",
+            "**Improvements for Next Time:** (e.g., Allow more time for group activity, simplify initial examples)",
+          ];
+        }
+      }
+
+      // Notes defaults - with examples
+      if (
+        !plan.notes ||
+        (Array.isArray(plan.notes) && plan.notes.length === 0)
+      ) {
+        if (planType === "tutor") {
+          plan.notes = [
+            "**Important Reminders:**",
+            `(e.g., ${name} has a test next week - focus on exam technique)`,
+            "(e.g., Parent requested focus on mental maths strategies)",
+            "",
+            "**Misconceptions Observed:**",
+            "(e.g., Keeps forgetting to flip the sign when multiplying negatives)",
+            "(e.g., Confuses area and perimeter formulas)",
+            "",
+            "**Timing Notes:**",
+            "(e.g., Starter took longer than expected - reduce to 5 mins next time)",
+            "(e.g., Student works best in 15-min focused blocks with short breaks)",
+            "",
+            "**Engagement Observations:**",
+            "(e.g., Energy dropped after 30 mins - try a movement break next time)",
+            "(e.g., Really engaged when using real-world football examples)",
+            "",
+            "**Learning Style Notes:**",
+            "(e.g., Responds well to visual diagrams and colour-coding)",
+            "(e.g., Prefers to try problems independently before asking for help)",
+            "(e.g., Learns better when talking through their thinking aloud)",
+            "",
+            "**Next Session Preparation:**",
+            "(e.g., Print worksheet on fractions, prepare number line visual)",
+            "(e.g., Find video explanation as alternative approach)",
+            "",
+            "**Parent Communication:**",
+            "(e.g., Share that student mastered multiplication tables 1-5)",
+            "(e.g., Suggest 10 mins daily practice on times tables app)",
+            "(e.g., Discuss moving to more challenging material next month)",
+          ];
+        } else {
+          plan.notes = [
+            "**Important Reminders:**",
+            "(e.g., Year 11 mock exams in 3 weeks - adjust pace accordingly)",
+            "",
+            "**Common Misconceptions:**",
+            "(e.g., Students often confuse correlation with causation)",
+            "",
+            "**Timing Considerations:**",
+            "(e.g., Group work needs 5 extra minutes for this class)",
+            "",
+            "**Behaviour Management:**",
+            "(e.g., Seat X away from Y, use proximity praise for Z)",
+            "",
+            "**Differentiation Notes:**",
+            "(e.g., Table 3 needs additional scaffolding, Table 1 ready for extension)",
+          ];
+        }
+      }
+
+      return plan;
+    };
+
+    lessonPlan = ensureFieldsExist(lessonPlan, body.planType, body.student_name);
+
     return NextResponse.json(lessonPlan);
   } catch (error) {
     console.error("API error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to generate lesson plan" },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate lesson plan",
+      },
       { status: 500 }
     );
   }

@@ -276,6 +276,7 @@ export default function NewLessonFormTutor() {
       }
 
       const generatedPlan = await response.json();
+      console.log("Generated Plan Response:", generatedPlan); // 👈 Add this
 
       // ADD THIS FORMATTING HELPER
       type BulletPointObject = {
