@@ -259,7 +259,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           {/* Desktop View */}
           <div className="hidden sm:flex sm:flex-wrap sm:items-center gap-x-4 gap-y-2 p-4 text-sm">
             <Link
-              href={`/dashboard/student-profiles/${lesson.student_id}`}
+              href={`/dashboard/student-profiles/tutor/${lesson.student_id}`}
               className="flex items-center gap-2 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
             >
               <User size={18} className="flex-shrink-0" />
@@ -288,7 +288,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
           <div className="sm:hidden">
             {/* Student Info - Prominent */}
             <Link
-              href={`/dashboard/student-profiles/${lesson.student_id}`}
+              href={`/dashboard/student-profiles/tutor/${lesson.student_id}`}
               className="block bg-gradient-to-r from-primary/5 to-primary/10 p-4 border-b border-border hover:from-primary/10 hover:to-primary/15 transition-colors"
             >
               <div className="flex items-start gap-3">

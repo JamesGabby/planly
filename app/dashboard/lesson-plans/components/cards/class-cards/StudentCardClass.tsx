@@ -6,7 +6,8 @@ import {
   BicepsFlexed,
   Target,
   AlertTriangle,
-  GraduationCap
+  GraduationCap,
+  LineChart
 } from "lucide-react";
 import {
   Card,
@@ -48,17 +49,14 @@ export function StudentCardClass({
         className={cn(
           "group relative cursor-pointer bg-card text-card-foreground border shadow-sm transition-all duration-200 flex flex-col h-[300px] sm:h-[320px] justify-between",
           "hover:shadow-md hover:border-primary/30 active:scale-[0.99]",
-          hasSEN && "border-yellow-500/70 shadow-[0_0_10px_rgba(234,179,8,0.35)]"
+          "border-border"
         )}
       >
         {/* HEADER */}
         <CardHeader className="p-4 sm:p-5 space-y-2">
           <div className="flex items-center gap-3">
             <CardTitle
-              className={cn(
-                "text-base sm:text-lg font-semibold transition-colors",
-                hasSEN ? "text-yellow-500" : "text-foreground group-hover:text-primary"
-              )}
+              className="text-base sm:text-lg font-semibold transition-colors text-foreground group-hover:text-primary"
             >
               {fullName}
             </CardTitle>
@@ -114,7 +112,7 @@ export function StudentCardClass({
 
               {student.weaknesses && (
                 <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0" />
+                  <LineChart className="w-3.5 h-3.5 mt-1 shrink-0" />
                   {student.weaknesses}
                 </p>
               )}
