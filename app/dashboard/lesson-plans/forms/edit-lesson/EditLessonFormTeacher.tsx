@@ -1304,7 +1304,7 @@ export default function EditLessonFormTeacher() {
                   </div>
                 </div>
                 <Textarea
-                  placeholder="• Reflection on students' progress...&#10;• What worked well?&#10;• What could be improved?"
+                  placeholder={"• Reflection on students' progress...\n• What worked well?\n• What could be improved?"}
                   value={lesson.evaluation || ""}
                   onChange={(e) => updateField("evaluation", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"

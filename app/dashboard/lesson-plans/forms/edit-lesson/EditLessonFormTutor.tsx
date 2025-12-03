@@ -756,7 +756,7 @@ useEffect(() => {
                           updateField("objectives", newValue);
                         }
                       }}
-                      placeholder="e.g.&#10;• Understand how to add fractions&#10;• Build confidence with word problems"
+                      placeholder={"e.g.\n• Understand how to add fractions\n• Build confidence with word problems"}
                       className={`min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm ${formErrors.objectives ? "border-destructive" : ""}`}
                     />
                     {formErrors.objectives && (
@@ -803,7 +803,7 @@ useEffect(() => {
                           updateField("outcomes", newValue);
                         }
                       }}
-                      placeholder="e.g.&#10;• Student can solve 5 fraction problems independently&#10;• Student demonstrates understanding through explanation"
+                      placeholder="e.g.\n• Student can solve 5 fraction problems independently\n• Student demonstrates understanding through explanation"
                       className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                     />
                   </div>
@@ -1021,7 +1021,7 @@ useEffect(() => {
                 </p>
 
                 <Textarea
-                  placeholder="• Practice problems to reinforce learning...&#10;• Specific exercises or worksheets...&#10;• Real-world application tasks..."
+                  placeholder="• Practice problems to reinforce learning...\n• Specific exercises or worksheets...\n• Real-world application tasks..."
                   value={lesson.homework || ""}
                   onChange={(e) => updateField("homework", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
@@ -1042,7 +1042,7 @@ useEffect(() => {
                 </p>
 
                 <Textarea
-                  placeholder="• How did the student respond to different teaching methods?&#10;• What progress was made toward objectives?&#10;• Areas to focus on next session..."
+                  placeholder="• How did the student respond to different teaching methods?\n• What progress was made toward objectives?\n• Areas to focus on next session..."
                   value={lesson.evaluation || ""}
                   onChange={(e) => updateField("evaluation", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
@@ -1063,7 +1063,7 @@ useEffect(() => {
                 </p>
 
                 <Textarea
-                  placeholder="• Student's mood and engagement level&#10;• Parent feedback or requests&#10;• Materials to prepare for next session&#10;• Learning style observations..."
+                  placeholder="• Student's mood and engagement level\n• Parent feedback or requests\n• Materials to prepare for next session\n• Learning style observations..."
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
