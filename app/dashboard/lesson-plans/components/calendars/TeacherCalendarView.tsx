@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Grid3x3 } from "lucide-react";
@@ -24,7 +24,6 @@ const MONTHS = [
 
 export function TeacherCalendarView({ lessons, onLessonClick, loading = false }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
 
   const today = useMemo(() => {
@@ -32,6 +31,9 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
     date.setHours(0, 0, 0, 0);
     return date;
   }, []);
+
+  // Initialize selectedDate to today
+  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
 
   // Group lessons by date
   const lessonsByDate = useMemo(() => {
@@ -93,7 +95,7 @@ export function TeacherCalendarView({ lessons, onLessonClick, loading = false }:
 
   const goToToday = () => {
     setCurrentDate(new Date());
-    setSelectedDate(null);
+    setSelectedDate(today);
     setSelectedLessonId(null);
   };
 

@@ -25,7 +25,6 @@ const MONTHS = [
 
 export function TutorCalendarView({ lessons, onLessonClick, loading = false }: TutorCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
 
   const today = useMemo(() => {
@@ -33,6 +32,9 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
     date.setHours(0, 0, 0, 0);
     return date;
   }, []);
+
+  // Initialize selectedDate to today
+  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
 
   // Group lessons by date
   const lessonsByDate = useMemo(() => {
@@ -94,7 +96,7 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
 
   const goToToday = () => {
     setCurrentDate(new Date());
-    setSelectedDate(null);
+    setSelectedDate(today);
     setSelectedLessonId(null);
   };
 
