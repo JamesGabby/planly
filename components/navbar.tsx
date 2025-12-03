@@ -2,7 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, Sparkles } from "lucide-react";
+import { 
+  Menu, 
+  X, 
+  Sparkles, 
+  Home, 
+  BookOpen, 
+  Users, 
+  BarChart3, 
+  GraduationCap,
+  LucideIcon 
+} from "lucide-react";
 import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -14,6 +24,12 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
+
+interface NavLink {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+}
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,19 +45,19 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const baseLinks = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Lessons", href: "/dashboard/lesson-plans" },
-    { name: "Students", href: "/dashboard/student-profiles" },
-    { name: "Analytics", href: "/dashboard/analytics" },
+  const baseLinks: NavLink[] = [
+    { name: "Home", href: "/dashboard", icon: Home },
+    { name: "Lessons", href: "/dashboard/lesson-plans", icon: BookOpen },
+    { name: "Students", href: "/dashboard/student-profiles", icon: Users },
+    { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   ];
 
-  const navLinks =
+  const navLinks: NavLink[] =
     mode !== "tutor"
       ? [
           baseLinks[0],  // Dashboard
           baseLinks[1],  // Lessons
-          { name: "Classes", href: "/dashboard/classes" },  // Classes
+          { name: "Classes", href: "/dashboard/classes", icon: GraduationCap },  // Classes
           ...baseLinks.slice(2),  // Students, Analytics
         ]
       : baseLinks;
@@ -79,10 +95,11 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1 text-sm font-medium">
           {navLinks.map((link) => {
-            // Fix: Use exact match for dashboard, startsWith for sub-routes
             const isActive = link.href === "/dashboard" 
               ? pathname === "/dashboard"
               : pathname.startsWith(link.href);
+            
+            const IconComponent = link.icon;
             
             return (
               <Link
@@ -98,7 +115,15 @@ export function Navbar() {
                   group
                 `}
               >
-                {link.name}
+                <span className="flex items-center gap-2">
+                  <IconComponent 
+                    className={`
+                      w-4 h-4 transition-all duration-300
+                      ${isActive ? "text-primary" : "text-foreground/60 group-hover:text-foreground"}
+                    `} 
+                  />
+                  {link.name}
+                </span>
                 {/* Premium animated underline */}
                 <span 
                   className={`
@@ -153,10 +178,11 @@ export function Navbar() {
           
           <div className="relative flex flex-col px-6 py-6 space-y-2 max-w-7xl mx-auto">
             {navLinks.map((link) => {
-              // Fix: Use exact match for dashboard, startsWith for sub-routes
               const isActive = link.href === "/dashboard" 
                 ? pathname === "/dashboard"
                 : pathname.startsWith(link.href);
+              
+              const IconComponent = link.icon;
               
               return (
                 <Link
@@ -173,7 +199,15 @@ export function Navbar() {
                   `}
                 >
                   <span className="flex items-center justify-between">
-                    {link.name}
+                    <span className="flex items-center gap-3">
+                      <IconComponent 
+                        className={`
+                          w-5 h-5 transition-all duration-300
+                          ${isActive ? "text-primary" : "text-foreground/60"}
+                        `} 
+                      />
+                      {link.name}
+                    </span>
                     {isActive && (
                       <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     )}
