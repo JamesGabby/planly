@@ -56,7 +56,7 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
           Upcoming Lessons
         </h2>
         <Link 
-          href="/lessons"
+          href="/dashboard/lesson-plans"
           className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
           View all
