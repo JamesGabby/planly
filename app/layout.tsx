@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { UserModeProvider } from "@/components/UserModeContext";
@@ -15,11 +15,12 @@ export const metadata: Metadata = {
   description: "Lessonly helps teachers, student teachers and tutors easily plan, organise, and deliver effective lessons.",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-quick-sand",
   display: "swap",
   subsets: ["latin"],
 });
+
 
 export default function RootLayout({
   children,
@@ -28,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased transition-colors duration-300`}>
+      <body className={`${inter.className} antialiased transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

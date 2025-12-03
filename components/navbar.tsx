@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, Sparkles } from "lucide-react";
 import { LogoutButton } from "./logout-button";
-import { Poppins } from "next/font/google";
+import { Poppins, Quicksand } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
 import { useUserMode } from "./UserModeContext";
 import { usePathname } from "next/navigation";

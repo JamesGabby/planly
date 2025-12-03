@@ -421,7 +421,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              className="text-lg px-10 py-7 border-2 border-primary-foreground/30 hover:bg-primary-foreground/10 text-primary-foreground backdrop-blur-sm"
+              className="text-lg px-10 py-7 border-2 border-primary-foreground/60 bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground backdrop-blur-sm hover:scale-[1.02] transition-all duration-300"
               asChild
             >
               <Link href="#features">View All Features</Link>
