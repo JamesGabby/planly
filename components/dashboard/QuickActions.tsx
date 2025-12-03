@@ -1,16 +1,16 @@
 import Link from 'next/link';
-import { Plus, Users, GraduationCap, Sparkles } from 'lucide-react';
+import { Users, GraduationCap, Sparkles, Newspaper } from 'lucide-react';
 
 export default function QuickActions() {
   const actions = [
     {
-      href: '/dashboard/lesson-plans/new',
-      label: 'Create Lesson Plan',
-      icon: <Plus className="w-5 h-5" />,
+      href: '/dashboard/lesson-plans',
+      label: 'View Lessons',
+      icon: <Newspaper className="w-5 h-5" />,
       color: 'bg-blue-500 hover:bg-blue-600',
     },
     {
-      href: '/lessons/ai',
+      href: '/dashboard/lesson-plans/new',
       label: 'AI Lesson Builder',
       icon: <Sparkles className="w-5 h-5" />,
       color: 'bg-purple-500 hover:bg-purple-600',
