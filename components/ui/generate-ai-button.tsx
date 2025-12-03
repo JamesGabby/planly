@@ -51,7 +51,6 @@ export function AIGenerateButton({
   isGenerating,
   disabled = false,
   label = "Generate with AI",
-  loadingLabel = "Generating...",
   className,
 }: AIGenerateButtonProps) {
   const [isHovered, setIsHovered] = useState(false);

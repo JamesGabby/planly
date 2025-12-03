@@ -742,7 +742,6 @@ export default function NewLessonFormTutor() {
                 onClick={generateLessonPlan}
                 isGenerating={generating}
                 label="Generate Tutoring Session with AI"
-                loadingLabel="Creating your session plan..."
               />
 
               <Separator />
