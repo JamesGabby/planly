@@ -268,7 +268,7 @@ export default async function AnalyticsPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/auth/login');
   }
 
   const analyticsData = await fetchAnalyticsData(user.id);
