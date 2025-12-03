@@ -187,7 +187,7 @@ export default function NewLessonFormTeacher() {
     setShowSubjectSuggestions(true);
   }
 
-  function handleSubjectInputBlur(e: React.FocusEvent) {
+  function handleSubjectInputBlur() {
     // Delay hiding to allow click on suggestion
     setTimeout(() => {
       if (!suggestionsRef.current?.contains(document.activeElement)) {
