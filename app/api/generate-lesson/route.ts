@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-type LessonPlanType = "standard" | "detailed" | "student" | "tutor";
+type LessonPlanType = "teacher" | "student" | "tutor";
 
 interface GenerateLessonRequest {
   // Common fields
@@ -16,7 +16,7 @@ interface GenerateLessonRequest {
   // Type identifier
   planType: LessonPlanType;
 
-  // Detailed/Student plan specific
+  // Detailed plan specific
   specialist_subject_knowledge_required?: string;
   knowledge_revisited?: string;
   numeracy_opportunities?: string;
@@ -48,7 +48,7 @@ ${data.outcomes ? `- Desired Outcomes: ${data.outcomes}` : ""}`;
   let jsonStructure = "";
 
   switch (data.planType) {
-    case "detailed":
+    case "teacher":
       specificContext = `
 ${data.specialist_subject_knowledge_required ? `- Specialist Knowledge: ${data.specialist_subject_knowledge_required}` : ""}
 ${data.knowledge_revisited ? `- Knowledge Revisited: ${data.knowledge_revisited}` : ""}
@@ -259,54 +259,8 @@ This is a TUTORING SESSION plan (1-on-1 or small group). Focus on:
   "evaluation": "Post-session reflection and assessment:\\n\\n**Student Progress:**\\n• What progress did ${data.student_name || "the student"} make toward today's objectives? (Rate: Excellent/Good/Some/Limited progress)\\n• Concepts they grasped well and demonstrated confidence with:\\n• Areas that still need work or caused confusion:\\n• Observed confidence level and engagement: (Rate 1-10)\\n\\n**Teaching Effectiveness:**\\n• What teaching strategies worked best today? (visual aids, worked examples, real-world connections, etc.)\\n• What would I do differently next time?\\n• Any breakthrough moments or 'aha!' insights?\\n\\n**Next Session Planning:**\\n• Focus areas for next time based on today's performance\\n• Concepts to review before introducing new material\\n• Estimated pace: Can we move forward or need to consolidate?\\n\\n**Parent Communication Notes:**\\n• Key achievements to share with parents: 'Today [student] successfully...'\\n• Practice recommendations for home: 'Please help [student] practice...'\\n• Areas where parents can provide support\\n• Next session focus and goals\\n• Any concerns or celebrations to communicate",
   "notes": "Session observations and reminders:\\n\\n**Student Profile:**\\n• Engagement level today: (High/Medium/Low) - Note: [What affected this?]\\n• Confidence level: (Growing/Stable/Needs boost) - Note: [Specific observations]\\n• Learning style preferences: [What worked: visual/verbal/hands-on/written?]\\n• Pace that works best: [Fast/Moderate/Slow and steady]\\n\\n**Teaching Strategies That Worked:**\\n• [e.g., 'Diagrams really helped with understanding']\\n• [e.g., 'Real-world examples about sports clicked']\\n• [e.g., 'Breaking into smaller steps reduced anxiety']\\n\\n**Motivational Notes:**\\n• What encouragement/praise resonates with this student?\\n• Rewards or goals that motivate them\\n• Topics or contexts they find interesting\\n\\n**Important Reminders:**\\n• Specific struggles to be aware of: [e.g., 'Gets confused when multiple steps']\\n• Strengths to build on: [e.g., 'Great at spotting patterns']\\n• Parent preferences or requests: [Any special instructions]\\n• Best times/days for this student (energy levels, focus)\\n\\n**Preparation for Next Session:**\\n• Materials to bring: [Worksheets, specific textbook, tools]\\n• Concepts to review at start of next session\\n• New topics to introduce if ready\\n• Questions to ask to check retention of today's learning\\n• Adjustments to make based on today's observations"
 }`;
-      break;
 
-    default: // standard
-      jsonStructure = `{
-  "objectives": "• Clear learning objectives (3-4 specific objectives)",
-  "outcomes": "• Measurable learning outcomes (3-4 outcomes)",
-  "homework": "• Relevant homework task that reinforces learning",
-  "evaluation": "• How to assess if learning objectives were met\\n• Questions to ask\\n• Success criteria",
-  "notes": "• Important reminders for the teacher\\n• Differentiation strategies\\n• Common misconceptions to address",
-  "resources": [
-    {"title": "Resource 1", "url": ""},
-    {"title": "Resource 2", "url": ""}
-  ],
-  "lesson_structure": [
-    {
-      "stage": "Starter",
-      "duration": "10 min",
-      "teaching": "What the teacher does/says to engage students and introduce the topic",
-      "learning": "What students do to activate prior knowledge and prepare for learning",
-      "assessing": "How to check understanding through questioning or quick activities",
-      "adapting": "Support for students with SEN (scaffolding, visuals) and stretch for high achievers (deeper questions)"
-    },
-    {
-      "stage": "Main Activity 1",
-      "duration": "20 min",
-      "teaching": "Teaching activities and explicit instruction",
-      "learning": "Student activities and engagement with content",
-      "assessing": "Assessment methods and checks for understanding",
-      "adapting": "Differentiation strategies for different learners"
-    },
-    {
-      "stage": "Main Activity 2",
-      "duration": "20 min",
-      "teaching": "Teaching activities building on previous learning",
-      "learning": "Student activities with increased independence",
-      "assessing": "Ongoing assessment and feedback",
-      "adapting": "Support and challenge strategies"
-    },
-    {
-      "stage": "Plenary",
-      "duration": "10 min",
-      "teaching": "Summary and consolidation activities",
-      "learning": "Student reflection and demonstration of learning",
-      "assessing": "Check that learning objectives have been achieved",
-      "adapting": "Ensure all students can demonstrate their learning"
-    }
-  ]
-}`;
+   
   }
 
   return `${basePrompt}${specificContext}
@@ -329,10 +283,6 @@ ${data.year_group ? `- Make it age-appropriate for ${data.year_group}` : "- Make
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateLessonRequest = await request.json();
-
-    if (!body.planType) {
-      body.planType = "standard";
-    }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {

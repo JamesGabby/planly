@@ -250,7 +250,7 @@ export default function NewLessonFormTeacher() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          planType: "detailed",
+          planType: "teacher",
           topic: lesson.topic,
           subject: lesson.subject,
           year_group: lesson.year_group,
