@@ -17,7 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info, Loader2, Sparkles } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { AIGenerateButton } from "@/components/ui/generate-ai-button";
 

@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { AIGenerateButton } from "@/components/ui/generate-ai-button";
 
