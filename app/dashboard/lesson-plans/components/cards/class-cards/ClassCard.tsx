@@ -125,15 +125,27 @@ export function ClassCard({ class_data, onEdit, onDelete }: ClassCardProps) {
             </p>
           ) : (
             <div className="space-y-1 overflow-y-auto max-h-[160px] pr-1">
-              {class_data.students.map((student: StudentProfileTeacher) => (
-                <div
-                  key={student.student_id}
-                  className="text-sm flex items-center gap-2 text-foreground"
-                >
-                  <User className="w-3.5 h-3.5 text-muted-foreground" />
-                  {student.first_name} {student.last_name}
-                </div>
-              ))}
+              {class_data.students.map((student: StudentProfileTeacher) => {
+                const hasSEN = student.special_educational_needs?.trim();
+                
+                return (
+                  <div
+                    key={student.student_id}
+                    className={cn(
+                      "text-sm flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors",
+                      hasSEN 
+                        ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 font-medium" 
+                        : "text-foreground"
+                    )}
+                  >
+                    <User className={cn(
+                      "w-3.5 h-3.5",
+                      hasSEN ? "text-yellow-600 dark:text-yellow-500" : "text-muted-foreground"
+                    )} />
+                    {student.first_name} {student.last_name}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
