@@ -22,6 +22,71 @@ import { ModeSwitcher } from "@/components/ModeSwitcher";
 
 const supabase = createClient();
 
+// UK subjects taught from Year 1 to Year 13
+const UK_SCHOOL_SUBJECTS = [
+  // Core subjects
+  "English",
+  "Mathematics",
+  "Science",
+  // Foundation subjects (Primary & Secondary)
+  "Art and Design",
+  "Citizenship",
+  "Computing",
+  "Design and Technology",
+  "Geography",
+  "History",
+  "Music",
+  "Physical Education",
+  "PSHE",
+  // Languages
+  "French",
+  "Spanish",
+  "German",
+  "Mandarin",
+  "Latin",
+  // Secondary/GCSE/A-Level subjects
+  "Biology",
+  "Chemistry",
+  "Physics",
+  "English Literature",
+  "English Language",
+  "Religious Education",
+  "Business Studies",
+  "Economics",
+  "Psychology",
+  "Sociology",
+  "Philosophy",
+  "Politics",
+  "Law",
+  "Media Studies",
+  "Film Studies",
+  "Drama",
+  "Dance",
+  "Photography",
+  "Graphic Design",
+  "Textiles",
+  "Food Technology",
+  "Health and Social Care",
+  "Child Development",
+  "Travel and Tourism",
+  "Accounting",
+  "Statistics",
+  "Further Mathematics",
+  "Computer Science",
+  "ICT",
+  "Electronics",
+  "Engineering",
+  "Product Design",
+  "Classical Civilisation",
+  "Ancient History",
+  "Archaeology",
+  "Geology",
+  "Astronomy",
+  "Environmental Science",
+  "Sports Science",
+  "Music Technology",
+];
+
 export default function NewLessonFormTeacher() {
   const router = useRouter();
 
@@ -77,6 +142,100 @@ export default function NewLessonFormTeacher() {
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [showCustomClassInput, setShowCustomClassInput] = useState(false);
   const [customClassName, setCustomClassName] = useState("");
+
+  const [subjectInputValue, setSubjectInputValue] = useState("");
+  const [showSubjectSuggestions, setShowSubjectSuggestions] = useState(false);
+  const [filteredSubjects, setFilteredSubjects] = useState<string[]>([]);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const subjectInputRef = React.useRef<HTMLInputElement>(null);
+  const suggestionsRef = React.useRef<HTMLDivElement>(null);
+
+  function handleSubjectInputChange(value: string) {
+    setSubjectInputValue(value);
+    updateField("subject", value);
+
+    if (value.trim()) {
+      const filtered = UK_SCHOOL_SUBJECTS.filter(subject =>
+        subject.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredSubjects(filtered);
+      setShowSubjectSuggestions(true);
+      setHighlightedIndex(-1);
+    } else {
+      setFilteredSubjects(UK_SCHOOL_SUBJECTS);
+      setShowSubjectSuggestions(false);
+    }
+  }
+
+  function handleSubjectSelect(subject: string) {
+    setSubjectInputValue(subject);
+    updateField("subject", subject);
+    setShowSubjectSuggestions(false);
+    setHighlightedIndex(-1);
+  }
+
+  function handleSubjectInputFocus() {
+    if (subjectInputValue.trim()) {
+      const filtered = UK_SCHOOL_SUBJECTS.filter(subject =>
+        subject.toLowerCase().includes(subjectInputValue.toLowerCase())
+      );
+      setFilteredSubjects(filtered);
+    } else {
+      setFilteredSubjects(UK_SCHOOL_SUBJECTS);
+    }
+    setShowSubjectSuggestions(true);
+  }
+
+  function handleSubjectInputBlur(e: React.FocusEvent) {
+    // Delay hiding to allow click on suggestion
+    setTimeout(() => {
+      if (!suggestionsRef.current?.contains(document.activeElement)) {
+        setShowSubjectSuggestions(false);
+        setHighlightedIndex(-1);
+      }
+    }, 150);
+  }
+
+  function handleSubjectKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!showSubjectSuggestions || filteredSubjects.length === 0) return;
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex(prev =>
+          prev < filteredSubjects.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < filteredSubjects.length) {
+          handleSubjectSelect(filteredSubjects[highlightedIndex]);
+        }
+        break;
+      case "Escape":
+        setShowSubjectSuggestions(false);
+        setHighlightedIndex(-1);
+        break;
+      case "Tab":
+        setShowSubjectSuggestions(false);
+        setHighlightedIndex(-1);
+        break;
+    }
+  }
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && suggestionsRef.current) {
+      const highlightedElement = suggestionsRef.current.children[highlightedIndex] as HTMLElement;
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, [highlightedIndex]);
 
   // Fetch classes on mount
   useEffect(() => {
@@ -670,12 +829,77 @@ export default function NewLessonFormTeacher() {
                     <Label className={`text-sm ${formErrors.subject ? "text-destructive" : ""}`}>
                       Subject <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      value={lesson.subject || ""}
-                      onChange={(e) => updateField("subject", e.target.value)}
-                      placeholder="e.g., Maths, English, Science..."
-                      className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}
-                    />
+
+                    <div className="relative">
+                      <Input
+                        ref={subjectInputRef}
+                        value={subjectInputValue}
+                        onChange={(e) => handleSubjectInputChange(e.target.value)}
+                        onFocus={handleSubjectInputFocus}
+                        onBlur={handleSubjectInputBlur}
+                        onKeyDown={handleSubjectKeyDown}
+                        placeholder="Start typing to search subjects..."
+                        className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}
+                        autoComplete="off"
+                        role="combobox"
+                        aria-expanded={showSubjectSuggestions}
+                        aria-autocomplete="list"
+                        aria-controls="subject-suggestions"
+                      />
+
+                      {showSubjectSuggestions && (
+                        <div
+                          ref={suggestionsRef}
+                          id="subject-suggestions"
+                          role="listbox"
+                          className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-popover border border-border rounded-md shadow-lg"
+                        >
+                          {filteredSubjects.length > 0 ? (
+                            filteredSubjects.map((subject, index) => (
+                              <div
+                                key={subject}
+                                role="option"
+                                aria-selected={highlightedIndex === index}
+                                className={`px-3 py-2 cursor-pointer text-sm transition-colors ${highlightedIndex === index
+                                    ? "bg-accent text-accent-foreground"
+                                    : "hover:bg-muted"
+                                  }`}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  handleSubjectSelect(subject);
+                                }}
+                                onMouseEnter={() => setHighlightedIndex(index)}
+                              >
+                                {/* Highlight matching text */}
+                                {subjectInputValue.trim() ? (
+                                  <span>
+                                    {subject.split(new RegExp(`(${subjectInputValue})`, 'gi')).map((part, i) => (
+                                      <span
+                                        key={i}
+                                        className={
+                                          part.toLowerCase() === subjectInputValue.toLowerCase()
+                                            ? "font-semibold text-primary"
+                                            : ""
+                                        }
+                                      >
+                                        {part}
+                                      </span>
+                                    ))}
+                                  </span>
+                                ) : (
+                                  subject
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              No subjects found. Your custom entry will be used.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     {formErrors.subject && (
                       <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
                     )}

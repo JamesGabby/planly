@@ -36,7 +36,7 @@ export default function NewLessonFormTutor() {
     first_name: "",
     last_name: "",
     subject: "",
-    created_with_ai: false, 
+    created_with_ai: false,
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -58,6 +58,25 @@ export default function NewLessonFormTutor() {
     },
   ]);
 
+  // Top 15 tutoring subjects
+  const TUTORING_SUBJECTS = [
+    "Mathematics",
+    "English",
+    "Science",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "History",
+    "Geography",
+    "Spanish",
+    "French",
+    "German",
+    "Computer Science",
+    "Economics",
+    "Music",
+    "Art",
+  ];
+
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +85,7 @@ export default function NewLessonFormTutor() {
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [showNewStudentInputs, setShowNewStudentInputs] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [showCustomSubjectInput, setShowCustomSubjectInput] = useState(false);
 
   useEffect(() => {
     if (error || Object.keys(formErrors).length > 0) {
@@ -509,9 +529,19 @@ export default function NewLessonFormTutor() {
     }
   }
 
+  function handleSubjectChange(value: string) {
+    if (value === "other") {
+      setShowCustomSubjectInput(true);
+      updateField("subject", "");
+    } else {
+      setShowCustomSubjectInput(false);
+      updateField("subject", value);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-4 sm:p-6 md:p-8 lg:p-10 transition-colors">
-      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -619,12 +649,34 @@ export default function NewLessonFormTutor() {
                     <Label className={`text-sm ${formErrors.subject ? "text-destructive" : ""}`}>
                       Subject <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      value={lesson.subject || ""}
-                      onChange={(e) => updateField("subject", e.target.value)}
-                      placeholder="e.g., Maths, English, Science..."
-                      className={`mt-1 ${formErrors.subject ? "border-destructive" : ""}`}
-                    />
+
+                    <Select
+                      value={showCustomSubjectInput ? "other" : lesson.subject || ""}
+                      onValueChange={handleSubjectChange}
+                    >
+                      <SelectTrigger className={`mt-1 w-full ${formErrors.subject ? "border-destructive" : ""}`}>
+                        <SelectValue placeholder="Select a subject..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {TUTORING_SUBJECTS.map((subject) => (
+                          <SelectItem key={subject} value={subject}>
+                            {subject}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="other">Other (specify)</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {showCustomSubjectInput && (
+                      <Input
+                        value={lesson.subject || ""}
+                        onChange={(e) => updateField("subject", e.target.value)}
+                        placeholder="Enter custom subject..."
+                        className={`mt-2 ${formErrors.subject ? "border-destructive" : ""}`}
+                        autoFocus
+                      />
+                    )}
+
                     {formErrors.subject && (
                       <p className="text-destructive text-xs mt-1">{formErrors.subject}</p>
                     )}
