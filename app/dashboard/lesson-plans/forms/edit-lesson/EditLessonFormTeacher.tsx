@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, Loader2, Sparkles } from "lucide-react";
 import { useUserMode } from "@/components/UserModeContext";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
 
 const supabase = createClient();
 
@@ -521,8 +522,9 @@ export default function EditLessonFormTeacher() {
         </div>
 
         <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl font-semibold">Lesson Details</CardTitle>
+            <ModeSwitcher />
           </CardHeader>
 
           <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">

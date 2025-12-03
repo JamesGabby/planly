@@ -16,6 +16,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
 
 const supabase = createClient();
 
@@ -522,8 +523,9 @@ export default function NewLessonFormTutor() {
         </div>
 
         <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl font-semibold">Session Details</CardTitle>
+            <ModeSwitcher />
           </CardHeader>
 
           <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
