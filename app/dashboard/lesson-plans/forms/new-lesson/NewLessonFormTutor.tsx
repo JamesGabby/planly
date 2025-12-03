@@ -17,6 +17,7 @@ import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { AIGenerateButton } from "@/components/ui/generate-ai-button";
 
 const supabase = createClient();
 
@@ -737,28 +738,12 @@ export default function NewLessonFormTutor() {
                 </div>
               </section>
 
-              {/* AI GENERATE BUTTON */}
-              <div className="flex justify-center py-2">
-                <Button
-                  type="button"
-                  onClick={generateLessonPlan}
-                  disabled={generating}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-full sm:w-auto"
-                  size="lg"
-                >
-                  {generating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 sm:h-5 w-4 sm:w-5 animate-spin" />
-                      <span className="text-sm sm:text-base">Generating Tutoring Session...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
-                      <span className="text-sm sm:text-base">Generate Tutoring Session with AI</span>
-                    </>
-                  )}
-                </Button>
-              </div>
+              <AIGenerateButton
+                onClick={generateLessonPlan}
+                isGenerating={generating}
+                label="Generate Tutoring Session with AI"
+                loadingLabel="Creating your session plan..."
+              />
 
               <Separator />
 

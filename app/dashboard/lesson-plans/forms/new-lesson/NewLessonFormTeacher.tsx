@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, Loader2, Sparkles } from "lucide-react";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { AIGenerateButton } from "@/components/ui/generate-ai-button";
 
 const supabase = createClient();
 
@@ -999,27 +1000,11 @@ export default function NewLessonFormTeacher() {
               </section>
 
               {/* AI GENERATE BUTTON */}
-              <div className="flex justify-center py-4">
-                <Button
-                  type="button"
-                  onClick={generateLessonPlan}
-                  disabled={generating}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-full sm:w-auto text-sm sm:text-base"
-                  size="lg"
-                >
-                  {generating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 sm:h-5 w-4 sm:w-5 animate-spin" />
-                      Generating Lesson Plan...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
-                      Generate Lesson Plan with AI
-                    </>
-                  )}
-                </Button>
-              </div>
+              <AIGenerateButton
+                onClick={generateLessonPlan}
+                isGenerating={generating}
+                label="Generate Lesson Plan with AI"
+              />
 
               <Separator />
 
