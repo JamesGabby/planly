@@ -1,5 +1,6 @@
-"use client";
+     "use client";
 
+import { useRouter } from "next/navigation";
 import { StudentProfileTutor } from "../../types/student_profile_tutor";
 import {
   GraduationCap,
@@ -14,17 +15,18 @@ import {
   Calendar,
   Clock,
   User,
+  Plus,
+  PencilLine,
+  BookOpen,
 } from "lucide-react";
 
 // Component to format content with bullets and bold text
 function FormattedContent({ content }: { content: string }) {
   if (!content) return null;
 
-  // Parse bullet points and bold text
   const parts = content.split(/•\s+/).filter(item => item.trim());
 
   if (parts.length <= 1) {
-    // No bullet points, just format the text
     return (
       <div
         className="whitespace-pre-wrap leading-relaxed"
@@ -37,7 +39,6 @@ function FormattedContent({ content }: { content: string }) {
     );
   }
 
-  // Has bullet points
   return (
     <ul className="space-y-2">
       {parts.map((item, idx) => (
@@ -57,6 +58,40 @@ function FormattedContent({ content }: { content: string }) {
   );
 }
 
+// Empty state prompt component
+function EmptyStatePrompt({
+  icon: Icon,
+  title,
+  description,
+  buttonText,
+  onAddClick,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  buttonText: string;
+  onAddClick: () => void;
+}) {
+  return (
+    <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 p-6 sm:p-8 text-center">
+      <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+        <Icon className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h4 className="font-semibold text-foreground mb-2">{title}</h4>
+      <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+        {description}
+      </p>
+      <button
+        onClick={onAddClick}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 shadow-sm"
+      >
+        <Plus size={16} />
+        {buttonText}
+      </button>
+    </div>
+  );
+}
+
 // Info card component for consistent styling
 function InfoCard({
   icon: Icon,
@@ -64,14 +99,45 @@ function InfoCard({
   content,
   iconColor = "text-primary",
   highlight = false,
+  onAddClick,
+  emptyMessage,
 }: {
   icon: React.ElementType;
   title: string;
   content: string;
   iconColor?: string;
   highlight?: boolean;
+  onAddClick?: () => void;
+  emptyMessage?: string;
 }) {
-  if (!content || content.trim() === "") return null;
+  const isEmpty = !content || content.trim() === "";
+
+  if (isEmpty && onAddClick && emptyMessage) {
+    return (
+      <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/10 p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className={`${iconColor} mt-1 flex-shrink-0 opacity-50`}>
+            <Icon size={20} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold mb-2 text-sm sm:text-base text-muted-foreground">
+              {title}
+            </h4>
+            <p className="text-sm text-muted-foreground/70 mb-3">{emptyMessage}</p>
+            <button
+              onClick={onAddClick}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Plus size={14} />
+              Add {title}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isEmpty) return null;
 
   return (
     <div 
@@ -100,9 +166,108 @@ function InfoCard({
   );
 }
 
-export function ExpandedTutorStudentProfileView({ student }: { student: StudentProfileTutor }) {
+// Profile completeness indicator
+function ProfileCompleteness({ student }: { student: StudentProfileTutor }) {
+  const fields = [
+    { name: 'SEN', filled: !!student.sen?.trim() },
+    { name: 'Goals', filled: !!student.goals?.trim() },
+    { name: 'Interests', filled: !!student.interests?.trim() },
+    { name: 'Learning Preferences', filled: !!student.learning_preferences?.trim() },
+    { name: 'Strengths', filled: !!student.strengths?.trim() },
+    { name: 'Areas to Improve', filled: !!student.weaknesses?.trim() },
+    { name: 'Notes', filled: !!student.notes?.trim() },
+  ];
+
+  const filledCount = fields.filter(f => f.filled).length;
+  const percentage = Math.round((filledCount / fields.length) * 100);
+
+  if (percentage === 100) return null;
+
+  return (
+    <div className="rounded-lg border border-border bg-gradient-to-r from-primary/5 to-primary/10 p-4 sm:p-5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+          <PencilLine className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h4 className="font-semibold text-foreground">Profile Completeness</h4>
+          <p className="text-sm text-muted-foreground">{filledCount} of {fields.length} sections filled</p>
+        </div>
+        <div className="ml-auto text-2xl font-bold text-primary">{percentage}%</div>
+      </div>
+      
+      {/* Progress bar */}
+      <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
+        <div 
+          className="h-full bg-primary rounded-full transition-all duration-500"
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+
+      {/* Missing fields */}
+      <div className="flex flex-wrap gap-2">
+        {fields.filter(f => !f.filled).map((field, idx) => (
+          <span 
+            key={idx}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-muted text-muted-foreground"
+          >
+            <Plus size={12} />
+            {field.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Quick action card for empty state
+function QuickActionCard({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex flex-col items-center p-4 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all text-center"
+    >
+      <div className="h-12 w-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
+        <Icon className="h-6 w-6 text-primary" />
+      </div>
+      <h4 className="font-semibold text-foreground mb-1">{title}</h4>
+      <p className="text-xs text-muted-foreground">{description}</p>
+    </button>
+  );
+}
+
+export function ExpandedTutorStudentProfileView({ 
+  student,
+  onEditProfile,
+}: { 
+  student: StudentProfileTutor;
+  onEditProfile?: () => void;
+}) {
   const fullName = `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() || "Unnamed Student";
   const hasSEN = !!student.sen?.trim();
+
+  // Check if profile is mostly empty
+  const hasOverviewData = student.goals?.trim() || student.interests?.trim();
+  const hasLearningData = student.learning_preferences?.trim();
+  const hasAssessmentData = student.strengths?.trim() || student.weaknesses?.trim();
+  const hasNotesData = student.notes?.trim();
+  const hasAnyData = hasOverviewData || hasLearningData || hasAssessmentData || hasNotesData || hasSEN;
+
+  const router = useRouter()
+
+  const handleAddInfo = () => {
+    router.push(`/dashboard/student-profiles/tutor/${student.student_id}`)
+  };
 
   const handlePrint = () => {
     const printElement = document.getElementById('student-print');
@@ -189,7 +354,7 @@ export function ExpandedTutorStudentProfileView({ student }: { student: StudentP
               color: #1e293b;
               font-weight: 600;
             }
-            button {
+            button, .empty-state, .completeness {
               display: none !important;
             }
             .sen-badge {
@@ -250,13 +415,24 @@ export function ExpandedTutorStudentProfileView({ student }: { student: StudentP
               )}
             </div>
           </div>
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm w-full sm:w-auto"
-          >
-            <Printer size={18} />
-            <span>Print / Export PDF</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {onEditProfile && (
+              <button
+                onClick={handleAddInfo}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors w-full sm:w-auto"
+              >
+                <PencilLine size={18} />
+                <span>Edit Profile</span>
+              </button>
+            )}
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm w-full sm:w-auto"
+            >
+              <Printer size={18} />
+              <span>Print / Export PDF</span>
+            </button>
+          </div>
         </div>
 
         {/* Meta Information Card */}
@@ -275,6 +451,24 @@ export function ExpandedTutorStudentProfileView({ student }: { student: StudentP
           </div>
         </div>
       </header>
+
+      {/* --- PROFILE COMPLETENESS --- */}
+      <div className="completeness">
+        <ProfileCompleteness student={student} />
+      </div>
+
+      {/* --- EMPTY STATE (when no data at all) --- */}
+      {!hasAnyData && (
+        <div className="empty-state">
+          <EmptyStatePrompt
+            icon={BookOpen}
+            title="No student information yet"
+            description="Start building this student's profile by adding their goals, interests, learning preferences, and more. A complete profile helps personalize their tutoring sessions."
+            buttonText="Add Student Information"
+            onAddClick={handleAddInfo}
+          />
+        </div>
+      )}
 
       {/* --- SPECIAL EDUCATIONAL NEEDS (Highlighted if present) --- */}
       {hasSEN && (
@@ -296,79 +490,170 @@ export function ExpandedTutorStudentProfileView({ student }: { student: StudentP
       )}
 
       {/* --- OVERVIEW SECTION --- */}
-      {(student.goals || student.interests) && (
-        <section>
-          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Target className="text-primary flex-shrink-0" size={24} />
-            <span>Student Overview</span>
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoCard
-              icon={Target}
-              title="Goals"
-              content={student.goals || ""}
-              iconColor="text-blue-600 dark:text-blue-400"
-            />
-            <InfoCard
-              icon={Sparkles}
-              title="Interests"
-              content={student.interests || ""}
-              iconColor="text-purple-600 dark:text-purple-400"
-            />
-          </div>
-        </section>
-      )}
+      <section>
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <Target className="text-primary flex-shrink-0" size={24} />
+          <span>Student Overview</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoCard
+            icon={Target}
+            title="Goals"
+            content={student.goals || ""}
+            iconColor="text-blue-600 dark:text-blue-400"
+            onAddClick={onEditProfile ? handleAddInfo : undefined}
+            emptyMessage="What does this student want to achieve? Add their learning goals."
+          />
+          <InfoCard
+            icon={Sparkles}
+            title="Interests"
+            content={student.interests || ""}
+            iconColor="text-purple-600 dark:text-purple-400"
+            onAddClick={onEditProfile ? handleAddInfo : undefined}
+            emptyMessage="What topics excite this student? Add their interests."
+          />
+        </div>
+      </section>
 
       {/* --- LEARNING STYLE SECTION --- */}
-      {student.learning_preferences && (
-        <section>
-          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <BrainCircuit className="text-primary flex-shrink-0" size={24} />
-            <span>Learning Style</span>
-          </h3>
+      <section>
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <BrainCircuit className="text-primary flex-shrink-0" size={24} />
+          <span>Learning Style</span>
+        </h3>
+        <InfoCard
+          icon={BrainCircuit}
+          title="Learning Preferences"
+          content={student.learning_preferences || ""}
+          iconColor="text-indigo-600 dark:text-indigo-400"
+          onAddClick={onEditProfile ? handleAddInfo : undefined}
+          emptyMessage="How does this student learn best? Add their learning preferences."
+        />
+      </section>
+     
+     {/* --- ASSESSMENT SECTION --- */}
+      <section>
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <ChartLine className="text-primary flex-shrink-0" size={24} />
+          <span>Assessment</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard
-            icon={BrainCircuit}
-            title="Learning Preferences"
-            content={student.learning_preferences}
-            iconColor="text-indigo-600 dark:text-indigo-400"
+            icon={BicepsFlexed}
+            title="Strengths"
+            content={student.strengths || ""}
+            iconColor="text-green-600 dark:text-green-400"
+            onAddClick={onEditProfile ? handleAddInfo : undefined}
+            emptyMessage="What is this student good at? Add their strengths."
           />
-        </section>
-      )}
+          <InfoCard
+            icon={ChartLine}
+            title="Areas to Improve"
+            content={student.weaknesses || ""}
+            iconColor="text-amber-600 dark:text-amber-400"
+            onAddClick={onEditProfile ? handleAddInfo : undefined}
+            emptyMessage="Where can this student grow? Add areas for improvement."
+          />
+        </div>
+      </section>
 
-      {/* --- ASSESSMENT SECTION --- */}
-      {(student.strengths || student.weaknesses) && (
-        <section>
-          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <ChartLine className="text-primary flex-shrink-0" size={24} />
-            <span>Assessment</span>
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoCard
-              icon={BicepsFlexed}
-              title="Strengths"
-              content={student.strengths || ""}
-              iconColor="text-green-600 dark:text-green-400"
-            />
-            <InfoCard
-              icon={ChartLine}
-              title="Areas to Improve"
-              content={student.weaknesses || ""}
-              iconColor="text-amber-600 dark:text-amber-400"
-            />
+      {/* --- NOTES SECTION --- */}
+      <section>
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <FileText className="text-primary flex-shrink-0" size={24} />
+          <span>Additional Notes</span>
+        </h3>
+        {student.notes?.trim() ? (
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
+            <div className="text-sm text-muted-foreground">
+              <FormattedContent content={student.notes} />
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/10 p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="text-muted-foreground/50 mt-1 flex-shrink-0">
+                <FileText size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold mb-2 text-sm sm:text-base text-muted-foreground">
+                  Additional Notes
+                </h4>
+                <p className="text-sm text-muted-foreground/70 mb-3">
+                  Any other important information about this student? Add session notes, observations, or reminders here.
+                </p>
+                {onEditProfile && (
+                  <button
+                    onClick={handleAddInfo}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    <Plus size={14} />
+                    Add Notes
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* --- QUICK ACTIONS (when profile is incomplete) --- */}
+      {onEditProfile && !hasAnyData && (
+        <section className="empty-state">
+          <div className="rounded-lg border border-border bg-gradient-to-br from-muted/50 to-muted/30 p-6 sm:p-8">
+            <h3 className="text-lg font-semibold text-foreground mb-2 text-center">
+              Quick Start Guide
+            </h3>
+            <p className="text-sm text-muted-foreground text-center mb-6 max-w-md mx-auto">
+              Build a comprehensive student profile to deliver personalized tutoring sessions
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <QuickActionCard
+                icon={Target}
+                title="Set Goals"
+                description="Define what success looks like"
+                onClick={handleAddInfo}
+              />
+              <QuickActionCard
+                icon={Sparkles}
+                title="Add Interests"
+                description="Discover what motivates them"
+                onClick={handleAddInfo}
+              />
+              <QuickActionCard
+                icon={BrainCircuit}
+                title="Learning Style"
+                description="Understand how they learn best"
+                onClick={handleAddInfo}
+              />
+            </div>
           </div>
         </section>
       )}
 
-      {/* --- NOTES SECTION --- */}
-      {student.notes && (
-        <section>
-          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <FileText className="text-primary flex-shrink-0" size={24} />
-            <span>Additional Notes</span>
-          </h3>
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm">
-            <div className="text-sm text-muted-foreground">
-              <FormattedContent content={student.notes} />
+      {/* --- TIPS FOR TUTORS (when profile has some data but incomplete) --- */}
+      {onEditProfile && hasAnyData && (!hasOverviewData || !hasLearningData || !hasAssessmentData) && (
+        <section className="completeness">
+          <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20 p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                  Tip: Complete the profile for better sessions
+                </h4>
+                <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+                  A complete student profile helps you prepare more effective and personalized tutoring sessions.
+                </p>
+                <button
+                  onClick={handleAddInfo}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  <Plus size={14} />
+                  Complete Profile
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -393,13 +678,24 @@ export function ExpandedTutorStudentProfileView({ student }: { student: StudentP
             )}
           </div>
 
-          <button
-            onClick={handlePrint}
-            className="sm:hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Printer size={18} />
-            <span>Print / Export PDF</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 sm:hidden">
+            {onEditProfile && (
+              <button
+                onClick={handleAddInfo}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors"
+              >
+                <PencilLine size={18} />
+                <span>Edit Profile</span>
+              </button>
+            )}
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Printer size={18} />
+              <span>Print / Export PDF</span>
+            </button>
+          </div>
         </div>
       </footer>
     </div>
