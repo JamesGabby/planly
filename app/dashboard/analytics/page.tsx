@@ -2,7 +2,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AnalyticsDashboard } from '../lesson-plans/dashboards/AnalyticsDashboard';
-import { AnalyticsData, ClassDistributionData, LessonData, LessonsByMonthData, TeachingActivityData } from '../lesson-plans/types/analytics';
+import { 
+  AnalyticsData, 
+  ClassDistributionData, 
+  LessonData, 
+  LessonsByMonthData, 
+  TeachingActivityData 
+} from '../lesson-plans/types/analytics';
 import { 
   TeacherLessonRow, 
   TutorLessonRow, 
@@ -64,6 +70,14 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
       `)
       .eq('classes.user_id', userId),
   ]);
+
+  // Handle potential errors
+  if (teacherStudents.error) {
+    console.error('teacherStudents error:', teacherStudents.error);
+  }
+  if (classStudents.error) {
+    console.error('classStudents error:', classStudents.error);
+  }
 
   const allTeacherLessons = (teacherLessons.data as TeacherLessonRow[]) || [];
   const allTutorLessons = (tutorLessons.data as TutorLessonRow[]) || [];
@@ -141,7 +155,6 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
 }
 
 function formatLessonData(lesson: LessonRow): LessonData {
-  // Type guard to check if it's a TeacherLessonRow
   const isTeacherLesson = 'class' in lesson;
   
   return {
@@ -206,6 +219,12 @@ function processStudentsByYearGroup(students: TeacherStudentRow[]) {
     .sort((a, b) => {
       if (a.name === 'Not specified') return 1;
       if (b.name === 'Not specified') return -1;
+      // Sort numerically if year groups are numbers like "7", "8", "9"
+      const numA = parseInt(a.name);
+      const numB = parseInt(b.name);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
       return a.name.localeCompare(b.name);
     });
 }
@@ -214,8 +233,17 @@ function processClassDistribution(classStudents: ClassStudentRow[]): ClassDistri
   const classMap = new Map<string, number>();
   
   classStudents.forEach(cs => {
-    // Access the first element of the array (or use optional chaining)
-    const className = cs.classes?.[0]?.class_name || 'Unknown';
+    let className: string = 'Unknown';
+    
+    if (cs.classes) {
+      // Handle both array and object shapes
+      if (Array.isArray(cs.classes)) {
+        className = cs.classes[0]?.class_name || 'Unknown';
+      } else {
+        className = cs.classes.class_name || 'Unknown';
+      }
+    }
+    
     classMap.set(className, (classMap.get(className) || 0) + 1);
   });
 
@@ -232,7 +260,10 @@ function processHomeworkData(lessons: LessonRow[]) {
   };
 }
 
-function processTeachingActivity(teacherLessons: TeacherLessonRow[], tutorLessons: TutorLessonRow[]): TeachingActivityData[] {
+function processTeachingActivity(
+  teacherLessons: TeacherLessonRow[], 
+  tutorLessons: TutorLessonRow[]
+): TeachingActivityData[] {
   const last6Months = new Date();
   last6Months.setMonth(last6Months.getMonth() - 6);
 

@@ -100,14 +100,6 @@ export interface TutorLessonRow {
   [key: string]: unknown;
 }
 
-// Separate types for different student profiles
-export interface TeacherStudentRow {
-  student_id: string;
-  year_group: string | null;
-  special_educational_needs: string | null;
-  [key: string]: unknown;
-}
-
 export interface TutorStudentRow {
   student_id: string;
   sen: string | null;
@@ -115,12 +107,25 @@ export interface TutorStudentRow {
   [key: string]: unknown;
 }
 
+// types/analytics.ts
+
+// types/analytics.ts
+
+export interface TeacherStudentRow {
+  student_id: string;
+  special_educational_needs?: string | null;
+  year_group?: string | null;  // Now exists in database
+}
+
 export interface ClassStudentRow {
   class_id: string;
   classes: {
     class_name: string;
     user_id: string;
-  }[] | null; // It's an array, not a single object
+  } | {
+    class_name: string;
+    user_id: string;
+  }[] | null;
 }
 
 // Union type for lessons

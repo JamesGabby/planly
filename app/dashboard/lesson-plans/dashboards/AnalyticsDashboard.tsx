@@ -611,9 +611,13 @@ export function AnalyticsDashboard({ data }: Props) {
           subtitle="Students per class"
           icon={Users}
         >
-          {data.classDistribution.length > 0 ? (
+          {data.classDistribution && data.classDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.classDistribution} layout="horizontal">
+              <BarChart
+                data={data.classDistribution}
+                layout="vertical"  // Changed from "horizontal" to "vertical"
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis type="number" stroke="#6b7280" fontSize={12} />
                 <YAxis
@@ -621,7 +625,7 @@ export function AnalyticsDashboard({ data }: Props) {
                   type="category"
                   stroke="#6b7280"
                   fontSize={12}
-                  width={100}
+                  width={80}
                 />
                 <Tooltip
                   contentStyle={{
