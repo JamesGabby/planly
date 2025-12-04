@@ -92,28 +92,6 @@ function EmptyStatePrompt({
   );
 }
 
-// Section empty state for inline prompts
-function SectionEmptyState({
-  message,
-  onAddClick,
-}: {
-  message: string;
-  onAddClick: () => void;
-}) {
-  return (
-    <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4 flex items-center justify-between gap-4">
-      <p className="text-sm text-muted-foreground">{message}</p>
-      <button
-        onClick={onAddClick}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex-shrink-0"
-      >
-        <Plus size={14} />
-        Add
-      </button>
-    </div>
-  );
-}
-
 // Info card component for consistent styling
 function InfoCard({
   icon: Icon,
