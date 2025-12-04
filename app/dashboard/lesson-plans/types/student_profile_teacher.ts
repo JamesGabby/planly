@@ -13,5 +13,6 @@ export type StudentProfileTeacher = {
   strengths?: string;
   weaknesses: string;
   special_educational_needs?: string;
+  year_group?: string;
 };
 

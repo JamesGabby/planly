@@ -15,6 +15,7 @@ import {
   Info,
   ExternalLink,
   Plus,
+  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,69 @@ interface ClassStudentData {
   } | null;
 }
 
+// Helper function to get year group styling based on school level
+function getYearGroupStyle(yearGroup: string | null | undefined) {
+  if (!yearGroup) return null;
+
+  // Extract year number from strings like "Year 7" or "7"
+  const yearMatch = yearGroup.match(/\d+/);
+  const yearNumber = yearMatch ? parseInt(yearMatch[0], 10) : null;
+
+  if (yearNumber === null) {
+    return {
+      bg: "bg-gray-100 dark:bg-gray-800",
+      text: "text-gray-700 dark:text-gray-300",
+      border: "border-gray-300 dark:border-gray-600",
+      label: yearGroup,
+      stage: "Other",
+    };
+  }
+
+  // Primary School: Years 1-6 (Key Stage 1 & 2)
+  if (yearNumber >= 1 && yearNumber <= 6) {
+    return {
+      bg: "bg-emerald-50 dark:bg-emerald-950/40",
+      text: "text-emerald-700 dark:text-emerald-300",
+      border: "border-emerald-200 dark:border-emerald-800",
+      label: yearGroup,
+      stage: yearNumber <= 2 ? "KS1" : "KS2",
+      level: "Primary",
+    };
+  }
+
+  // Secondary School: Years 7-11 (Key Stage 3 & 4)
+  if (yearNumber >= 7 && yearNumber <= 11) {
+    return {
+      bg: "bg-blue-50 dark:bg-blue-950/40",
+      text: "text-blue-700 dark:text-blue-300",
+      border: "border-blue-200 dark:border-blue-800",
+      label: yearGroup,
+      stage: yearNumber <= 9 ? "KS3" : "KS4",
+      level: "Secondary",
+    };
+  }
+
+  // Sixth Form: Years 12-13 (Key Stage 5)
+  if (yearNumber >= 12 && yearNumber <= 13) {
+    return {
+      bg: "bg-purple-50 dark:bg-purple-950/40",
+      text: "text-purple-700 dark:text-purple-300",
+      border: "border-purple-200 dark:border-purple-800",
+      label: yearGroup,
+      stage: "KS5",
+      level: "Sixth Form",
+    };
+  }
+
+  return {
+    bg: "bg-gray-100 dark:bg-gray-800",
+    text: "text-gray-700 dark:text-gray-300",
+    border: "border-gray-300 dark:border-gray-600",
+    label: yearGroup,
+    stage: "Other",
+  };
+}
+
 export function StudentCardTeacher({
   student,
   onDelete,
@@ -74,6 +138,8 @@ export function StudentCardTeacher({
   const [showAllClasses, setShowAllClasses] = useState(false);
 
   const MAX_VISIBLE_CLASSES = 3;
+
+  const yearGroupStyle = getYearGroupStyle(student.year_group);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -198,16 +264,59 @@ export function StudentCardTeacher({
         <CardHeader className="p-4 sm:p-5 pb-3 space-y-3">
           <div className="flex items-start justify-between gap-3">
             {/* Student Info */}
-            <div className="flex-1 min-w-0 space-y-2.5">
-              <div className="flex items-start gap-2">
-                <CardTitle
-                  className={cn(
-                    "text-base sm:text-lg font-semibold transition-colors break-words",
-                    "group-hover:text-primary"
-                  )}
-                >
-                  {fullName}
-                </CardTitle>
+            <div className="flex-1 min-w-0 space-y-3">
+              {/* Name and Year Group Row */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* Student Avatar/Icon */}
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <User className="w-4.5 h-4.5 text-primary" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <CardTitle
+                    className={cn(
+                      "text-base sm:text-lg font-semibold transition-colors break-words leading-tight",
+                      "group-hover:text-primary"
+                    )}
+                  >
+                    {fullName}
+                  </CardTitle>
+                </div>
+
+                {/* Year Group Badge */}
+                {yearGroupStyle && (
+                  <TooltipProvider>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium shrink-0 transition-colors cursor-default",
+                            yearGroupStyle.bg,
+                            yearGroupStyle.text,
+                            yearGroupStyle.border
+                          )}
+                        >
+                          <span className="font-semibold">{yearGroupStyle.label}</span>
+                          {yearGroupStyle.stage && (
+                            <span className="opacity-70 text-[10px]">
+                              {yearGroupStyle.stage}
+                            </span>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <div className="space-y-1">
+                          <p className="font-medium">{yearGroupStyle.label}</p>
+                          {yearGroupStyle.level && (
+                            <p className="text-xs text-muted-foreground">
+                              {yearGroupStyle.level} • {yearGroupStyle.stage}
+                            </p>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
 
               {/* Classes Info */}
@@ -218,7 +327,7 @@ export function StudentCardTeacher({
                     {loadingClasses 
                       ? "Loading classes..." 
                       : classes.length === 0 
-                        ? "No classes" 
+                        ? "No classes assigned" 
                         : `${classes.length} ${classes.length === 1 ? "class" : "classes"}`
                     }
                   </span>
@@ -229,7 +338,7 @@ export function StudentCardTeacher({
                   <div className="flex flex-wrap gap-1.5">
                     {visibleClasses.map((cls) => (
                       <TooltipProvider key={cls.class_id}>
-                        <Tooltip>
+                        <Tooltip delayDuration={300}>
                           <TooltipTrigger asChild>
                             <Badge
                               variant="secondary"
@@ -240,7 +349,7 @@ export function StudentCardTeacher({
                             </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Click to view {cls.class_name}</p>
+                            <p>View class: {cls.class_name}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -249,7 +358,7 @@ export function StudentCardTeacher({
                     {/* Show More Button */}
                     {!showAllClasses && remainingCount > 0 && (
                       <TooltipProvider>
-                        <Tooltip>
+                        <Tooltip delayDuration={300}>
                           <TooltipTrigger asChild>
                             <Badge
                               variant="outline"
@@ -289,7 +398,7 @@ export function StudentCardTeacher({
                 {/* No Classes State */}
                 {!loadingClasses && classes.length === 0 && (
                   <div className="mt-1">
-                    <Badge variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground">
+                    <Badge variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground border-dashed">
                       Not assigned to any class
                     </Badge>
                   </div>
@@ -303,7 +412,7 @@ export function StudentCardTeacher({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="shrink-0 h-8 w-8"
+                  className="shrink-0 h-8 w-8 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                   aria-label="Open student actions menu"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -339,7 +448,7 @@ export function StudentCardTeacher({
         {/* Content */}
         <CardContent className="p-4 sm:p-5 pt-0 flex-1">
           {!hasProfileData ? (
-            <div className="flex flex-col items-center justify-center text-center py-6 px-4 space-y-3">
+            <div className="flex flex-col items-center justify-center text-center py-6 px-4 space-y-3 border-2 border-dashed border-muted rounded-lg bg-muted/20">
               <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                 <Info className="w-6 h-6 text-muted-foreground" />
               </div>
@@ -348,9 +457,18 @@ export function StudentCardTeacher({
                   No profile information yet
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Add student details to get started
+                  Click to add student details
                 </p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={handleEdit}
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                Add Details
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -403,6 +521,30 @@ export function StudentCardTeacher({
             </div>
           )}
         </CardContent>
+
+        {/* Footer - Quick Actions on Hover */}
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 mt-auto">
+          <div className="flex items-center justify-between pt-3 border-t border-border/50">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-foreground h-8 px-2"
+              onClick={handleViewProfile}
+            >
+              <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+              View Profile
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-foreground h-8 px-2"
+              onClick={handleEdit}
+            >
+              <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+              Edit
+            </Button>
+          </div>
+        </div>
       </Card>
     </motion.div>
   );
