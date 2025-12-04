@@ -24,6 +24,22 @@ import { Loader2 } from "lucide-react";
 
 const supabase = createClient();
 
+const YEAR_GROUPS = [
+  "Year 1",
+  "Year 2",
+  "Year 3",
+  "Year 4",
+  "Year 5",
+  "Year 6",
+  "Year 7",
+  "Year 8",
+  "Year 9",
+  "Year 10",
+  "Year 11",
+  "Year 12",
+  "Year 13",
+];
+
 export default function NewTeacherStudentProfileForm() {
   const router = useRouter();
 
@@ -31,6 +47,7 @@ export default function NewTeacherStudentProfileForm() {
     first_name: "",
     last_name: "",
     class_name: "",
+    year_group: "",
     goals: "",
     interests: "",
     learning_preferences: "",
@@ -40,7 +57,7 @@ export default function NewTeacherStudentProfileForm() {
     notes: "",
   });
 
-  const [customClass, setCustomClass] = useState(""); // NEW
+  const [customClass, setCustomClass] = useState("");
   const [classes, setClasses] = useState<string[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,8 +73,9 @@ export default function NewTeacherStudentProfileForm() {
   useEffect(() => {
     async function fetchClasses() {
       try {
-        // Get the current authenticated user
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
         if (!user) {
           throw new Error("No authenticated user");
@@ -66,7 +84,7 @@ export default function NewTeacherStudentProfileForm() {
         const { data, error } = await supabase
           .from("classes")
           .select("class_name")
-          .eq("user_id", user.id) // Filter by logged-in user's ID
+          .eq("user_id", user.id)
           .order("class_name", { ascending: true });
 
         if (error) throw error;
@@ -90,7 +108,9 @@ export default function NewTeacherStudentProfileForm() {
     const errors: { [key: string]: string } = {};
     if (!student.first_name.trim()) errors.first_name = "First name is required.";
     if (!student.last_name.trim()) errors.last_name = "Last name is required.";
-    if (!student.class_name.trim()) errors.level = "Class is required.";
+    if (!student.year_group) errors.year_group = "Year group is required.";
+    if (!student.class_name.trim() || student.class_name === "_custom")
+      errors.level = "Class is required.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -118,19 +138,21 @@ export default function NewTeacherStudentProfileForm() {
       // CAPITALIZATION HELPER FUNCTIONS
       const capitalizeProperName = (str: string | undefined | null): string => {
         if (!str) return "";
-        return str.split(' ').map(word =>
-          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        ).join(' ');
+        return str
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(" ");
       };
 
       const capitalizeMultilineText = (str: string | undefined | null): string => {
         if (!str) return "";
-        // Capitalize first letter of each sentence and preserve formatting
-        return str.replace(/^([a-z])/gm, (match, firstChar) => {
-          return firstChar.toUpperCase();
-        }).replace(/(\.\s+)([a-z])/g, (match, punctuation, firstChar) => {
-          return punctuation + firstChar.toUpperCase();
-        });
+        return str
+          .replace(/^([a-z])/gm, (match, firstChar) => {
+            return firstChar.toUpperCase();
+          })
+          .replace(/(\.\s+)([a-z])/g, (match, punctuation, firstChar) => {
+            return punctuation + firstChar.toUpperCase();
+          });
       };
 
       // Format the student data with proper capitalization
@@ -138,7 +160,8 @@ export default function NewTeacherStudentProfileForm() {
         ...student,
         first_name: capitalizeProperName(student.first_name),
         last_name: capitalizeProperName(student.last_name),
-        class_name: student.class_name?.toUpperCase(), // Class codes are typically uppercase
+        class_name: student.class_name?.toUpperCase(),
+        year_group: student.year_group,
         goals: capitalizeMultilineText(student.goals),
         interests: capitalizeMultilineText(student.interests),
         learning_preferences: capitalizeMultilineText(student.learning_preferences),
@@ -173,36 +196,36 @@ export default function NewTeacherStudentProfileForm() {
         .from("classes")
         .select("class_id")
         .eq("class_name", finalClassName)
-        .maybeSingle(); // IMPORTANT: allows 0 rows without throwing
+        .maybeSingle();
 
       // 2. If class doesn't exist, create it
       if (!classRow) {
         const { data: newClass, error: insertClassError } = await supabase
           .from("classes")
-          .insert([{
-            class_name: finalClassName,
-            user_id: user.id,
-            created_by: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }])
+          .insert([
+            {
+              class_name: finalClassName,
+              user_id: user.id,
+              created_by: user.id,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ])
           .select("class_id")
           .single();
 
         if (insertClassError) throw insertClassError;
 
-        classRow = newClass; // now we have class_id
+        classRow = newClass;
       }
 
       // Link class + student
-      const { error: linkError } = await supabase
-        .from("class_students")
-        .insert([
-          {
-            class_id: classRow.class_id,
-            student_id: newStudent.student_id,
-          },
-        ]);
+      const { error: linkError } = await supabase.from("class_students").insert([
+        {
+          class_id: classRow.class_id,
+          student_id: newStudent.student_id,
+        },
+      ]);
 
       if (linkError) throw linkError;
 
@@ -232,7 +255,9 @@ export default function NewTeacherStudentProfileForm() {
 
         <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
           <CardHeader className="border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
-            <CardTitle className="text-lg sm:text-xl font-semibold">Student Information</CardTitle>
+            <CardTitle className="text-lg sm:text-xl font-semibold">
+              Student Information
+            </CardTitle>
           </CardHeader>
 
           <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
@@ -254,7 +279,9 @@ export default function NewTeacherStudentProfileForm() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* First Name */}
                   <div>
-                    <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
+                    <Label
+                      className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}
+                    >
                       First Name <span className="text-destructive">*</span>
                     </Label>
                     <Input
@@ -264,15 +291,15 @@ export default function NewTeacherStudentProfileForm() {
                       className={`mt-1 ${formErrors.first_name ? "border-destructive" : ""}`}
                     />
                     {formErrors.first_name && (
-                      <p className="text-destructive text-xs mt-1">
-                        {formErrors.first_name}
-                      </p>
+                      <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
                     )}
                   </div>
 
                   {/* Last Name */}
                   <div>
-                    <Label className={`text-sm ${formErrors.last_name ? "text-destructive" : ""}`}>
+                    <Label
+                      className={`text-sm ${formErrors.last_name ? "text-destructive" : ""}`}
+                    >
                       Last Name <span className="text-destructive">*</span>
                     </Label>
                     <Input
@@ -282,14 +309,41 @@ export default function NewTeacherStudentProfileForm() {
                       className={`mt-1 ${formErrors.last_name ? "border-destructive" : ""}`}
                     />
                     {formErrors.last_name && (
-                      <p className="text-destructive text-xs mt-1">
-                        {formErrors.last_name}
-                      </p>
+                      <p className="text-destructive text-xs mt-1">{formErrors.last_name}</p>
+                    )}
+                  </div>
+
+                  {/* Year Group Dropdown */}
+                  <div>
+                    <Label
+                      className={`text-sm ${formErrors.year_group ? "text-destructive" : ""}`}
+                    >
+                      Year Group <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={student.year_group}
+                      onValueChange={(value) => updateField("year_group", value)}
+                    >
+                      <SelectTrigger
+                        className={`mt-1 w-full ${formErrors.year_group ? "border-destructive" : ""}`}
+                      >
+                        <SelectValue placeholder="Select year group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {YEAR_GROUPS.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formErrors.year_group && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.year_group}</p>
                     )}
                   </div>
 
                   {/* Class Dropdown */}
-                  <div className="sm:col-span-2">
+                  <div>
                     <Label className={`text-sm ${formErrors.level ? "text-destructive" : ""}`}>
                       Class <span className="text-destructive">*</span>
                     </Label>
@@ -313,7 +367,9 @@ export default function NewTeacherStudentProfileForm() {
                       }}
                       disabled={loadingClasses}
                     >
-                      <SelectTrigger className={`mt-1 w-full ${formErrors.level ? "border-destructive" : ""}`}>
+                      <SelectTrigger
+                        className={`mt-1 w-full ${formErrors.level ? "border-destructive" : ""}`}
+                      >
                         <SelectValue
                           placeholder={loadingClasses ? "Loading classes..." : "Select a class"}
                         />
@@ -336,7 +392,10 @@ export default function NewTeacherStudentProfileForm() {
                     )}
 
                     {/* Custom Class Input */}
-                    {!classes.includes(student.class_name) && (
+                    {student.class_name === "_custom" ||
+                    (student.class_name &&
+                      !classes.includes(student.class_name) &&
+                      student.class_name !== "") ? (
                       <div className="mt-2">
                         <Input
                           value={customClass}
@@ -348,7 +407,7 @@ export default function NewTeacherStudentProfileForm() {
                           autoFocus
                         />
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </section>
@@ -359,7 +418,9 @@ export default function NewTeacherStudentProfileForm() {
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Special Educational Needs (SEN)</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    Special Educational Needs (SEN)
+                  </h3>
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
@@ -434,7 +495,9 @@ export default function NewTeacherStudentProfileForm() {
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Strengths & Development Areas</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    Strengths & Development Areas
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
