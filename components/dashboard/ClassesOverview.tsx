@@ -59,8 +59,8 @@ export default function ClassesOverview({ classes }: ClassesOverviewProps) {
           {classes.map((classItem) => {
             const isTeacher = classItem.type === 'teacher';
             const classLink = isTeacher 
-              ? `/dashboard/classes/${classItem.class_id}`
-              : `/tutor-dashboard/classes/${classItem.class_id}`;
+              ? `/dashboard/classes/teacher/${classItem.class_id}`
+              : `/dashboard/classes/tutor/${classItem.class_id}`;
             
             return (
               <Link
