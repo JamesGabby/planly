@@ -1,4 +1,3 @@
-// components/analytics/StudentsClassesCharts.tsx
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -14,7 +13,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Sector,
   PieLabelRenderProps,
 } from 'recharts';
 import {
@@ -25,8 +23,6 @@ import {
   Info
 } from 'lucide-react';
 import clsx from 'clsx';
-
-// Import types from your types file
 import type { YearGroupData, ClassDistributionData } from '@/app/dashboard/lesson-plans/types/analytics';
 
 // ============================================
@@ -117,80 +113,61 @@ function EnhancedTooltip({ active, payload, label }: EnhancedTooltipProps) {
   );
 }
 
-// Active Shape for Pie Chart hover effect
-function renderActiveShape(props: any) {
-  const {
-    cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill
-  } = props;
-
-  return (
-    <g>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius - 4}
-        outerRadius={outerRadius + 8}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        className="drop-shadow-lg"
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 12}
-        outerRadius={outerRadius + 16}
-        fill={fill}
-        opacity={0.3}
-      />
-    </g>
-  );
-}
-
 interface LegendPayloadItem {
-  color: string;
-  value: string;
+  color?: string;
+  value?: string | number;
 }
 
 interface CustomPieLegendProps {
-  payload?: LegendPayloadItem[];
+  payload?: ReadonlyArray<LegendPayloadItem>;
   onHover?: (index: number | null) => void;
   activeIndex?: number | null;
 }
 
+// ============================================
+// CustomPieLegend Component
+// ============================================
+
 function CustomPieLegend({ payload, onHover, activeIndex }: CustomPieLegendProps) {
+  if (!payload?.length) return null;
+
   return (
     <div className="flex flex-wrap justify-center gap-2 mt-6 px-2">
-      {payload?.map((entry, index) => (
-        <button
-          key={index}
-          onMouseEnter={() => onHover?.(index)}
-          onMouseLeave={() => onHover?.(null)}
-          className={clsx(
-            'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200',
-            'border hover:shadow-md',
-            activeIndex === index
-              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 scale-105'
-              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-          )}
-        >
-          <span
+      {payload.map((entry, index) => {
+        const color = entry.color || '#6b7280';
+        const value = String(entry.value ?? '');
+
+        return (
+          <button
+            key={index}
+            onMouseEnter={() => onHover?.(index)}
+            onMouseLeave={() => onHover?.(null)}
             className={clsx(
-              'w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform',
-              activeIndex === index && 'scale-125'
+              'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200',
+              'border hover:shadow-md',
+              activeIndex === index
+                ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 scale-105'
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
             )}
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className={clsx(
-            'text-gray-700 dark:text-gray-300 truncate max-w-[80px] sm:max-w-[120px]',
-            activeIndex === index && 'font-semibold'
-          )}>
-            {entry.value}
-          </span>
-        </button>
-      ))}
+          >
+            <span
+              className={clsx(
+                'w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform',
+                activeIndex === index && 'scale-125'
+              )}
+              style={{ backgroundColor: color }}
+            />
+            <span
+              className={clsx(
+                'text-gray-700 dark:text-gray-300 truncate max-w-[80px] sm:max-w-[120px]',
+                activeIndex === index && 'font-semibold'
+              )}
+            >
+              {value}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -466,9 +443,9 @@ export function StudentsClassesCharts({
                 </Pie>
                 <Tooltip content={<EnhancedTooltip />} />
                 <Legend
-                  content={(props: any) => (
+                  content={({ payload }) => (
                     <CustomPieLegend
-                      payload={props.payload}
+                      payload={payload as ReadonlyArray<{ color?: string; value?: string | number }>}
                       onHover={setActivePieIndex}
                       activeIndex={activePieIndex}
                     />
@@ -552,7 +529,7 @@ export function StudentsClassesCharts({
                   width={100}
                   tickLine={false}
                   axisLine={false}
-                  tick={({ x, y, payload }: any) => {
+                  tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
                     const index = processedClassData.findIndex(
                       (item) => item.displayName === payload.value
                     );
