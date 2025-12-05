@@ -11,7 +11,7 @@ import { Pagination } from "@/components/pagination";
 import Link from "next/link";
 import { StudentCardClass } from "../../../lesson-plans/components/cards/class-cards/StudentCardClass";
 import { ClassStudentJoin } from "../../../lesson-plans/types/class";
-import { ArrowLeft, UserMinus, UserPlus, Search, Check } from "lucide-react";
+import { ArrowLeft, UserMinus, UserPlus, Search, Check, Plus, RefreshCw } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -327,37 +327,53 @@ export default function TutorClassStudentsPage({ params }: Props) {
         </div>
 
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+        <div className="mb-6">
+          {/* Title Section */}
+          <div className="mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               {className ?? "Loading class..."}
-              {className && (
-                <span className="text-muted-foreground font-normal"> — {studentCount} student{studentCount !== 1 ? "s" : ""}</span>
-              )}
             </h1>
-
-            <p className="text-sm text-muted-foreground mt-1">
-              Viewing all students in {className ?? "this class"}
-            </p>
+            {className && (
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                <span className="text-sm sm:text-base text-muted-foreground">
+                  {studentCount} student{studentCount !== 1 ? "s" : ""}
+                </span>
+                <span className="hidden sm:inline text-muted-foreground">•</span>
+                <p className="text-sm text-muted-foreground">
+                  Viewing all students in this class
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchStudentsForClass}>
+          {/* Actions Section */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={fetchStudentsForClass}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCw className="h-4 w-4 mr-2 sm:mr-0 sm:hidden" />
               Refresh
             </Button>
 
             {/* Add to Class Dialog */}
             <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={handleOpenAddDialog} className="gap-2">
+                <Button
+                  onClick={handleOpenAddDialog}
+                  className="w-full sm:w-auto gap-2"
+                >
                   <UserPlus className="h-4 w-4" />
                   Add to Class
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh]">
+              <DialogContent className="max-w-2xl max-h-[90vh] sm:max-h-[80vh] mx-4 sm:mx-auto">
                 <DialogHeader>
-                  <DialogTitle>Add Students to {className}</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="text-lg sm:text-xl">
+                    Add Students to {className}
+                  </DialogTitle>
+                  <DialogDescription className="text-sm">
                     Select students to add to this class. Students already in the class are not shown.
                   </DialogDescription>
                 </DialogHeader>
@@ -374,7 +390,7 @@ export default function TutorClassStudentsPage({ params }: Props) {
                 </div>
 
                 {/* Students list */}
-                <ScrollArea className="h-[400px] pr-4">
+                <ScrollArea className="h-[50vh] sm:h-[400px] pr-4">
                   {loadingAllStudents ? (
                     <div className="space-y-2">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -416,22 +432,22 @@ export default function TutorClassStudentsPage({ params }: Props) {
                             key={student.student_id}
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors"
                           >
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="font-medium truncate">
                                     {student.first_name} {student.last_name}
                                   </p>
                                   {hasSEN && (
-                                    <Badge className="bg-yellow-500/20 text-yellow-600 border border-yellow-500/40 text-xs">
+                                    <Badge className="bg-yellow-500/20 text-yellow-600 border border-yellow-500/40 text-xs flex-shrink-0">
                                       SEN
                                     </Badge>
                                   )}
                                 </div>
                                 {student.class_name && (
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="text-sm text-muted-foreground truncate">
                                     Current class: {student.class_name}
                                   </p>
                                 )}
@@ -442,7 +458,7 @@ export default function TutorClassStudentsPage({ params }: Props) {
                               size="sm"
                               onClick={() => handleAddStudent(student)}
                               disabled={isAdding}
-                              className="gap-2"
+                              className="w-full sm:w-auto gap-2 flex-shrink-0"
                             >
                               {isAdding ? (
                                 <>
@@ -468,9 +484,13 @@ export default function TutorClassStudentsPage({ params }: Props) {
             {/* Create New Student Dialog */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">Create New Student</Button>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2 sm:mr-0 sm:hidden" />
+                  <span className="sm:hidden">New Student</span>
+                  <span className="hidden sm:inline">Create New Student</span>
+                </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[425px] mx-4 sm:mx-auto">
                 <form onSubmit={handleCreateStudent}>
                   <DialogHeader>
                     <DialogTitle>Create New Student</DialogTitle>
@@ -522,7 +542,7 @@ export default function TutorClassStudentsPage({ params }: Props) {
                     </div>
                   </div>
 
-                  <DialogFooter>
+                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
                     <Button
                       type="button"
                       variant="outline"
@@ -532,11 +552,16 @@ export default function TutorClassStudentsPage({ params }: Props) {
                         setNewStudentLastName("");
                       }}
                       disabled={isCreating}
+                      className="w-full sm:w-auto order-2 sm:order-1"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isCreating}>
-                      {isCreating ? "Creating..." : "Create & Add to Class"}
+                    <Button
+                      type="submit"
+                      disabled={isCreating}
+                      className="w-full sm:w-auto order-1 sm:order-2"
+                    >
+                      {isCreating ? "Creating..." : "Create & Add"}
                     </Button>
                   </DialogFooter>
                 </form>
