@@ -1,4 +1,4 @@
-// components/analytics/AnalyticsDashboard.tsx
+      // components/analytics/AnalyticsDashboard.tsx
 'use client';
 
 import {
@@ -30,7 +30,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { AnalyticsData } from '../types/analytics';
+import { AnalyticsData, LessonData } from '../types/analytics';
 import clsx from 'clsx';
 
 const COLORS = {
@@ -57,19 +57,6 @@ const CHART_COLORS = [
 
 interface Props {
   data: AnalyticsData;
-}
-
-// Define Lesson interface
-interface Lesson {
-  id: string | number;
-  topic: string;
-  subject: string;
-  first_name?: string;
-  last_name?: string;
-  class?: string;
-  date_of_lesson?: string;
-  time_of_lesson?: string;
-  evaluation?: string | boolean;
 }
 
 // MetricCard Component
@@ -264,7 +251,7 @@ function InsightCard({ title, data }: InsightCardProps) {
 interface LessonListProps {
   title: string;
   subtitle: string;
-  lessons: Lesson[];
+  lessons: LessonData[];
   emptyMessage: string;
   isUpcoming?: boolean;
 }
@@ -311,7 +298,7 @@ function LessonList({ title, subtitle, lessons, emptyMessage, isUpcoming = false
 
 // LessonItem Component
 interface LessonItemProps {
-  lesson: Lesson;
+  lesson: LessonData;
   isUpcoming?: boolean;
 }
 
@@ -319,6 +306,8 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
   const studentName = lesson.first_name && lesson.last_name
     ? `${lesson.first_name} ${lesson.last_name}`
     : lesson.class || 'No class specified';
+
+  const lessonType = lesson.class ? 'Teacher' : 'Tutor';
 
   return (
     <div className={clsx(
@@ -342,9 +331,19 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
           )} />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-gray-900 dark:text-white truncate">
-            {lesson.topic}
-          </h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-gray-900 dark:text-white truncate">
+              {lesson.topic}
+            </h4>
+            <span className={clsx(
+              'text-xs px-2 py-0.5 rounded-full',
+              lessonType === 'Teacher' 
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+            )}>
+              {lessonType}
+            </span>
+          </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {lesson.subject} • {studentName}
           </p>
@@ -375,7 +374,32 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
   );
 }
 
+// Custom Tooltip for Charts
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: string;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+        <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
+
 export function AnalyticsDashboard({ data }: Props) {
+  const totalLessons = data.overview.totalTeacherLessons + data.overview.totalTutorLessons;
+
   return (
     <div className="space-y-6">
       {/* Key Metrics Grid */}
@@ -400,7 +424,7 @@ export function AnalyticsDashboard({ data }: Props) {
         />
         <MetricCard
           title="Total Lessons"
-          value={data.overview.totalTeacherLessons + data.overview.totalTutorLessons}
+          value={totalLessons}
           icon={BookOpen}
           color="green"
           subtitle={`${data.overview.lessonsLast30Days} in last 30 days`}
@@ -412,6 +436,65 @@ export function AnalyticsDashboard({ data }: Props) {
           color="amber"
           subtitle="Lessons with evaluation"
         />
+      </div>
+
+      {/* Secondary Metrics */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Teacher Lessons</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {data.overview.totalTeacherLessons}
+              </p>
+            </div>
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Tutor Lessons</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {data.overview.totalTutorLessons}
+              </p>
+            </div>
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+              <BookOpen className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Upcoming Lessons</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {data.overview.upcomingLessons}
+              </p>
+            </div>
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Students with SEN</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                {data.overview.studentsWithSEN}
+              </p>
+            </div>
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <Users className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* AI Insights Section */}
@@ -438,8 +521,8 @@ export function AnalyticsDashboard({ data }: Props) {
               </div>
               <div>
                 <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  {data.overview.totalTeacherLessons > 0
-                    ? Math.round((data.overview.aiGeneratedLessons / data.overview.totalTeacherLessons) * 100)
+                  {totalLessons > 0
+                    ? Math.round((data.overview.aiGeneratedLessons / totalLessons) * 100)
                     : 0}%
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -448,7 +531,7 @@ export function AnalyticsDashboard({ data }: Props) {
               </div>
               <div>
                 <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                  {data.overview.totalTeacherLessons - data.overview.aiGeneratedLessons}
+                  {totalLessons - data.overview.aiGeneratedLessons}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Manual Lessons
@@ -468,7 +551,7 @@ export function AnalyticsDashboard({ data }: Props) {
             } with documented SEN. Review their profiles for tailored lesson planning.`}
         />
       )}
-
+      
       {/* Charts Row 1: Teaching Activity & Subject Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
@@ -476,60 +559,60 @@ export function AnalyticsDashboard({ data }: Props) {
           subtitle="Teacher vs Tutor lessons over time"
           icon={TrendingUp}
         >
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data.teachingActivity}>
-              <defs>
-                <linearGradient id="colorTeacher" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorTutor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS.secondary} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={COLORS.secondary} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="name"
-                stroke="#6b7280"
-                fontSize={12}
-                tickFormatter={(value) => {
-                  const [year, month] = value.split('-');
-                  return `${month}/${year.slice(2)}`;
-                }}
-              />
-              <YAxis stroke="#6b7280" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                }}
-                labelFormatter={(value) => {
-                  const [year, month] = value.split('-');
-                  const date = new Date(parseInt(year), parseInt(month) - 1);
-                  return format(date, 'MMMM yyyy');
-                }}
-              />
-              <Legend />
-              <Area
-                type="monotone"
-                dataKey="teacher"
-                stroke={COLORS.primary}
-                fillOpacity={1}
-                fill="url(#colorTeacher)"
-                name="Teacher Lessons"
-              />
-              <Area
-                type="monotone"
-                dataKey="tutor"
-                stroke={COLORS.secondary}
-                fillOpacity={1}
-                fill="url(#colorTutor)"
-                name="Tutor Lessons"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {data.teachingActivity.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={data.teachingActivity}>
+                <defs>
+                  <linearGradient id="colorTeacher" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorTutor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.secondary} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={COLORS.secondary} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="name"
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickFormatter={(value) => {
+                    const [year, month] = value.split('-');
+                    return `${month}/${year.slice(2)}`;
+                  }}
+                />
+                <YAxis stroke="#6b7280" fontSize={12} />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  labelFormatter={(value) => {
+                    const [year, month] = value.split('-');
+                    const date = new Date(parseInt(year), parseInt(month) - 1);
+                    return format(date, 'MMMM yyyy');
+                  }}
+                />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="teacher"
+                  stroke={COLORS.primary}
+                  fillOpacity={1}
+                  fill="url(#colorTeacher)"
+                  name="Teacher Lessons"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="tutor"
+                  stroke={COLORS.secondary}
+                  fillOpacity={1}
+                  fill="url(#colorTutor)"
+                  name="Tutor Lessons"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState message="No teaching activity data available" />
+          )}
         </ChartCard>
 
         <ChartCard
@@ -537,36 +620,34 @@ export function AnalyticsDashboard({ data }: Props) {
           subtitle="Distribution across subjects"
           icon={BarChart3}
         >
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.lessonsBySubject.slice(0, 8)}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="name"
-                stroke="#6b7280"
-                fontSize={12}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis stroke="#6b7280" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar dataKey="value" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {data.lessonsBySubject.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data.lessonsBySubject.slice(0, 8)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="name"
+                  stroke="#6b7280"
+                  fontSize={12}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis stroke="#6b7280" fontSize={12} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" name="Lessons" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState message="No subject data available" />
+          )}
         </ChartCard>
       </div>
 
       {/* Charts Row 2: Students & Classes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
-          title="Students by Year Group"
-          subtitle="Student distribution"
+          title="Students by Year Group / Level"
+          subtitle="Student distribution across year groups and levels"
           icon={PieChartIcon}
         >
           {data.studentsByYearGroup.length > 0 ? (
@@ -577,28 +658,23 @@ export function AnalyticsDashboard({ data }: Props) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={(props) => {
-                    const { name, percent } = props;
+                  label={({ name, percent }) => {
+                    if (percent < 0.05) return null;
                     return `${name || ''}: ${((percent ?? 0) * 100).toFixed(0)}%`;
                   }}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {data.studentsByYearGroup.map((entry, index) => (
+                  {data.studentsByYearGroup.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={CHART_COLORS[index % CHART_COLORS.length]}
                     />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                  }}
-                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -614,8 +690,8 @@ export function AnalyticsDashboard({ data }: Props) {
           {data.classDistribution && data.classDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
-                data={data.classDistribution}
-                layout="vertical"  // Changed from "horizontal" to "vertical"
+                data={data.classDistribution.slice(0, 10)}
+                layout="vertical"
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -625,20 +701,74 @@ export function AnalyticsDashboard({ data }: Props) {
                   type="category"
                   stroke="#6b7280"
                   fontSize={12}
-                  width={80}
+                  width={100}
+                  tickFormatter={(value) => 
+                    value.length > 15 ? `${value.substring(0, 15)}...` : value
+                  }
                 />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                  }}
+                <Tooltip content={<CustomTooltip />} />
+                <Bar 
+                  dataKey="students" 
+                  name="Students" 
+                  fill={COLORS.success} 
+                  radius={[0, 8, 8, 0]} 
                 />
-                <Bar dataKey="students" fill={COLORS.success} radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <EmptyState message="No class data available" />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* Charts Row 3: Lessons by Month */}
+      <div className="grid grid-cols-1 gap-6">
+        <ChartCard
+          title="Lessons Over Time"
+          subtitle="Total lessons created in the last 6 months"
+          icon={TrendingUp}
+        >
+          {data.lessonsByMonth.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={data.lessonsByMonth}>
+                <defs>
+                  <linearGradient id="colorLessons" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.success} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={COLORS.success} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="name"
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickFormatter={(value) => {
+                    const [year, month] = value.split('-');
+                    const date = new Date(parseInt(year), parseInt(month) - 1);
+                    return format(date, 'MMM yyyy');
+                  }}
+                />
+                <YAxis stroke="#6b7280" fontSize={12} />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  labelFormatter={(value) => {
+                    const [year, month] = value.split('-');
+                    const date = new Date(parseInt(year), parseInt(month) - 1);
+                    return format(date, 'MMMM yyyy');
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="lessons"
+                  stroke={COLORS.success}
+                  fillOpacity={1}
+                  fill="url(#colorLessons)"
+                  name="Lessons"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState message="No monthly data available" />
           )}
         </ChartCard>
       </div>
@@ -661,30 +791,55 @@ export function AnalyticsDashboard({ data }: Props) {
           ]}
         />
 
+        <InsightCard
+          title="Lesson Type Breakdown"
+          data={[
+            { name: 'Teacher Lessons', value: data.overview.totalTeacherLessons, color: COLORS.primary },
+            { name: 'Tutor Lessons', value: data.overview.totalTutorLessons, color: COLORS.secondary },
+          ]}
+        />
+      </div>
+
+      {/* Top Subjects */}
+      {data.topSubjects.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <div className="flex items-start gap-3 mb-4">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Upcoming Lessons
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Top Subjects
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {data.overview.upcomingLessons} scheduled
+                Your most frequently taught subjects
               </p>
             </div>
           </div>
-          <div className="text-center py-4">
-            <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-              {data.overview.upcomingLessons}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              lessons in the pipeline
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {data.topSubjects.map((subject, index) => (
+              <div
+                key={subject.name}
+                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                  />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {subject.name}
+                  </span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {subject.value}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">lessons</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Lessons Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -702,6 +857,51 @@ export function AnalyticsDashboard({ data }: Props) {
           lessons={data.recentLessons}
           emptyMessage="No recent lessons found"
         />
+      </div>
+
+      {/* Quick Stats Footer */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Quick Summary
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {data.overview.totalStudents}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Students</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {data.overview.totalClasses}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Classes</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {totalLessons}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Lessons</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {data.overview.lessonsLast30Days}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Last 30 Days</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {data.overview.aiGeneratedLessons}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">AI Generated</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {data.lessonsBySubject.length}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Subjects Taught</p>
+          </div>
+        </div>
       </div>
     </div>
   );

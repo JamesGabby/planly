@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import StatsCard from '@/components/dashboard/StatsCard';
@@ -14,136 +15,308 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-async function getDashboardData(userId: string) {
+// Types for dashboard data
+interface DashboardLesson {
+  id: string;
+  topic: string | null;
+  subject: string;
+  date_of_lesson: string | null;
+  time_of_lesson: string | null;
+  created_at: string;
+  class?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  type: 'teacher' | 'tutor';
+}
+
+interface DashboardClass {
+  class_id: string;
+  class_name: string;
+  year_group: string | null;
+  created_at: string;
+  student_count: number;
+  type: 'teacher' | 'tutor';
+}
+
+interface DashboardData {
+  totalLessons: number;
+  totalStudents: number;
+  totalClasses: number;
+  aiLessonsThisMonth: number;
+  upcomingLessons: DashboardLesson[];
+  recentLessons: DashboardLesson[];
+  classes: DashboardClass[];
+}
+
+async function getDashboardData(userId: string): Promise<DashboardData> {
   const supabase = await createClient();
 
-  // Get teacher lesson plans count
-  const { count: teacherLessonsCount } = await supabase
-    .from('teacher_lesson_plans')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  // Get tutor lesson plans count
-  const { count: tutorLessonsCount } = await supabase
-    .from('tutor_lesson_plans')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  const totalLessons = (teacherLessonsCount || 0) + (tutorLessonsCount || 0);
-
-  // Get classes count
-  const { count: classesCount } = await supabase
-    .from('classes')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  // Get teacher students count
-  const { count: teacherStudentsCount } = await supabase
-    .from('teacher_student_profiles')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  // Get tutor students count
-  const { count: tutorStudentsCount } = await supabase
-    .from('tutor_student_profiles')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  const totalStudents = (teacherStudentsCount || 0) + (tutorStudentsCount || 0);
-
-  // Get upcoming lessons (next 7 days) - teacher lessons
+  // Calculate date ranges
   const today = new Date().toISOString().split('T')[0];
   const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0];
-
-  const { data: upcomingTeacherLessons } = await supabase
-    .from('teacher_lesson_plans')
-    .select('*')
-    .eq('user_id', userId)
-    .gte('date_of_lesson', today)
-    .lte('date_of_lesson', nextWeek)
-    .order('date_of_lesson', { ascending: true })
-    .order('time_of_lesson', { ascending: true })
-    .limit(5);
-
-  // Get upcoming tutor lessons
-  const { data: upcomingTutorLessons } = await supabase
-    .from('tutor_lesson_plans')
-    .select('*')
-    .eq('user_id', userId)
-    .gte('date_of_lesson', today)
-    .lte('date_of_lesson', nextWeek)
-    .order('date_of_lesson', { ascending: true })
-    .order('time_of_lesson', { ascending: true })
-    .limit(5);
-
-  // Get recent lessons (last 5)
-  const { data: recentTeacherLessons } = await supabase
-    .from('teacher_lesson_plans')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(3);
-
-  const { data: recentTutorLessons } = await supabase
-    .from('tutor_lesson_plans')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(3);
-
-  // Get classes with student count
-  const { data: classes } = await supabase
-    .from('classes')
-    .select(`
-      *,
-      class_students(count)
-    `)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(5);
-
-  // Get AI-generated lessons count (last 30 days)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString();
 
-  const { count: aiTeacherLessons } = await supabase
-    .from('teacher_lesson_plans')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('created_with_ai', true)
-    .gte('created_at', thirtyDaysAgo);
+  // Parallel fetch all data for performance
+  const [
+    // Lesson counts
+    teacherLessonsCount,
+    tutorLessonsCount,
+    // Class counts
+    teacherClassesCount,
+    tutorClassesCount,
+    // Student counts
+    teacherStudentsCount,
+    tutorStudentsCount,
+    // Upcoming lessons
+    upcomingTeacherLessons,
+    upcomingTutorLessons,
+    // Recent lessons
+    recentTeacherLessons,
+    recentTutorLessons,
+    // Classes with student counts
+    teacherClasses,
+    tutorClasses,
+    // Teacher class student counts
+    teacherClassStudents,
+    tutorClassStudents,
+    // AI lessons count
+    aiTeacherLessons,
+    aiTutorLessons,
+  ] = await Promise.all([
+    // Teacher lesson plans count
+    supabase
+      .from('teacher_lesson_plans')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    
+    // Tutor lesson plans count
+    supabase
+      .from('tutor_lesson_plans')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    
+    // Teacher classes count
+    supabase
+      .from('teacher_classes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    
+    // Tutor classes count
+    supabase
+      .from('tutor_classes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    
+    // Teacher students count
+    supabase
+      .from('teacher_student_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    
+    // Tutor students count
+    supabase
+      .from('tutor_student_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    
+    // Upcoming teacher lessons (next 7 days)
+    supabase
+      .from('teacher_lesson_plans')
+      .select('id, topic, subject, date_of_lesson, time_of_lesson, created_at, class')
+      .eq('user_id', userId)
+      .gte('date_of_lesson', today)
+      .lte('date_of_lesson', nextWeek)
+      .order('date_of_lesson', { ascending: true })
+      .order('time_of_lesson', { ascending: true })
+      .limit(5),
+    
+    // Upcoming tutor lessons (next 7 days)
+    supabase
+      .from('tutor_lesson_plans')
+      .select('id, topic, subject, date_of_lesson, time_of_lesson, created_at, first_name, last_name')
+      .eq('user_id', userId)
+      .gte('date_of_lesson', today)
+      .lte('date_of_lesson', nextWeek)
+      .order('date_of_lesson', { ascending: true })
+      .order('time_of_lesson', { ascending: true })
+      .limit(5),
+    
+    // Recent teacher lessons
+    supabase
+      .from('teacher_lesson_plans')
+      .select('id, topic, subject, date_of_lesson, time_of_lesson, created_at, class')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(3),
+    
+    // Recent tutor lessons
+    supabase
+      .from('tutor_lesson_plans')
+      .select('id, topic, subject, date_of_lesson, time_of_lesson, created_at, first_name, last_name')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(3),
+    
+    // Teacher classes
+    supabase
+      .from('teacher_classes')
+      .select('class_id, class_name, year_group, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    
+    // Tutor classes
+    supabase
+      .from('tutor_classes')
+      .select('class_id, class_name, year_group, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    
+    // Teacher class students (for counting)
+    supabase
+      .from('teacher_class_students')
+      .select('class_id'),
+    
+    // Tutor class students (for counting)
+    supabase
+      .from('tutor_class_students')
+      .select('class_id'),
+    
+    // AI teacher lessons (last 30 days)
+    supabase
+      .from('teacher_lesson_plans')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('created_with_ai', true)
+      .gte('created_at', thirtyDaysAgo),
+    
+    // AI tutor lessons (last 30 days)
+    supabase
+      .from('tutor_lesson_plans')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('created_with_ai', true)
+      .gte('created_at', thirtyDaysAgo),
+  ]);
 
-  const { count: aiTutorLessons } = await supabase
-    .from('tutor_lesson_plans')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('created_with_ai', true)
-    .gte('created_at', thirtyDaysAgo);
+  // Calculate totals
+  const totalLessons = (teacherLessonsCount.count || 0) + (tutorLessonsCount.count || 0);
+  const totalStudents = (teacherStudentsCount.count || 0) + (tutorStudentsCount.count || 0);
+  const totalClasses = (teacherClassesCount.count || 0) + (tutorClassesCount.count || 0);
+  const aiLessonsThisMonth = (aiTeacherLessons.count || 0) + (aiTutorLessons.count || 0);
 
-  const aiLessonsThisMonth = (aiTeacherLessons || 0) + (aiTutorLessons || 0);
+  // Create student count maps for classes
+  const teacherClassStudentCounts = new Map<string, number>();
+  (teacherClassStudents.data || []).forEach(cs => {
+    const count = teacherClassStudentCounts.get(cs.class_id) || 0;
+    teacherClassStudentCounts.set(cs.class_id, count + 1);
+  });
+
+  const tutorClassStudentCounts = new Map<string, number>();
+  (tutorClassStudents.data || []).forEach(cs => {
+    const count = tutorClassStudentCounts.get(cs.class_id) || 0;
+    tutorClassStudentCounts.set(cs.class_id, count + 1);
+  });
+
+  // Process teacher classes with student counts
+  const processedTeacherClasses: DashboardClass[] = (teacherClasses.data || []).map(c => ({
+    class_id: c.class_id,
+    class_name: c.class_name,
+    year_group: c.year_group,
+    created_at: c.created_at,
+    student_count: teacherClassStudentCounts.get(c.class_id) || 0,
+    type: 'teacher' as const,
+  }));
+
+  // Process tutor classes with student counts
+  const processedTutorClasses: DashboardClass[] = (tutorClasses.data || []).map(c => ({
+    class_id: c.class_id,
+    class_name: c.class_name,
+    year_group: c.year_group,
+    created_at: c.created_at,
+    student_count: tutorClassStudentCounts.get(c.class_id) || 0,
+    type: 'tutor' as const,
+  }));
+
+  // Combine and sort classes by created_at
+  const combinedClasses = [...processedTeacherClasses, ...processedTutorClasses]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
+
+  // Process upcoming lessons
+  const processedUpcomingTeacher: DashboardLesson[] = (upcomingTeacherLessons.data || []).map(l => ({
+    id: l.id,
+    topic: l.topic,
+    subject: l.subject,
+    date_of_lesson: l.date_of_lesson,
+    time_of_lesson: l.time_of_lesson,
+    created_at: l.created_at,
+    class: l.class,
+    type: 'teacher' as const,
+  }));
+
+  const processedUpcomingTutor: DashboardLesson[] = (upcomingTutorLessons.data || []).map(l => ({
+    id: l.id,
+    topic: l.topic,
+    subject: l.subject,
+    date_of_lesson: l.date_of_lesson,
+    time_of_lesson: l.time_of_lesson,
+    created_at: l.created_at,
+    first_name: l.first_name,
+    last_name: l.last_name,
+    type: 'tutor' as const,
+  }));
+
+  // Combine and sort upcoming lessons
+  const combinedUpcoming = [...processedUpcomingTeacher, ...processedUpcomingTutor]
+    .sort((a, b) => {
+      const dateA = new Date(`${a.date_of_lesson}T${a.time_of_lesson || '00:00'}`);
+      const dateB = new Date(`${b.date_of_lesson}T${b.time_of_lesson || '00:00'}`);
+      return dateA.getTime() - dateB.getTime();
+    })
+    .slice(0, 5);
+
+  // Process recent lessons
+  const processedRecentTeacher: DashboardLesson[] = (recentTeacherLessons.data || []).map(l => ({
+    id: l.id,
+    topic: l.topic,
+    subject: l.subject,
+    date_of_lesson: l.date_of_lesson,
+    time_of_lesson: l.time_of_lesson,
+    created_at: l.created_at,
+    class: l.class,
+    type: 'teacher' as const,
+  }));
+
+  const processedRecentTutor: DashboardLesson[] = (recentTutorLessons.data || []).map(l => ({
+    id: l.id,
+    topic: l.topic,
+    subject: l.subject,
+    date_of_lesson: l.date_of_lesson,
+    time_of_lesson: l.time_of_lesson,
+    created_at: l.created_at,
+    first_name: l.first_name,
+    last_name: l.last_name,
+    type: 'tutor' as const,
+  }));
+
+  // Combine and sort recent lessons
+  const combinedRecent = [...processedRecentTeacher, ...processedRecentTutor]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
 
   return {
     totalLessons,
     totalStudents,
-    classesCount,
+    totalClasses,
     aiLessonsThisMonth,
-    upcomingLessons: [
-      ...(upcomingTeacherLessons || []).map(l => ({ ...l, type: 'teacher' })),
-      ...(upcomingTutorLessons || []).map(l => ({ ...l, type: 'tutor' }))
-    ].sort((a, b) => {
-      const dateA = new Date(`${a.date_of_lesson}T${a.time_of_lesson || '00:00'}`);
-      const dateB = new Date(`${b.date_of_lesson}T${b.time_of_lesson || '00:00'}`);
-      return dateA.getTime() - dateB.getTime();
-    }).slice(0, 5),
-    recentLessons: [
-      ...(recentTeacherLessons || []).map(l => ({ ...l, type: 'teacher' })),
-      ...(recentTutorLessons || []).map(l => ({ ...l, type: 'tutor' }))
-    ].sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    ).slice(0, 5),
-    classes: classes || []
+    upcomingLessons: combinedUpcoming,
+    recentLessons: combinedRecent,
+    classes: combinedClasses,
   };
 }
 
@@ -189,7 +362,7 @@ export default async function DashboardPage() {
           />
           <StatsCard
             title="Classes"
-            value={dashboardData.classesCount || 0}
+            value={dashboardData.totalClasses}
             icon={<GraduationCap className="w-5 h-5" />}
             color="purple"
           />
