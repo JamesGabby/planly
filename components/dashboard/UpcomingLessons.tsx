@@ -1,32 +1,43 @@
+// components/dashboard/UpcomingLessons.tsx
 import { Calendar, Clock, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import clsx from 'clsx';
 
-interface Lesson {
+interface DashboardLesson {
   id: string;
-  date_of_lesson: string;
-  time_of_lesson: string | null;
-  topic: string;
+  topic: string | null;
   subject: string;
+  date_of_lesson: string | null;
+  time_of_lesson: string | null;
+  created_at: string;
   class?: string;
-  first_name?: string;
-  last_name?: string;
+  first_name?: string | null;
+  last_name?: string | null;
   type: 'teacher' | 'tutor';
 }
 
 interface UpcomingLessonsProps {
-  lessons: Lesson[];
+  lessons: DashboardLesson[];
 }
 
 export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'No date set';
+    
     const date = new Date(dateString);
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (date.toDateString() === today.toDateString()) {
+    // Reset time for comparison
+    today.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+
+    if (compareDate.getTime() === today.getTime()) {
       return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
+    } else if (compareDate.getTime() === tomorrow.getTime()) {
       return 'Tomorrow';
     } else {
       return date.toLocaleDateString('en-GB', { 
@@ -39,13 +50,53 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
 
   const formatTime = (timeString: string | null) => {
     if (!timeString) return 'No time set';
-    const [hours, minutes] = timeString.split(':');
-    const date = new Date();
-    date.setHours(parseInt(hours), parseInt(minutes));
-    return date.toLocaleTimeString('en-GB', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const date = new Date();
+      date.setHours(parseInt(hours), parseInt(minutes));
+      return date.toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } catch {
+      return timeString;
+    }
+  };
+
+  const getDateStatus = (dateString: string | null): 'today' | 'tomorrow' | 'upcoming' | 'none' => {
+    if (!dateString) return 'none';
+    
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    today.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+
+    if (compareDate.getTime() === today.getTime()) return 'today';
+    if (compareDate.getTime() === tomorrow.getTime()) return 'tomorrow';
+    return 'upcoming';
+  };
+
+  const getLessonLink = (lesson: DashboardLesson) => {
+    const baseUrl = lesson.type === 'teacher' 
+      ? '/dashboard/lesson-plans/lesson/teacher'
+      : '/tutor-dashboard/lesson-plans/lesson';
+    return `${baseUrl}/${lesson.id}`;
+  };
+
+  const getStudentOrClassName = (lesson: DashboardLesson) => {
+    if (lesson.type === 'teacher' && lesson.class) {
+      return lesson.class;
+    }
+    if (lesson.type === 'tutor' && (lesson.first_name || lesson.last_name)) {
+      return `${lesson.first_name || ''} ${lesson.last_name || ''}`.trim();
+    }
+    return null;
   };
 
   return (
@@ -78,45 +129,69 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
         </div>
       ) : (
         <div className="space-y-3">
-          {lessons.map((lesson) => (
-            <Link
-              key={lesson.id}
-              href={`/dashboard/lesson-plans/lesson/${lesson.type === 'teacher' ? 'teacher' : 'tutor'}/${lesson.id}`}
-              className="block p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-slate-900 dark:text-slate-50 truncate mb-1">
-                    {lesson.topic || 'Untitled Lesson'}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    {lesson.subject}
-                    {lesson.type === 'teacher' && lesson.class && ` • ${lesson.class}`}
-                    {lesson.type === 'tutor' && lesson.first_name && 
-                      ` • ${lesson.first_name} ${lesson.last_name || ''}`
-                    }
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(lesson.date_of_lesson)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatTime(lesson.time_of_lesson)}
-                    </span>
+          {lessons.map((lesson) => {
+            const dateStatus = getDateStatus(lesson.date_of_lesson);
+            const studentOrClass = getStudentOrClassName(lesson);
+            const isTeacher = lesson.type === 'teacher';
+
+            return (
+              <Link
+                key={`${lesson.type}-${lesson.id}`}
+                href={getLessonLink(lesson)}
+                className={clsx(
+                  'block p-4 rounded-lg border transition-all',
+                  dateStatus === 'today' 
+                    ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                )}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-slate-900 dark:text-slate-50 truncate">
+                        {lesson.topic || 'Untitled Lesson'}
+                      </h3>
+                      {dateStatus === 'today' && (
+                        <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-500 text-white">
+                          Today
+                        </span>
+                      )}
+                      {dateStatus === 'tomorrow' && (
+                        <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                          Tomorrow
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                      {lesson.subject}
+                      {studentOrClass && ` • ${studentOrClass}`}
+                    </p>
+                    
+                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(lesson.date_of_lesson)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatTime(lesson.time_of_lesson)}
+                      </span>
+                    </div>
                   </div>
+                  
+                  <span className={clsx(
+                    'px-2 py-1 rounded text-xs font-medium flex-shrink-0',
+                    isTeacher
+                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                  )}>
+                    {isTeacher ? 'Class' : 'Tutoring'}
+                  </span>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  lesson.type === 'teacher' 
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                }`}>
-                  {lesson.type === 'teacher' ? 'Class' : 'Tutoring'}
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
