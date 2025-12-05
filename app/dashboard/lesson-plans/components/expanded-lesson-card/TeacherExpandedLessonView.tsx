@@ -366,7 +366,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
               <GraduationCap size={18} className="text-primary flex-shrink-0" />
               {classId ? (
                 <Link
-                  href={`/dashboard/classes/${classId}`}
+                  href={`/dashboard/classes/teacher/${classId}`}
                   className="text-primary hover:underline hover:text-primary/80 transition-colors"
                 >
                   {lesson.class}
