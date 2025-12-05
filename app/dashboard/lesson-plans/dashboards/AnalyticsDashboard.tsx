@@ -4,9 +4,6 @@
 import {
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -26,7 +23,6 @@ import {
   AlertCircle,
   Clock,
   BarChart3,
-  PieChart as PieChartIcon,
   Sparkles,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
