@@ -32,6 +32,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { AnalyticsData, LessonData } from '../types/analytics';
 import clsx from 'clsx';
+import { StudentsClassesCharts } from '@/components/analytics/StudentsByYearGroupLevel';
 
 const COLORS = {
   primary: '#3b82f6',
@@ -643,84 +644,10 @@ export function AnalyticsDashboard({ data }: Props) {
         </ChartCard>
       </div>
 
-      {/* Charts Row 2: Students & Classes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard
-          title="Students by Year Group / Level"
-          subtitle="Student distribution across year groups and levels"
-          icon={PieChartIcon}
-        >
-          {data.studentsByYearGroup.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={data.studentsByYearGroup}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  // After - fixed
-                  label={({ name, percent = 0 }) => {
-                    if (percent < 0.05) return null;
-                    return `${name || ''}: ${(percent * 100).toFixed(0)}%`;
-                  }}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {data.studentsByYearGroup.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={CHART_COLORS[index % CHART_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyState message="No student data available" />
-          )}
-        </ChartCard>
-
-        <ChartCard
-          title="Class Sizes"
-          subtitle="Students per class"
-          icon={Users}
-        >
-          {data.classDistribution && data.classDistribution.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={data.classDistribution.slice(0, 10)}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis type="number" stroke="#6b7280" fontSize={12} />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  stroke="#6b7280"
-                  fontSize={12}
-                  width={100}
-                  tickFormatter={(value) =>
-                    value.length > 15 ? `${value.substring(0, 15)}...` : value
-                  }
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar
-                  dataKey="students"
-                  name="Students"
-                  fill={COLORS.success}
-                  radius={[0, 8, 8, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyState message="No class data available" />
-          )}
-        </ChartCard>
-      </div>
+      <StudentsClassesCharts
+        studentsByYearGroup={data.studentsByYearGroup}
+        classDistribution={data.classDistribution}
+      />
 
       {/* Charts Row 3: Lessons by Month */}
       <div className="grid grid-cols-1 gap-6">

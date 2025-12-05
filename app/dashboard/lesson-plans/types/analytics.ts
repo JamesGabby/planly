@@ -170,12 +170,6 @@ export interface LessonsByMonthData {
   lessons: number;
 }
 
-export interface YearGroupData {
-  name: string;
-  value: number;
-  [key: string]: string | number;  // Index signature for Recharts
-}
-
 export interface ClassDistributionData {
   name: string;
   students: number;
@@ -334,4 +328,41 @@ export interface DateRangeOption {
   label: string;
   value: string;
   days: number;
+}
+
+// types/analytics.ts
+
+// ============================================
+// Chart Data Types
+// ============================================
+
+export interface SubjectData {
+  name: string;
+  value: number;
+  [key: string]: string | number;
+}
+
+export interface LessonsByMonthData {
+  name: string;
+  lessons: number;
+  [key: string]: string | number;
+}
+
+export interface YearGroupData {
+  name: string;
+  value: number;
+  [key: string]: string | number;
+}
+
+export interface ClassDistributionData {
+  name: string;
+  students: number;
+  [key: string]: string | number;
+}
+
+export interface TeachingActivityData {
+  name: string;
+  teacher: number;
+  tutor: number;
+  [key: string]: string | number;
 }
