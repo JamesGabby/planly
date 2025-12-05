@@ -173,6 +173,7 @@ export interface LessonsByMonthData {
 export interface YearGroupData {
   name: string;
   value: number;
+  [key: string]: string | number;  // Index signature for Recharts
 }
 
 export interface ClassDistributionData {

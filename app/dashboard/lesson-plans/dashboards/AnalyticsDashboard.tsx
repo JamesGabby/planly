@@ -1,4 +1,4 @@
-      // components/analytics/AnalyticsDashboard.tsx
+// components/analytics/AnalyticsDashboard.tsx
 'use client';
 
 import {
@@ -337,7 +337,7 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
             </h4>
             <span className={clsx(
               'text-xs px-2 py-0.5 rounded-full',
-              lessonType === 'Teacher' 
+              lessonType === 'Teacher'
                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                 : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
             )}>
@@ -453,7 +453,7 @@ export function AnalyticsDashboard({ data }: Props) {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -467,7 +467,7 @@ export function AnalyticsDashboard({ data }: Props) {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -481,7 +481,7 @@ export function AnalyticsDashboard({ data }: Props) {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -551,7 +551,7 @@ export function AnalyticsDashboard({ data }: Props) {
             } with documented SEN. Review their profiles for tailored lesson planning.`}
         />
       )}
-      
+
       {/* Charts Row 1: Teaching Activity & Subject Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
@@ -658,9 +658,10 @@ export function AnalyticsDashboard({ data }: Props) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => {
+                  // After - fixed
+                  label={({ name, percent = 0 }) => {
                     if (percent < 0.05) return null;
-                    return `${name || ''}: ${((percent ?? 0) * 100).toFixed(0)}%`;
+                    return `${name || ''}: ${(percent * 100).toFixed(0)}%`;
                   }}
                   outerRadius={100}
                   fill="#8884d8"
@@ -702,16 +703,16 @@ export function AnalyticsDashboard({ data }: Props) {
                   stroke="#6b7280"
                   fontSize={12}
                   width={100}
-                  tickFormatter={(value) => 
+                  tickFormatter={(value) =>
                     value.length > 15 ? `${value.substring(0, 15)}...` : value
                   }
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar 
-                  dataKey="students" 
-                  name="Students" 
-                  fill={COLORS.success} 
-                  radius={[0, 8, 8, 0]} 
+                <Bar
+                  dataKey="students"
+                  name="Students"
+                  fill={COLORS.success}
+                  radius={[0, 8, 8, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
