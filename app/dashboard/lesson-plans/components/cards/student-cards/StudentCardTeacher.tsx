@@ -146,7 +146,7 @@ export function StudentCardTeacher({
       setLoadingClasses(true);
       try {
         const { data, error } = await supabase
-          .from("class_students")
+          .from("teacher_class_students")
           .select(`
             class_id,
             classes:class_id (

@@ -120,7 +120,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
 
       try {
         const { data, error } = await supabase
-          .from("classes")
+          .from("teacher_classes")
           .select("class_id")
           .eq("class_name", lesson.class)
           .eq("user_id", lesson.user_id)
@@ -134,7 +134,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
           setClassId(data.class_id);
         } else {
           const { data: anyClassData, error: anyClassError } = await supabase
-            .from("classes")
+            .from("teacher_classes")
             .select("class_id")
             .eq("class_name", lesson.class)
             .limit(1)

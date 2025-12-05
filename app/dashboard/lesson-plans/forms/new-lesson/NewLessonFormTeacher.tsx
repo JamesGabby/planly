@@ -252,7 +252,7 @@ export default function NewLessonFormTeacher() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("classes")
+        .from("teacher_classes")
         .select("class_id, class_name")
         .eq("user_id", user.id)
         .order("class_name", { ascending: true });
@@ -543,7 +543,7 @@ export default function NewLessonFormTeacher() {
     try {
       // Check if class already exists
       const { data: existingClass } = await supabase
-        .from("classes")
+        .from("teacher_classes")
         .select("*")
         .eq("class_name", className)
         .eq("user_id", userId)
@@ -555,7 +555,7 @@ export default function NewLessonFormTeacher() {
 
       // Insert new class
       const { data, error } = await supabase
-        .from("classes")
+        .from("teacher_classes")
         .insert([
           {
             class_name: className,

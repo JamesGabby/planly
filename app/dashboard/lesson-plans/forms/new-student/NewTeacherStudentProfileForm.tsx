@@ -82,7 +82,7 @@ export default function NewTeacherStudentProfileForm() {
         }
 
         const { data, error } = await supabase
-          .from("classes")
+          .from("teacher_classes")
           .select("class_name")
           .eq("user_id", user.id)
           .order("class_name", { ascending: true });
@@ -193,7 +193,7 @@ export default function NewTeacherStudentProfileForm() {
 
       // 1. Check if class already exists
       let { data: classRow } = await supabase
-        .from("classes")
+        .from("teacher_classes")
         .select("class_id")
         .eq("class_name", finalClassName)
         .maybeSingle();
@@ -201,7 +201,7 @@ export default function NewTeacherStudentProfileForm() {
       // 2. If class doesn't exist, create it
       if (!classRow) {
         const { data: newClass, error: insertClassError } = await supabase
-          .from("classes")
+          .from("teacher_classes")
           .insert([
             {
               class_name: finalClassName,
@@ -220,7 +220,7 @@ export default function NewTeacherStudentProfileForm() {
       }
 
       // Link class + student
-      const { error: linkError } = await supabase.from("class_students").insert([
+      const { error: linkError } = await supabase.from("teacher_class_students").insert([
         {
           class_id: classRow.class_id,
           student_id: newStudent.student_id,

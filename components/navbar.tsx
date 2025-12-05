@@ -16,7 +16,6 @@ import {
 import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
-import { useUserMode } from "./UserModeContext";
 import { usePathname } from "next/navigation";
 
 const poppins = Poppins({
@@ -34,7 +33,6 @@ interface NavLink {
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { mode } = useUserMode();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -73,22 +71,13 @@ export function Navbar() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  const baseLinks: NavLink[] = [
+  const navLinks: NavLink[] = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Lessons", href: "/dashboard/lesson-plans", icon: BookOpen },
+    { name: "Classes", href: "/dashboard/classes", icon: GraduationCap },
     { name: "Students", href: "/dashboard/student-profiles", icon: Users },
     { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   ];
-
-  const navLinks: NavLink[] =
-    mode !== "tutor"
-      ? [
-        baseLinks[0],
-        baseLinks[1],
-        { name: "Classes", href: "/dashboard/classes", icon: GraduationCap },
-        ...baseLinks.slice(2),
-      ]
-      : baseLinks;
 
   return (
     <>
@@ -116,7 +105,7 @@ export function Navbar() {
             </div>
 
             <span className="bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-accent transition-all duration-500">
-              PickleMaster6000
+              Lessonly
             </span>
           </Link>
 

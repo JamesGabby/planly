@@ -5,12 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { StudentProfileTeacher } from "../../lesson-plans/types/student_profile_teacher";
+import { StudentProfileTeacher } from "../../../lesson-plans/types/student_profile_teacher";
 import { LessonCardSkeleton } from "@/app/dashboard/lesson-plans/skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import Link from "next/link";
-import { StudentCardClass } from "../../lesson-plans/components/cards/class-cards/StudentCardClass";
-import { ClassStudentJoin } from "../../lesson-plans/types/class";
+import { StudentCardClass } from "../../../lesson-plans/components/cards/class-cards/StudentCardClass";
+import { ClassStudentJoin } from "../../../lesson-plans/types/class";
 import { ArrowLeft, UserMinus, UserPlus, Search, Check } from "lucide-react";
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ interface Props {
 
 const supabase = createClient();
 
-export default function ClassStudentsPage({ params }: Props) {
+export default function TeacherClassStudentsPage({ params }: Props) {
   const paramsObj = React.use(params);
   const { id } = paramsObj;
 
@@ -79,7 +79,7 @@ export default function ClassStudentsPage({ params }: Props) {
 
     try {
       const { data: classData, error: classError } = await supabase
-        .from("classes")
+        .from("teacher_classes")
         .select("class_name")
         .eq("class_id", id)
         .single();
@@ -88,7 +88,7 @@ export default function ClassStudentsPage({ params }: Props) {
       setClassName(classData?.class_name || "Unnamed Class");
 
       const { data, error } = await supabase
-        .from("class_students")
+        .from("teacher_class_students")
         .select(`
           student:teacher_student_profiles(*)
         `)
@@ -175,7 +175,7 @@ export default function ClassStudentsPage({ params }: Props) {
 
       // Add student to class
       const { error: addError } = await supabase
-        .from("class_students")
+        .from("teacher_class_students")
         .insert({
           class_id: id,
           student_id: newStudent.student_id,
@@ -207,7 +207,7 @@ export default function ClassStudentsPage({ params }: Props) {
 
     try {
       const { error } = await supabase
-        .from("class_students")
+        .from("teacher_class_students")
         .insert({
           class_id: id,
           student_id: student.student_id,
@@ -241,7 +241,7 @@ export default function ClassStudentsPage({ params }: Props) {
 
     try {
       const { error } = await supabase
-        .from("class_students")
+        .from("teacher_class_students")
         .delete()
         .eq("class_id", id)
         .eq("student_id", studentToRemove.student_id);
