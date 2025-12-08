@@ -8,6 +8,21 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    // Subject color classes that are dynamically applied
+    {
+      pattern: /^bg-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|fuchsia|teal|rose|lime|yellow|gray)-(50|100|500|700|800|950)/,
+      variants: ["hover", "dark"],
+    },
+    {
+      pattern: /^text-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|fuchsia|teal|rose|lime|yellow|gray)-(300|700)/,
+      variants: ["dark"],
+    },
+    {
+      pattern: /^border-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|fuchsia|teal|rose|lime|yellow|gray)-(200|800)/,
+      variants: ["dark"],
+    },
+  ],
   theme: {
     extend: {
       colors: {

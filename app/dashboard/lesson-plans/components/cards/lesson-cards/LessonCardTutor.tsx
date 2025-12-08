@@ -30,9 +30,12 @@ import { prettyDate, prettyTime } from "../../../utils/helpers";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SubjectBadge } from "@/components/ui/subject-badge";
+import { getSubjectColors } from "@/lib/utils/subjectColors";
 
 /* ------------------------------------ */
 /* IMPROVED LESSON CARD COMPONENT       */
+/* WITH SUBJECT COLOR CODING            */
 /* ------------------------------------ */
 
 interface LessonCardTutorProps {
@@ -51,6 +54,9 @@ export function LessonCardTutor({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
+
+  // Get subject colors for accent styling
+  const subjectColors = getSubjectColors(lesson.subject || "");
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -90,6 +96,11 @@ export function LessonCardTutor({
     e.stopPropagation();
   };
 
+  // Get student display name
+  const studentName = lesson.tutor_student_profiles
+    ? `${lesson.tutor_student_profiles.first_name} ${lesson.tutor_student_profiles.last_name}`.trim()
+    : "No Student";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -100,17 +111,30 @@ export function LessonCardTutor({
     >
       <Card
         className={cn(
-          "group relative bg-card text-card-foreground border border-border shadow-sm transition-all duration-200 h-full flex flex-col",
+          "group relative bg-card text-card-foreground border border-border shadow-sm transition-all duration-200 h-full flex flex-col overflow-hidden",
           "hover:shadow-lg hover:border-primary/50",
           "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2",
           isDeleting && "opacity-50 pointer-events-none"
         )}
       >
+        {/* ---------- SUBJECT COLOR ACCENT BAR ---------- */}
+        <div
+          className={cn("absolute top-0 left-0 right-0 h-1", subjectColors.dot)}
+          aria-hidden="true"
+        />
+
         {/* ---------- HEADER ---------- */}
-        <CardHeader className="p-4 sm:p-6 space-y-3 pb-3">
+        <CardHeader className="p-4 sm:p-6 space-y-3 pb-3 pt-5">
           <div className="flex items-start justify-between gap-3">
             {/* --- Lesson Info --- */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
+              {/* Subject Badge */}
+              {lesson.subject && (
+                <div className="mb-2">
+                  <SubjectBadge subject={lesson.subject} size="sm" />
+                </div>
+              )}
+
               <button
                 onClick={handleView}
                 className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm group/title w-full"
@@ -122,19 +146,37 @@ export function LessonCardTutor({
               </button>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5" aria-label="Student information">
-                  <User className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-                  <span className="font-medium">
-                    {lesson.tutor_student_profiles?.first_name} {lesson.tutor_student_profiles?.last_name}
+                <span
+                  className="flex items-center gap-1.5"
+                  aria-label="Student information"
+                >
+                  <User
+                    className="w-3.5 h-3.5 flex-shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="font-medium truncate max-w-[150px]">
+                    {studentName}
                   </span>
                 </span>
-                <span className="flex items-center gap-1.5" aria-label="Lesson date">
-                  <Calendar className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+                <span
+                  className="flex items-center gap-1.5"
+                  aria-label="Lesson date"
+                >
+                  <Calendar
+                    className="w-3.5 h-3.5 flex-shrink-0"
+                    aria-hidden="true"
+                  />
                   {prettyDate(lesson.date_of_lesson)}
                 </span>
                 {lesson.time_of_lesson && (
-                  <span className="flex items-center gap-1.5" aria-label="Lesson time">
-                    <Clock className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+                  <span
+                    className="flex items-center gap-1.5"
+                    aria-label="Lesson time"
+                  >
+                    <Clock
+                      className="w-3.5 h-3.5 flex-shrink-0"
+                      aria-hidden="true"
+                    />
                     {prettyTime(lesson.time_of_lesson)}
                   </span>
                 )}
@@ -155,16 +197,22 @@ export function LessonCardTutor({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handleView} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleView}
+                    className="cursor-pointer"
+                  >
                     <Eye className="mr-2 h-4 w-4" />
                     <span>View Details</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleEdit}
+                    className="cursor-pointer"
+                  >
                     <Edit3 className="mr-2 h-4 w-4" />
                     <span>Edit</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={handleDuplicate} 
+                  <DropdownMenuItem
+                    onClick={handleDuplicate}
                     disabled={isDuplicating}
                     className="cursor-pointer"
                   >
@@ -203,9 +251,9 @@ export function LessonCardTutor({
           {/* --- Footer --- */}
           <div className="mt-auto pt-4 flex items-center justify-between gap-3 border-t border-border/50">
             {/* Status Badge */}
-            <span 
+            <span
               className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
-              aria-label="Lesson status"
+              aria-label="Lesson type"
             >
               Tutoring
             </span>

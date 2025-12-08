@@ -1,3 +1,5 @@
+// components/LessonCardTeacher.tsx
+
 "use client";
 
 import { motion } from "framer-motion";
@@ -10,6 +12,7 @@ import {
   Copy,
   MoreVertical,
   Eye,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,9 +33,12 @@ import { prettyDate, prettyTime } from "../../../utils/helpers";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SubjectBadge } from "@/components/ui/subject-badge";
+import { getSubjectColors, normalizeSubjectKey } from "@/lib/utils/subjectColors";
 
 /* ------------------------------------ */
 /* IMPROVED LESSON CARD COMPONENT       */
+/* WITH SUBJECT COLOR CODING            */
 /* ------------------------------------ */
 
 interface LessonCardTeacherProps {
@@ -51,6 +57,9 @@ export function LessonCardTeacher({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
+
+  // Get subject colors for accent styling
+  const subjectColors = getSubjectColors(lesson.subject || "");
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -90,6 +99,15 @@ export function LessonCardTeacher({
     e.stopPropagation();
   };
 
+  // Inside LessonCardTeacher, before the return statement
+console.log("Debug subject:", {
+  raw: lesson.subject,
+  type: typeof lesson.subject,
+  length: lesson.subject?.length,
+  charCodes: lesson.subject?.split("").map(c => c.charCodeAt(0)),
+  normalized: normalizeSubjectKey(lesson.subject || ""),
+});
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -100,17 +118,36 @@ export function LessonCardTeacher({
     >
       <Card
         className={cn(
-          "group relative bg-card text-card-foreground border border-border shadow-sm transition-all duration-200 h-full flex flex-col",
+          "group relative bg-card text-card-foreground border border-border shadow-sm transition-all duration-200 h-full flex flex-col overflow-hidden",
           "hover:shadow-lg hover:border-primary/50",
           "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2",
           isDeleting && "opacity-50 pointer-events-none"
         )}
       >
+        {/* ---------- SUBJECT COLOR ACCENT BAR ---------- */}
+        <div 
+          className={cn(
+            "absolute top-0 left-0 right-0 h-1",
+            subjectColors.dot
+          )}
+          aria-hidden="true"
+        />
+
         {/* ---------- HEADER ---------- */}
-        <CardHeader className="p-4 sm:p-6 space-y-3 pb-3">
+        <CardHeader className="p-4 sm:p-6 space-y-3 pb-3 pt-5">
           <div className="flex items-start justify-between gap-3">
             {/* --- Lesson Info --- */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
+              {/* Subject Badge */}
+              {lesson.subject && (
+                <div className="mb-2">
+                  <SubjectBadge 
+                    subject={lesson.subject} 
+                    size="sm"
+                  />
+                </div>
+              )}
+
               <button
                 onClick={handleView}
                 className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm group/title w-full"
