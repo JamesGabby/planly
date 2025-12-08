@@ -1,4 +1,3 @@
-// components/analytics/AnalyticsDashboard.tsx
 'use client';
 
 import {
@@ -12,6 +11,7 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
+  Cell,
 } from 'recharts';
 import {
   Users,
@@ -29,6 +29,8 @@ import { format, parseISO } from 'date-fns';
 import { AnalyticsData, LessonData } from '../types/analytics';
 import clsx from 'clsx';
 import { StudentsClassesCharts } from '@/components/analytics/StudentsByYearGroupLevel';
+import { SubjectBadge } from '@/components/ui/subject-badge';
+import { getSubjectColors, normalizeSubjectKey, SubjectKey } from '@/lib/utils/subjectColors';
 
 const COLORS = {
   primary: '#3b82f6',
@@ -41,16 +43,36 @@ const COLORS = {
   pink: '#ec4899',
 };
 
-const CHART_COLORS = [
-  COLORS.primary,
-  COLORS.secondary,
-  COLORS.success,
-  COLORS.warning,
-  COLORS.info,
-  COLORS.purple,
-  COLORS.pink,
-  COLORS.danger,
-];
+// Subject color hex values for charts (matching your subjectColors utility)
+const SUBJECT_HEX_COLORS: Record<SubjectKey, string> = {
+  mathematics: '#3b82f6',      // blue-500
+  english: '#f59e0b',          // amber-500
+  science: '#22c55e',          // green-500
+  history: '#f97316',          // orange-500
+  geography: '#10b981',        // emerald-500
+  art: '#ec4899',              // pink-500
+  music: '#a855f7',            // purple-500
+  physical_education: '#ef4444', // red-500
+  computing: '#06b6d4',        // cyan-500
+  computer_science: '#71717a', // zinc-500
+  languages: '#6366f1',        // indigo-500
+  religious_education: '#8b5cf6', // violet-500
+  design_technology: '#78716c', // stone-500
+  drama: '#d946ef',            // fuchsia-500
+  business: '#14b8a6',         // teal-500
+  psychology: '#f43f5e',       // rose-500
+  economics: '#84cc16',        // lime-500
+  biology: '#22c55e',          // green-500
+  chemistry: '#eab308',        // yellow-500
+  physics: '#0ea5e9',          // sky-500
+  default: '#6b7280',          // gray-500
+};
+
+// Helper function to get hex color for a subject
+function getSubjectHexColor(subject: string): string {
+  const key = normalizeSubjectKey(subject);
+  return SUBJECT_HEX_COLORS[key] || SUBJECT_HEX_COLORS.default;
+}
 
 interface Props {
   data: AnalyticsData;
@@ -305,6 +327,7 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
     : lesson.class || 'No class specified';
 
   const lessonType = lesson.class ? 'Teacher' : 'Tutor';
+  const subjectColors = getSubjectColors(lesson.subject || '');
 
   return (
     <div className={clsx(
@@ -315,20 +338,11 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
     )}>
       <div className="flex items-start gap-3">
         <div className={clsx(
-          'p-2 rounded-lg flex-shrink-0',
-          isUpcoming
-            ? 'bg-blue-100 dark:bg-blue-900/30'
-            : 'bg-gray-200 dark:bg-gray-600'
-        )}>
-          <BookOpen className={clsx(
-            'w-4 h-4',
-            isUpcoming
-              ? 'text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-400'
-          )} />
-        </div>
+          'w-1 h-full min-h-[60px] rounded-full flex-shrink-0',
+          subjectColors.dot
+        )} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-medium text-gray-900 dark:text-white truncate">
               {lesson.topic}
             </h4>
@@ -341,9 +355,14 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
               {lessonType}
             </span>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {lesson.subject} • {studentName}
-          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            {lesson.subject && (
+              <SubjectBadge subject={lesson.subject} size="sm" />
+            )}
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {studentName}
+            </span>
+          </div>
           <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
             <Calendar className="w-3 h-3" />
             <span>
@@ -374,7 +393,7 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
 // Custom Tooltip for Charts
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string }>;
+  payload?: Array<{ name: string; value: number; color: string; payload?: { name: string } }>;
   label?: string;
 }
 
@@ -394,8 +413,45 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return null;
 }
 
+// Custom Tooltip for Subject Bar Chart
+interface SubjectTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; payload: { name: string } }>;
+}
+
+function SubjectTooltip({ active, payload }: SubjectTooltipProps) {
+  if (active && payload && payload.length) {
+    const subjectName = payload[0].payload.name;
+    const color = getSubjectHexColor(subjectName);
+    
+    return (
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+        <div className="flex items-center gap-2 mb-1">
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: color }}
+          />
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
+            {subjectName}
+          </p>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          {payload[0].value} lessons
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function AnalyticsDashboard({ data }: Props) {
   const totalLessons = data.overview.totalTeacherLessons + data.overview.totalTutorLessons;
+
+  // Process subject data with colors
+  const subjectDataWithColors = data.lessonsBySubject.slice(0, 8).map((subject) => ({
+    ...subject,
+    color: getSubjectHexColor(subject.name),
+  }));
 
   return (
     <div className="space-y-6">
@@ -618,22 +674,41 @@ export function AnalyticsDashboard({ data }: Props) {
           icon={BarChart3}
         >
           {data.lessonsBySubject.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.lessonsBySubject.slice(0, 8)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis
-                  dataKey="name"
-                  stroke="#6b7280"
-                  fontSize={12}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis stroke="#6b7280" fontSize={12} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" name="Lessons" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={subjectDataWithColors}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#6b7280"
+                    fontSize={11}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                  />
+                  <YAxis stroke="#6b7280" fontSize={12} />
+                  <Tooltip content={<SubjectTooltip />} />
+                  <Bar dataKey="value" name="Lessons" radius={[8, 8, 0, 0]}>
+                    {subjectDataWithColors.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              {/* Subject Legend */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex flex-wrap gap-2">
+                  {subjectDataWithColors.map((subject) => (
+                    <SubjectBadge 
+                      key={subject.name} 
+                      subject={subject.name} 
+                      size="sm" 
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
           ) : (
             <EmptyState message="No subject data available" />
           )}
@@ -741,26 +816,38 @@ export function AnalyticsDashboard({ data }: Props) {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {data.topSubjects.map((subject, index) => (
-              <div
-                key={subject.name}
-                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                  />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {subject.name}
-                  </span>
+            {data.topSubjects.map((subject) => {
+              const colors = getSubjectColors(subject.name);
+              const hexColor = getSubjectHexColor(subject.name);
+              
+              return (
+                <div
+                  key={subject.name}
+                  className={clsx(
+                    'p-4 rounded-lg border transition-all hover:shadow-md',
+                    colors.bg,
+                    colors.border
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: hexColor }}
+                    />
+                    <span className={clsx(
+                      'text-sm font-medium truncate',
+                      colors.text
+                    )}>
+                      {subject.name}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {subject.value}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">lessons</p>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {subject.value}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">lessons</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

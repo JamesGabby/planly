@@ -2,19 +2,21 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AnalyticsDashboard } from '../lesson-plans/dashboards/AnalyticsDashboard';
-import { AnalyticsData, 
-  ClassDistributionData, 
-  LessonData, 
-  LessonsByMonthData, 
-  TeachingActivityData  } from '../lesson-plans/types/analytics';
-import { 
-  TeacherLessonRow, 
-  TutorLessonRow, 
+import {
+  AnalyticsData,
+  ClassDistributionData,
+  LessonData,
+  LessonsByMonthData,
+  TeachingActivityData
+} from '../lesson-plans/types/analytics';
+import {
+  TeacherLessonRow,
+  TutorLessonRow,
   TeacherStudentRow,
   TutorStudentRow,
   TeacherClassStudentRow,
   TutorClassStudentRow,
-  LessonRow 
+  LessonRow
 } from '../lesson-plans/types/analytics';
 
 export const metadata = {
@@ -41,39 +43,39 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
       .from('teacher_student_profiles')
       .select('student_id, special_educational_needs, year_group')
       .eq('user_id', userId),
-    
+
     // Tutor student profiles
     supabase
       .from('tutor_student_profiles')
       .select('student_id, sen, level')
       .eq('user_id', userId),
-    
+
     // Teacher classes
     supabase
       .from('teacher_classes')
       .select('class_id, class_name, year_group')
       .eq('user_id', userId),
-    
+
     // Tutor classes
     supabase
       .from('tutor_classes')
       .select('class_id, class_name, year_group')
       .eq('user_id', userId),
-    
+
     // Teacher lesson plans
     supabase
       .from('teacher_lesson_plans')
       .select('*')
       .eq('user_id', userId)
       .order('date_of_lesson', { ascending: false }),
-    
+
     // Tutor lesson plans
     supabase
       .from('tutor_lesson_plans')
       .select('*')
       .eq('user_id', userId)
       .order('date_of_lesson', { ascending: false }),
-    
+
     // Teacher class students with class info
     supabase
       .from('teacher_class_students')
@@ -82,7 +84,7 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
         teacher_classes!inner(class_name, user_id)
       `)
       .eq('teacher_classes.user_id', userId),
-    
+
     // Tutor class students with class info
     supabase
       .from('tutor_class_students')
@@ -130,7 +132,7 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
   ].length;
 
   // Lessons in last 30 days
-  const lessonsLast30Days = allLessons.filter(l => 
+  const lessonsLast30Days = allLessons.filter(l =>
     l.date_of_lesson && new Date(l.date_of_lesson) >= thirtyDaysAgo
   ).length;
 
@@ -144,29 +146,29 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
     });
 
   // Evaluation metrics (both teacher and tutor lessons)
-  const teacherLessonsWithEvaluation = allTeacherLessons.filter(l => 
+  const teacherLessonsWithEvaluation = allTeacherLessons.filter(l =>
     l.evaluation && l.evaluation.trim() !== ''
   ).length;
 
-  const tutorLessonsWithEvaluation = allTutorLessons.filter(l => 
+  const tutorLessonsWithEvaluation = allTutorLessons.filter(l =>
     l.evaluation && l.evaluation.trim() !== ''
   ).length;
 
   const totalLessonsWithEvaluation = teacherLessonsWithEvaluation + tutorLessonsWithEvaluation;
 
-  const completionRate = allLessons.length > 0 
+  const completionRate = allLessons.length > 0
     ? Math.round((totalLessonsWithEvaluation / allLessons.length) * 100)
     : 0;
 
   // AI generated lessons (both teacher and tutor)
-  const aiGeneratedTeacherLessons = allTeacherLessons.filter(l => 
+  const aiGeneratedTeacherLessons = allTeacherLessons.filter(l =>
     l.created_with_ai === true
   ).length;
-  
-  const aiGeneratedTutorLessons = allTutorLessons.filter(l => 
+
+  const aiGeneratedTutorLessons = allTutorLessons.filter(l =>
     l.created_with_ai === true
   ).length;
-  
+
   const aiGeneratedLessons = aiGeneratedTeacherLessons + aiGeneratedTutorLessons;
 
   // Total classes from both teacher and tutor tables
@@ -176,13 +178,13 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
   const lessonsBySubject = processLessonsBySubject(allLessons);
   const lessonsByMonth = processLessonsByMonth(allLessons);
   const studentsByYearGroup = processStudentsByYearGroup(teacherStudentData, tutorStudentData);
-  
+
   // Process class distribution from both teacher and tutor class students
   const classDistribution = processClassDistribution(
     (teacherClassStudents.data as TeacherClassStudentRow[]) || [],
     (tutorClassStudents.data as TutorClassStudentRow[]) || []
   );
-  
+
   const lessonsWithHomework = processHomeworkData(allLessons);
   const teachingActivity = processTeachingActivity(allTeacherLessons, allTutorLessons);
 
@@ -225,7 +227,7 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
 
 function formatLessonData(lesson: LessonRow): LessonData {
   const isTeacherLesson = 'class' in lesson;
-  
+
   return {
     id: lesson.id,
     topic: lesson.topic || 'Untitled Lesson',
@@ -241,7 +243,7 @@ function formatLessonData(lesson: LessonRow): LessonData {
 
 function processLessonsBySubject(lessons: LessonRow[]) {
   const subjectMap = new Map<string, number>();
-  
+
   lessons.forEach(lesson => {
     if (lesson.subject) {
       const subject = lesson.subject.trim();
@@ -283,7 +285,7 @@ function processStudentsByYearGroup(
   tutorStudents: TutorStudentRow[]
 ) {
   const yearMap = new Map<string, number>();
-  
+
   // Process teacher students (year_group field)
   teacherStudents.forEach(student => {
     const year = student.year_group?.trim() || 'Not specified';
@@ -315,11 +317,11 @@ function processClassDistribution(
   tutorClassStudents: TutorClassStudentRow[]
 ): ClassDistributionData[] {
   const classMap = new Map<string, number>();
-  
+
   // Process teacher class students
   teacherClassStudents.forEach(cs => {
     let className: string = 'Unknown';
-    
+
     if (cs.teacher_classes) {
       if (Array.isArray(cs.teacher_classes)) {
         className = cs.teacher_classes[0]?.class_name || 'Unknown';
@@ -327,14 +329,14 @@ function processClassDistribution(
         className = cs.teacher_classes.class_name || 'Unknown';
       }
     }
-    
+
     classMap.set(className, (classMap.get(className) || 0) + 1);
   });
 
   // Process tutor class students
   tutorClassStudents.forEach(cs => {
     let className: string = 'Unknown';
-    
+
     if (cs.tutor_classes) {
       if (Array.isArray(cs.tutor_classes)) {
         className = cs.tutor_classes[0]?.class_name || 'Unknown';
@@ -342,7 +344,7 @@ function processClassDistribution(
         className = cs.tutor_classes.class_name || 'Unknown';
       }
     }
-    
+
     classMap.set(className, (classMap.get(className) || 0) + 1);
   });
 
@@ -360,7 +362,7 @@ function processHomeworkData(lessons: LessonRow[]) {
 }
 
 function processTeachingActivity(
-  teacherLessons: TeacherLessonRow[], 
+  teacherLessons: TeacherLessonRow[],
   tutorLessons: TutorLessonRow[]
 ): TeachingActivityData[] {
   const last6Months = new Date();
