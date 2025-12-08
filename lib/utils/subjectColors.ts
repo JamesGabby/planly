@@ -10,6 +10,7 @@ export type SubjectKey =
   | "music"
   | "physical_education"
   | "computing"
+  | "computer_science" // Added as separate subject
   | "languages"
   | "religious_education"
   | "design_technology"
@@ -88,12 +89,21 @@ export const SUBJECT_COLORS: Record<SubjectKey, SubjectColorConfig> = {
     dot: "bg-red-500",
     bgHover: "hover:bg-red-100 dark:hover:bg-red-950/50",
   },
+  // Computing - Cyan (lighter, more general IT feel)
   computing: {
     bg: "bg-cyan-50 dark:bg-cyan-950/30",
     text: "text-cyan-700 dark:text-cyan-300",
     border: "border-cyan-200 dark:border-cyan-800",
     dot: "bg-cyan-500",
     bgHover: "hover:bg-cyan-100 dark:hover:bg-cyan-950/50",
+  },
+  // Computer Science - Zinc (darker, more technical/academic feel)
+  computer_science: {
+    bg: "bg-zinc-100 dark:bg-zinc-900/50",
+    text: "text-zinc-700 dark:text-zinc-300",
+    border: "border-zinc-300 dark:border-zinc-700",
+    dot: "bg-zinc-600",
+    bgHover: "hover:bg-zinc-200 dark:hover:bg-zinc-800/50",
   },
   languages: {
     bg: "bg-indigo-50 dark:bg-indigo-950/30",
@@ -110,11 +120,11 @@ export const SUBJECT_COLORS: Record<SubjectKey, SubjectColorConfig> = {
     bgHover: "hover:bg-violet-100 dark:hover:bg-violet-950/50",
   },
   design_technology: {
-    bg: "bg-slate-50 dark:bg-slate-950/30",
-    text: "text-slate-700 dark:text-slate-300",
-    border: "border-slate-200 dark:border-slate-800",
-    dot: "bg-slate-500",
-    bgHover: "hover:bg-slate-100 dark:hover:bg-slate-950/50",
+    bg: "bg-stone-50 dark:bg-stone-950/30",
+    text: "text-stone-700 dark:text-stone-300",
+    border: "border-stone-200 dark:border-stone-800",
+    dot: "bg-stone-500",
+    bgHover: "hover:bg-stone-100 dark:hover:bg-stone-950/50",
   },
   drama: {
     bg: "bg-fuchsia-50 dark:bg-fuchsia-950/30",
@@ -176,60 +186,130 @@ export const SUBJECT_COLORS: Record<SubjectKey, SubjectColorConfig> = {
 
 // Helper function to normalize subject string to key
 export function normalizeSubjectKey(subject: string): SubjectKey {
+  if (!subject || typeof subject !== "string") {
+    return "default";
+  }
+
   const normalized = subject
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "_")
     .replace(/[^a-z_]/g, "");
 
-  // Handle common variations
   const subjectMap: Record<string, SubjectKey> = {
+    // Mathematics
     math: "mathematics",
     maths: "mathematics",
     mathematics: "mathematics",
+    numeracy: "mathematics",
+
+    // English
     english: "english",
     language_arts: "english",
     literacy: "english",
+    english_language: "english",
+    english_literature: "english",
+
+    // General Science
     science: "science",
     general_science: "science",
+
+    // Biology
+    biology: "biology",
+    bio: "biology",
+
+    // Chemistry
+    chemistry: "chemistry",
+    chem: "chemistry",
+
+    // Physics
+    physics: "physics",
+    phys: "physics",
+
+    // History
     history: "history",
+
+    // Geography
     geography: "geography",
+    geo: "geography",
+
+    // Art
     art: "art",
     arts: "art",
     visual_arts: "art",
+    fine_art: "art",
+
+    // Music
     music: "music",
+
+    // Physical Education
     pe: "physical_education",
     physical_education: "physical_education",
     sport: "physical_education",
     sports: "physical_education",
+    games: "physical_education",
+
+    // Computer Science - SEPARATE SUBJECT
+    computer_science: "computer_science",
+    computerscience: "computer_science",
+    comp_sci: "computer_science",
+    compsci: "computer_science",
+    cs: "computer_science",
+
+    // Computing - SEPARATE SUBJECT
     computing: "computing",
-    computer_science: "computing",
     ict: "computing",
     it: "computing",
+    information_technology: "computing",
+    digital_technology: "computing",
+
+    // Languages
     languages: "languages",
     french: "languages",
     spanish: "languages",
     german: "languages",
+    mandarin: "languages",
+    chinese: "languages",
+    italian: "languages",
+    japanese: "languages",
+    latin: "languages",
     mfl: "languages",
     modern_languages: "languages",
+    modern_foreign_languages: "languages",
+    foreign_languages: "languages",
+
+    // Religious Education
     re: "religious_education",
     religious_education: "religious_education",
     religion: "religious_education",
+    religious_studies: "religious_education",
     rs: "religious_education",
+
+    // Design & Technology
     dt: "design_technology",
     design_technology: "design_technology",
     design_and_technology: "design_technology",
-    technology: "design_technology",
+    food_technology: "design_technology",
+    textiles: "design_technology",
+    resistant_materials: "design_technology",
+
+    // Drama
     drama: "drama",
     theatre: "drama",
+    theater: "drama",
     performing_arts: "drama",
+
+    // Business
     business: "business",
     business_studies: "business",
+
+    // Psychology
     psychology: "psychology",
+    psych: "psychology",
+
+    // Economics
     economics: "economics",
-    biology: "biology",
-    chemistry: "chemistry",
-    physics: "physics",
+    econ: "economics",
   };
 
   return subjectMap[normalized] || "default";
@@ -253,6 +333,7 @@ export function getSubjectDisplayName(subject: string): string {
     music: "Music",
     physical_education: "PE",
     computing: "Computing",
+    computer_science: "Computer Science", // Separate display name
     languages: "Languages",
     religious_education: "RE",
     design_technology: "D&T",
@@ -267,5 +348,11 @@ export function getSubjectDisplayName(subject: string): string {
   };
 
   const key = normalizeSubjectKey(subject);
-  return displayNames[key] !== subject ? displayNames[key] : subject;
+
+  // If it's default, return the original subject name
+  if (key === "default" && subject) {
+    return subject;
+  }
+
+  return displayNames[key];
 }

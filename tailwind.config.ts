@@ -9,17 +9,16 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   safelist: [
-    // Subject color classes that are dynamically applied
     {
-      pattern: /^bg-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|fuchsia|teal|rose|lime|yellow|gray)-(50|100|500|700|800|950)/,
+      pattern: /^bg-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|stone|fuchsia|teal|rose|lime|yellow|gray|zinc)-(50|100|200|300|500|600|700|800|900|950)/,
       variants: ["hover", "dark"],
     },
     {
-      pattern: /^text-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|fuchsia|teal|rose|lime|yellow|gray)-(300|700)/,
+      pattern: /^text-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|stone|fuchsia|teal|rose|lime|yellow|gray|zinc)-(300|700)/,
       variants: ["dark"],
     },
     {
-      pattern: /^border-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|fuchsia|teal|rose|lime|yellow|gray)-(200|800)/,
+      pattern: /^border-(blue|amber|green|orange|emerald|pink|purple|red|cyan|sky|indigo|violet|slate|stone|fuchsia|teal|rose|lime|yellow|gray|zinc)-(200|300|700|800)/,
       variants: ["dark"],
     },
   ],
