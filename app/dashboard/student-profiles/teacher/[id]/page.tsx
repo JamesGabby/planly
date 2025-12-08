@@ -238,8 +238,8 @@ export default function StudentDetailTableWithTimestamp({ params }: Props) {
         .from("teacher_student_profiles")
         .select(`
           *,
-          classes:class_students(
-            class:classes(class_name)
+          classes:teacher_class_students(
+            class:teacher_classes(class_name)
           )
         `)
         .eq("student_id", id)
