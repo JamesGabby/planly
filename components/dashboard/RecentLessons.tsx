@@ -2,6 +2,8 @@
 import { Clock, Sparkles, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
+import { SubjectBadge } from '@/components/ui/subject-badge';
+import { getSubjectColors } from '@/lib/utils/subjectColors';
 
 interface DashboardLesson {
   id: string;
@@ -83,30 +85,36 @@ export default function RecentLessons({ lessons }: RecentLessonsProps) {
           {lessons.map((lesson) => {
             const isTeacher = lesson.type === 'teacher';
             const studentOrClass = getStudentOrClassName(lesson);
+            const subjectColors = getSubjectColors(lesson.subject || '');
 
             return (
               <Link
                 key={`${lesson.type}-${lesson.id}`}
                 href={getLessonLink(lesson)}
-                className="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-600"
+                className="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-600 relative overflow-hidden"
               >
-                <div className="flex items-start gap-3">
+                {/* Subject Color Accent Bar */}
+                <div 
+                  className={clsx(
+                    'absolute left-0 top-0 bottom-0 w-1',
+                    subjectColors.dot
+                  )}
+                  aria-hidden="true"
+                />
+
+                <div className="flex items-start gap-3 pl-2">
                   <div className={clsx(
                     'p-2 rounded-lg flex-shrink-0',
-                    isTeacher
-                      ? 'bg-purple-100 dark:bg-purple-900/30'
-                      : 'bg-blue-100 dark:bg-blue-900/30'
+                    subjectColors.bg
                   )}>
                     <BookOpen className={clsx(
                       'w-4 h-4',
-                      isTeacher
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-blue-600 dark:text-blue-400'
+                      subjectColors.text
                     )} />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
                       <h3 className="font-medium text-sm text-slate-900 dark:text-slate-50 truncate">
                         {lesson.topic || 'Untitled Lesson'}
                       </h3>
@@ -127,10 +135,14 @@ export default function RecentLessons({ lessons }: RecentLessonsProps) {
                       </div>
                     </div>
                     
-                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate mb-1">
-                      {lesson.subject}
-                      {studentOrClass && ` • ${studentOrClass}`}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <SubjectBadge subject={lesson.subject} size="sm" />
+                      {studentOrClass && (
+                        <span className="text-xs text-slate-600 dark:text-slate-400">
+                          {studentOrClass}
+                        </span>
+                      )}
+                    </div>
                     
                     <div className="flex items-center gap-2">
                       <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />

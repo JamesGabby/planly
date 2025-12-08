@@ -2,6 +2,8 @@
 import { Calendar, Clock, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
+import { SubjectBadge } from '@/components/ui/subject-badge';
+import { getSubjectColors } from '@/lib/utils/subjectColors';
 
 interface DashboardLesson {
   id: string;
@@ -133,21 +135,31 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
             const dateStatus = getDateStatus(lesson.date_of_lesson);
             const studentOrClass = getStudentOrClassName(lesson);
             const isTeacher = lesson.type === 'teacher';
+            const subjectColors = getSubjectColors(lesson.subject || '');
 
             return (
               <Link
                 key={`${lesson.type}-${lesson.id}`}
                 href={getLessonLink(lesson)}
                 className={clsx(
-                  'block p-4 rounded-lg border transition-all',
+                  'block p-4 rounded-lg border transition-all relative overflow-hidden',
                   dateStatus === 'today' 
                     ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                     : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                 )}
               >
-                <div className="flex items-start justify-between gap-4">
+                {/* Subject Color Accent Bar */}
+                <div 
+                  className={clsx(
+                    'absolute left-0 top-0 bottom-0 w-1',
+                    subjectColors.dot
+                  )}
+                  aria-hidden="true"
+                />
+                
+                <div className="flex items-start justify-between gap-4 pl-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <h3 className="font-medium text-slate-900 dark:text-slate-50 truncate">
                         {lesson.topic || 'Untitled Lesson'}
                       </h3>
@@ -163,10 +175,14 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
                       )}
                     </div>
                     
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                      {lesson.subject}
-                      {studentOrClass && ` • ${studentOrClass}`}
-                    </p>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <SubjectBadge subject={lesson.subject} size="sm" />
+                      {studentOrClass && (
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                          {studentOrClass}
+                        </span>
+                      )}
+                    </div>
                     
                     <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1">
