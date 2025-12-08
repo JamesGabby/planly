@@ -32,7 +32,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
