@@ -407,7 +407,6 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
                   <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
                     {selectedDateLessons.map((lesson, idx) => {
                       const isSelected = selectedLessonId === lesson.id;
-                      const colors = getSubjectColors(lesson.subject || "");
                       
                       return (
                         <motion.button
