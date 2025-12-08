@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { SubjectBadge } from "@/components/ui/subject-badge";
+import { getSubjectColors, SUBJECT_COLORS, SubjectKey } from "@/lib/utils/subjectColors";
 
 interface TutorCalendarViewProps {
   lessons: LessonPlanTutor[];
@@ -21,6 +23,18 @@ const DAYS_OF_WEEK_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
+];
+
+// Legend subjects to display (most common ones)
+const LEGEND_SUBJECTS: { key: SubjectKey; label: string }[] = [
+  { key: "mathematics", label: "Maths" },
+  { key: "english", label: "English" },
+  { key: "science", label: "Science" },
+  { key: "computing", label: "Computing" },
+  { key: "computer_science", label: "Comp Sci" },
+  { key: "physics", label: "Physics" },
+  { key: "chemistry", label: "Chemistry" },
+  { key: "biology", label: "Biology" },
 ];
 
 export function TutorCalendarView({ lessons, onLessonClick, loading = false }: TutorCalendarViewProps) {
@@ -166,25 +180,16 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
     };
   }, [lessons, currentDate, today]);
 
-  const getSubjectColor = (subject?: string): string => {
-    if (!subject) return "bg-gray-500";
-    
-    const colors: Record<string, string> = {
-      Mathematics: "bg-blue-500",
-      English: "bg-red-500",
-      Science: "bg-green-500",
-      History: "bg-yellow-500",
-      Geography: "bg-teal-500",
-      Physics: "bg-purple-500",
-      Chemistry: "bg-pink-500",
-      Biology: "bg-emerald-500",
-      "Computer Science": "bg-indigo-500",
-      Art: "bg-rose-500",
-      Music: "bg-amber-500",
-    };
-    
-    return colors[subject] || "bg-gray-500";
-  };
+  // Get unique subjects used in lessons for dynamic legend
+  const usedSubjects = useMemo(() => {
+    const subjects = new Set<string>();
+    lessons.forEach((lesson) => {
+      if (lesson.subject) {
+        subjects.add(lesson.subject);
+      }
+    });
+    return Array.from(subjects);
+  }, [lessons]);
 
   const getStudentInitials = (firstName?: string, lastName?: string): string => {
     const first = firstName?.charAt(0)?.toUpperCase() || "";
@@ -344,16 +349,16 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
                       </span>
                       {hasLessons && (
                         <div className="flex gap-0.5 flex-wrap justify-center">
-                          {dayLessons.slice(0, 3).map((lesson, idx) => (
-                            <div
-                              key={`${lesson.id}-${idx}`}
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full",
-                                getSubjectColor(lesson.subject)
-                              )}
-                              title={`${lesson.first_name} ${lesson.last_name} - ${lesson.topic}`}
-                            />
-                          ))}
+                          {dayLessons.slice(0, 3).map((lesson, idx) => {
+                            const colors = getSubjectColors(lesson.subject || "");
+                            return (
+                              <div
+                                key={`${lesson.id}-${idx}`}
+                                className={cn("w-1.5 h-1.5 rounded-full", colors.dot)}
+                                title={`${lesson.first_name} ${lesson.last_name} - ${lesson.subject}: ${lesson.topic}`}
+                              />
+                            );
+                          })}
                           {dayLessons.length > 3 && (
                             <span className="text-[8px] text-muted-foreground ml-0.5">
                               +{dayLessons.length - 3}
@@ -402,6 +407,7 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
                   <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
                     {selectedDateLessons.map((lesson, idx) => {
                       const isSelected = selectedLessonId === lesson.id;
+                      const colors = getSubjectColors(lesson.subject || "");
                       
                       return (
                         <motion.button
@@ -430,20 +436,18 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
                               <p className="text-xs text-muted-foreground mt-1">
                                 {lesson.first_name} {lesson.last_name}
                               </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <div
-                                  className={cn(
-                                    "w-2 h-2 rounded-full",
-                                    getSubjectColor(lesson.subject)
-                                  )}
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                  {lesson.subject}
-                                  {lesson.exam_board && ` • ${lesson.exam_board}`}
-                                </p>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                {lesson.subject && (
+                                  <SubjectBadge subject={lesson.subject} size="sm" showDot={false} />
+                                )}
+                                {lesson.exam_board && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {lesson.exam_board}
+                                  </span>
+                                )}
                               </div>
                               {lesson.objectives && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
                                   {lesson.objectives}
                                 </p>
                               )}
@@ -478,7 +482,9 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
       {/* Legend */}
       <Card className="p-4">
         <h3 className="font-semibold text-sm mb-3">Legend</h3>
-        <div className="flex flex-wrap gap-4 text-xs">
+        
+        {/* Calendar indicators */}
+        <div className="flex flex-wrap gap-4 text-xs mb-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded border-2 border-primary" />
             <span className="text-muted-foreground">Today</span>
@@ -491,13 +497,25 @@ export function TutorCalendarView({ lessons, onLessonClick, loading = false }: T
             <div className="w-4 h-4 rounded border-2 border-primary bg-primary/5" />
             <span className="text-muted-foreground">Selected Lesson</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex gap-0.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            </div>
-            <span className="text-muted-foreground">Has lessons (dots represent students)</span>
+        </div>
+
+        {/* Subject colors - Dynamic based on used subjects */}
+        <div className="border-t border-border pt-3">
+          <p className="text-xs text-muted-foreground mb-2">Subject Colors (dots represent lessons by subject)</p>
+          <div className="flex flex-wrap gap-2">
+            {usedSubjects.length > 0 ? (
+              usedSubjects.map((subject) => (
+                <SubjectBadge key={subject} subject={subject} size="sm" />
+              ))
+            ) : (
+              // Fallback to common subjects if no lessons yet
+              LEGEND_SUBJECTS.map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <div className={cn("w-2 h-2 rounded-full", SUBJECT_COLORS[key].dot)} />
+                  <span className="text-xs text-muted-foreground">{label}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </Card>
