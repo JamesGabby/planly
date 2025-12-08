@@ -15,7 +15,6 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  CardContent,
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -138,80 +137,6 @@ const StackedAvatars = ({
     </div>
   );
 };
-
-// Student List Item Component
-const StudentListItem = ({ student }: { student: StudentProfileTeacher }) => {
-  const hasSEN = student.special_educational_needs?.trim();
-  const initials = getInitials(student.first_name, student.last_name);
-  const colorClass = getAvatarColor(`${student.first_name}${student.last_name}`);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
-        "hover:bg-accent/50 group/item cursor-default",
-        hasSEN && "bg-yellow-500/5 hover:bg-yellow-500/10"
-      )}
-    >
-      <Avatar className={cn(
-        "h-7 w-7",
-        hasSEN && "ring-2 ring-yellow-500/40"
-      )}>
-        <AvatarFallback className={cn("text-[10px] font-medium", colorClass)}>
-          {initials}
-        </AvatarFallback>
-      </Avatar>
-
-      <div className="flex-1 min-w-0">
-        <p className={cn(
-          "text-sm font-medium truncate",
-          hasSEN ? "text-yellow-700 dark:text-yellow-400" : "text-foreground"
-        )}>
-          {student.first_name} {student.last_name}
-        </p>
-      </div>
-
-      {hasSEN && (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger>
-              <AlertCircle className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-xs max-w-[200px]">{student.special_educational_needs}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-    </motion.div>
-  );
-};
-
-// Empty State Component
-const EmptyState = ({ onAddStudent }: { onAddStudent?: (e: React.MouseEvent) => void }) => (
-  <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
-    <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-      <Users className="w-6 h-6 text-muted-foreground/50" />
-    </div>
-    <p className="text-sm text-muted-foreground mb-1">No students yet</p>
-    <p className="text-xs text-muted-foreground/70 mb-3">
-      Add students to start tracking
-    </p>
-    {onAddStudent && (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onAddStudent}
-        className="h-8 text-xs"
-      >
-        <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-        Add Student
-      </Button>
-    )}
-  </div>
-);
 
 // Stats Badge Component
 const StatsBadge = ({
