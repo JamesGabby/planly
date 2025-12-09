@@ -17,6 +17,9 @@ interface ClassesOverviewProps {
 }
 
 export default function ClassesOverview({ classes }: ClassesOverviewProps) {
+  // Sort classes by student count (most populated first)
+  const sortedClasses = [...classes].sort((a, b) => b.student_count - a.student_count);
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -56,7 +59,7 @@ export default function ClassesOverview({ classes }: ClassesOverviewProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {classes.map((classItem) => {
+          {sortedClasses.map((classItem) => {
             const isTeacher = classItem.type === 'teacher';
             const classLink = isTeacher 
               ? `/dashboard/classes/teacher/${classItem.class_id}`
