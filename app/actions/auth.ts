@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 
 export async function signIn(formData: FormData) {
   const email = formData.get('email') as string
@@ -17,12 +18,61 @@ export async function signIn(formData: FormData) {
   })
 
   if (error) {
-    // Redirect back to login with error message
     redirect(`/login?error=${encodeURIComponent(error.message)}${next ? `&next=${next}` : ''}`)
   }
 
   revalidatePath('/', 'layout')
   redirect(next || '/dashboard')
+}
+
+export async function signInWithGoogle(formData: FormData) {
+  const redirectTo = formData.get('redirectTo') as string | null
+  
+  const supabase = await createClient()
+  const headersList = await headers()
+  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  })
+
+  if (error) {
+    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+
+export async function signInWithGitHub(formData: FormData) {
+  const redirectTo = formData.get('redirectTo') as string | null
+  
+  const supabase = await createClient()
+  const headersList = await headers()
+  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
+    },
+  })
+
+  if (error) {
+    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
 }
 
 export async function signUp(formData: FormData) {
