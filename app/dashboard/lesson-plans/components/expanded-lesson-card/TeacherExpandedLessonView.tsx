@@ -26,6 +26,8 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
+import { PrintPreviewDialog } from "@/components/PrintPreviewDialog";
+import { generatePrintContent } from "@/lib/utils/generatePrintContent";
 
 // Component to format content with bullets and bold text
 function FormattedContent({ content }: { content: string | null | undefined }) {
@@ -105,6 +107,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
   const supabase = createClient();
   const pathname = usePathname(); // Get current pathname
   const [classId, setClassId] = useState<string | null>(null);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
 
   const resources = parseResources(lesson.resources);
   const lessonStructure = Array.isArray(lesson.lesson_structure)
@@ -112,6 +115,7 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
     : [];
 
   const isOnLessonDetailPage = pathname?.includes('/dashboard/lesson-plans/lesson/teacher/');
+  const isOnLessonPlansPage = pathname === '/dashboard/lesson-plans';
 
   // Fetch the class_id based on class_name and user_id
   useEffect(() => {
@@ -156,177 +160,6 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
     fetchClassId();
   }, [lesson.class, lesson.user_id, supabase]);
 
-  const handlePrint = () => {
-    const printElement = document.getElementById('lesson-print');
-    if (!printElement) return;
-
-    const clone = printElement.cloneNode(true) as HTMLElement;
-
-    // Transform the structure for print
-    const stageBlocks = clone.querySelectorAll('.rounded-lg.border');
-    stageBlocks.forEach(block => {
-      block.classList.add('stage-block');
-    });
-
-    const newWindow = window.open('', '', 'width=800,height=600');
-    if (!newWindow) return;
-
-    newWindow.document.write(`
-    <html>
-      <head>
-        <title>Lesson Plan - ${lesson.topic || 'Untitled'}</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 30px;
-            color: #1a1a1a;
-            background: #fff;
-            line-height: 1.6;
-          }
-          h2 { 
-            color: #2563eb; 
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-          }
-          h3 { 
-            color: #1e40af; 
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-          }
-          h4 {
-            color: #334155;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-          }
-          h5 {
-            color: #475569;
-            font-size: 0.95em;
-            margin-top: 12px;
-            margin-bottom: 6px;
-          }
-          .stage-block, .info-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            background: #f8fafc;
-          }
-          .info-card {
-            page-break-inside: avoid;
-          }
-          .stage-header {
-            background: #e0e7ff;
-            padding: 15px;
-            border-radius: 6px 6px 0 0;
-            margin: -20px -20px 15px -20px;
-            border-bottom: 2px solid #cbd5e1;
-          }
-          .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 15px;
-          }
-          .content-section {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e2e8f0;
-          }
-          .content-section:last-child {
-            border-bottom: none;
-          }
-          ul {
-            list-style: none;
-            padding-left: 0;
-            margin: 8px 0;
-          }
-          li {
-            margin-bottom: 8px;
-            padding-left: 0;
-          }
-          strong {
-            color: #1e293b;
-            font-weight: 600;
-          }
-          button, input, textarea {
-            display: none !important;
-          }
-          .meta-info {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-          }
-          .meta-info > div {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 12px;
-          }
-          .meta-info a,
-          .meta-info span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-right: 8px;
-          }
-          .meta-info svg {
-            flex-shrink: 0;
-          }
-          .objectives-outcomes {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 25px;
-          }
-          .section-icon {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-          }
-          .icon-blue { background: #3b82f6; }
-          .icon-green { background: #10b981; }
-          .icon-amber { background: #f59e0b; }
-          .icon-purple { background: #8b5cf6; }
-          .lesson-structure-section {
-            page-break-before: always;
-          }
-          .lesson-structure-section h3 {
-            margin-top: 0;
-            page-break-after: avoid;
-          }
-          @media print {
-            .info-card {
-              page-break-inside: avoid;
-            }
-            body {
-              margin: 15px;
-            }
-            .objectives-outcomes {
-              grid-template-columns: 1fr;
-            }
-            .meta-info > div {
-              gap: 15px;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        ${clone.outerHTML}
-      </body>
-    </html>
-  `);
-
-    newWindow.document.close();
-    newWindow.focus();
-    newWindow.print();
-    newWindow.close();
-  };
-
   return (
     <div id="lesson-print" className="ExpandedLessonView max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
       {/* --- HEADER --- */}
@@ -348,13 +181,15 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
                 <span>View</span>
               </Link>
             )}
-            <Button
-              onClick={handlePrint}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <Printer size={18} />
-              <span>Print / Export PDF</span>
-            </Button>
+            {!isOnLessonPlansPage && (
+              <Button
+                onClick={() => setPrintDialogOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <Printer size={18} />
+                <span>Print / Export PDF</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -741,15 +576,26 @@ export function DetailedExpandedLessonView({ lesson }: { lesson: LessonPlanTeach
             </span>
           </div>
 
-          <button
-            onClick={handlePrint}
-            className="sm:hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Printer size={18} />
-            <span>Print / Export PDF</span>
-          </button>
+          {/* Mobile Print Button - also hidden on lesson plans page */}
+          {!isOnLessonPlansPage && (
+            <Button
+              onClick={() => setPrintDialogOpen(true)}
+              className="sm:hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Printer size={18} />
+              <span>Print / Export PDF</span>
+            </Button>
+          )}
         </div>
       </footer>
+      <PrintPreviewDialog
+        open={printDialogOpen}
+        onOpenChange={setPrintDialogOpen}
+        lesson={lesson}
+        generatePrintContent={(sections, options) =>
+          generatePrintContent(lesson, sections, options)
+        }
+      />
     </div>
   );
 }
