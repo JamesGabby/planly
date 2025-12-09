@@ -12,6 +12,16 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
+      // Increment login count for OAuth users
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const currentLoginCount = user.user_metadata?.login_count || 0
+        await supabase.auth.updateUser({
+          data: { login_count: currentLoginCount + 1 }
+        })
+      }
+
       // Successful authentication
       return NextResponse.redirect(`${origin}${next}`)
     }

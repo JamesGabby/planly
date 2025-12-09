@@ -329,6 +329,20 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
+  // Get display name from user metadata
+  const displayName = user.user_metadata?.full_name 
+    || user.user_metadata?.display_name 
+    || user.user_metadata?.name
+    || user.email?.split('@')[0]
+    || 'there';
+
+  // Get first name only for a friendlier greeting
+  const firstName = displayName.split(' ')[0];
+
+  // Check login count to determine welcome message
+  const loginCount = user.user_metadata?.login_count || 0;
+  const isFirstLogin = loginCount <= 1;
+
   const dashboardData = await getDashboardData(user.id);
 
   return (
@@ -337,10 +351,18 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-            Welcome back! 👋
+            {isFirstLogin ? (
+              <>Welcome, {firstName}! 🎉</>
+            ) : (
+              <>Welcome back, {firstName}! 👋</>
+            )}
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            {"Here's what's happening with your lessons today"}
+            {isFirstLogin ? (
+              "We're excited to have you! Let's get started with your first lesson."
+            ) : (
+              "Here's what's happening with your lessons today"
+            )}
           </p>
         </div>
 

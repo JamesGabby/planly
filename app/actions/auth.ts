@@ -21,6 +21,16 @@ export async function signIn(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}${next ? `&next=${next}` : ''}`)
   }
 
+  // Increment login count after successful login
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (user) {
+    const currentLoginCount = user.user_metadata?.login_count || 0
+    await supabase.auth.updateUser({
+      data: { login_count: currentLoginCount + 1 }
+    })
+  }
+
   revalidatePath('/', 'layout')
   redirect(next || '/dashboard')
 }

@@ -6,19 +6,24 @@ import { LogoutButton } from "./logout-button";
 export async function AuthButton() {
   const supabase = await createClient();
 
-  // Use getUser() to get full user data including metadata
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Get display name from user metadata, fallback to email
+  // Get display name from user metadata
   const displayName = user?.user_metadata?.full_name 
     || user?.user_metadata?.display_name 
     || user?.user_metadata?.name
-    || user?.email?.split('@')[0] // fallback to email username
+    || user?.email?.split('@')[0]
     || user?.email;
+
+  // Check login count to determine welcome message
+  const loginCount = user?.user_metadata?.login_count || 0;
+  const welcomeMessage = loginCount <= 1 
+    ? `Welcome, ${displayName}!` 
+    : `Welcome back, ${displayName}!`;
 
   return user ? (
     <div className="flex items-center gap-4">
-      Welcome back, {displayName}!
+      {welcomeMessage}
       <LogoutButton />
     </div>
   ) : (
