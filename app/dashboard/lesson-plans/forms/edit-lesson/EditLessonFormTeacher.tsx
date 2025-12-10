@@ -36,7 +36,8 @@ export default function EditLessonFormTeacher() {
     outcomes: "",
     resources: [],
     homework: "",
-    evaluation: "",
+    evaluation_tips: "",
+    teacher_evaluation: "",
     notes: "",
     exam_board: "",
     subject: "",
@@ -353,7 +354,7 @@ export default function EditLessonFormTeacher() {
       updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
       updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
-      updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
+      updateField("evaluation_tips", formatAsBulletPoints(generatedPlan.evaluation_tips) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
 
       updateField("specialist_subject_knowledge_required",
@@ -442,7 +443,8 @@ export default function EditLessonFormTeacher() {
           objectives: lesson.objectives,
           outcomes: lesson.outcomes,
           homework: lesson.homework,
-          evaluation: lesson.evaluation,
+          evaluation_tips: lesson.evaluation_tips,
+          teacher_evaluation: lesson.teacher_evaluation,
           notes: lesson.notes,
           subject: lesson.subject,
           year_group: lesson.year_group,
@@ -1305,8 +1307,38 @@ export default function EditLessonFormTeacher() {
                 </div>
                 <Textarea
                   placeholder={"• Reflection on students' progress...\n• What worked well?\n• What could be improved?"}
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  value={lesson.evaluation_tips || ""}
+                  onChange={(e) => updateField("evaluation_tips", e.target.value)}
+                  className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
+                />
+              </section>
+
+              <Separator />
+
+              {/* Evaluation */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <div className="flex items-center gap-1">
+                    <h3 className="text-base sm:text-lg font-semibold">Your Evaluation</h3>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" className="focus:outline-none">
+                            <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-sm">
+                          How successful was the lesson?
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+                <Textarea
+                  placeholder={"• Reflection on students' progress...\n• What worked well?\n• What could be improved?"}
+                  value={lesson.teacher_evaluation || ""}
+                  onChange={(e) => updateField("teacher_evaluation", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                 />
               </section>

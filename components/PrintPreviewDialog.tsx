@@ -65,7 +65,7 @@ const defaultSections: PrintSection[] = [
   { id: "details", label: "Additional Details", icon: <FileText size={16} />, enabled: true },
   { id: "resources", label: "Resources", icon: <FileText size={16} />, enabled: true },
   { id: "homework", label: "Homework", icon: <FileText size={16} />, enabled: true },
-  { id: "evaluation", label: "Evaluation & Notes", icon: <FileText size={16} />, enabled: false },
+  { id: "evaluation_tips", label: "Evaluation & Notes", icon: <FileText size={16} />, enabled: false },
 ];
 
 export function PrintPreviewDialog({

@@ -33,7 +33,7 @@ export default function EditLessonFormTutor() {
     outcomes: "",
     resources: [],
     homework: "",
-    evaluation: "",
+    evaluation_tips: "",
     notes: "",
     first_name: "",
     last_name: "",
@@ -301,7 +301,7 @@ export default function EditLessonFormTutor() {
       updateField("objectives", generatedPlan.objectives || lesson.objectives);
       updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
       updateField("homework", generatedPlan.homework || "");
-      updateField("evaluation", generatedPlan.evaluation || "");
+      updateField("evaluation_tips", generatedPlan.evaluation_tips || "");
       updateField("notes", generatedPlan.notes || "");
       updateField("created_with_ai", true);
 
@@ -1043,8 +1043,8 @@ useEffect(() => {
 
                 <Textarea
                   placeholder="• How did the student respond to different teaching methods?\n• What progress was made toward objectives?\n• Areas to focus on next session..."
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  value={lesson.evaluation_tips || ""}
+                  onChange={(e) => updateField("evaluation_tips", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                 />
               </section>

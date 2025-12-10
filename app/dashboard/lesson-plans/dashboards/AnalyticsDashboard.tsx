@@ -378,7 +378,7 @@ function LessonItem({ lesson, isUpcoming = false }: LessonItemProps) {
               </>
             )}
           </div>
-          {lesson.evaluation && !isUpcoming && (
+          {lesson.teacher_evaluation && !isUpcoming && (
             <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
               <CheckCircle2 className="w-3 h-3" />
               <span>Evaluated</span>
@@ -487,7 +487,7 @@ export function AnalyticsDashboard({ data }: Props) {
           value={`${data.overview.completionRate}%`}
           icon={CheckCircle2}
           color="amber"
-          subtitle="Lessons with evaluation"
+          subtitle="Lessons with teacher_evaluation"
         />
       </div>
 

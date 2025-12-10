@@ -642,10 +642,10 @@ export function generatePrintContent(
     }
 
     ${
-      sections.includes("evaluation")
+      sections.includes("evaluation_tips")
         ? `
       ${
-        lesson.evaluation
+        lesson.evaluation_tips
           ? `
         <section class="section">
           <h2 class="section-title">
@@ -653,7 +653,7 @@ export function generatePrintContent(
             Evaluation
           </h2>
           <div class="card">
-            ${formatContent(lesson.evaluation)}
+            ${formatContent(lesson.evaluation_tips)}
           </div>
         </section>
       `

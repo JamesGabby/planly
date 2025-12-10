@@ -26,7 +26,7 @@ export interface TeacherLessonRow {
   learning: string | null;
   assessing: string | null;
   adapting: string | null;
-  evaluation: string | null;
+  evaluation_tips: string | null;
   created_at: string;
   updated_at: string;
   lesson_structure: unknown;
@@ -37,6 +37,7 @@ export interface TeacherLessonRow {
   custom_exam_board: string | null;
   student: string | null;
   created_with_ai: boolean | null;
+  teacher_evaluation?: string | null;
 }
 
 export interface TutorLessonRow {
@@ -58,7 +59,7 @@ export interface TutorLessonRow {
   learning: string | null;
   assessing: string | null;
   adapting: string | null;
-  evaluation: string | null;
+  evaluation_tips: string | null;
   created_at: string;
   updated_at: string;
   lesson_structure: unknown;
@@ -69,6 +70,7 @@ export interface TutorLessonRow {
   student_id: string | null;
   last_name: string | null;
   created_with_ai: boolean | null;
+  teacher_evaluation?: string | null;
 }
 
 export type LessonRow = TeacherLessonRow | TutorLessonRow;
@@ -153,7 +155,8 @@ export interface LessonData {
   class?: string;
   first_name?: string;
   last_name?: string;
-  evaluation?: string;
+  evaluation_tips?: string;
+  teacher_evaluation?: string | null;
 }
 
 // ============================================

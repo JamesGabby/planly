@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles } from "lucide-react";
+import { ClipboardList, Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { useUserMode } from "@/components/UserModeContext";
 import { EditTutoringSessionSkeleton } from "../../skeletons/EditTutoringSessionSkeleton";
 
@@ -34,7 +34,8 @@ export default function EditLessonFormTutor() {
     outcomes: "",
     resources: [],
     homework: "",
-    evaluation: "",
+    evaluation_tips: "",
+    teacher_evaluation: "",
     notes: "",
     first_name: "",
     last_name: "",
@@ -302,7 +303,7 @@ export default function EditLessonFormTutor() {
       updateField("objectives", generatedPlan.objectives || lesson.objectives);
       updateField("outcomes", generatedPlan.outcomes || lesson.outcomes);
       updateField("homework", generatedPlan.homework || "");
-      updateField("evaluation", generatedPlan.evaluation || "");
+      updateField("evaluation_tips", generatedPlan.evaluation_tips || "");
       updateField("notes", generatedPlan.notes || "");
       updateField("created_with_ai", true);
 
@@ -1026,11 +1027,51 @@ useEffect(() => {
 
               <Separator />
 
+              {/* Evaluation Tips - Bullet Points */}
+              <section className="space-y-4">
+                {lesson.evaluation_tips ? (
+                  <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 px-4 py-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-emerald-600" />
+                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                          Reflection & Assessment
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4 sm:p-5">
+                      <ul className="space-y-3">
+                        {lesson.evaluation_tips
+                          .split('\n')
+                          .filter((line: string) => line.trim())
+                          .map((tip: string, index: number) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0 mt-0.5">
+                                {index + 1}
+                              </span>
+                              <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                                {tip.replace(/^[•\-\*]\s*/, '')}
+                              </p>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-muted/30 rounded-xl p-6 text-center">
+                    <ClipboardList className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No evaluation tips available</p>
+                  </div>
+                )}
+              </section>
+
+              <Separator />
+
               {/* Evaluation */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Session Evaluation</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">Your Evaluation</h3>
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
@@ -1039,8 +1080,8 @@ useEffect(() => {
 
                 <Textarea
                   placeholder="• How did the student respond to different teaching methods?\n• What progress was made toward objectives?\n• Areas to focus on next session..."
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  value={lesson.teacher_evaluation || ""}
+                  onChange={(e) => updateField("teacher_evaluation", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                 />
               </section>

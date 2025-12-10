@@ -100,7 +100,7 @@ export default function NewLessonFormTeacher() {
     outcomes: "",
     resources: [],
     homework: "",
-    evaluation: "",
+    evaluation_tips: "",
     notes: "",
     exam_board: "",
     subject: "",
@@ -492,7 +492,7 @@ export default function NewLessonFormTeacher() {
       updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
       updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
-      updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
+      updateField("evaluation_tips", formatAsBulletPoints(generatedPlan.evaluation_tips) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
 
       updateField("specialist_subject_knowledge_required",
@@ -688,7 +688,7 @@ export default function NewLessonFormTeacher() {
             objectives: capitalizeMultilineText(lesson.objectives),
             outcomes: capitalizeMultilineText(lesson.outcomes),
             homework: capitalizeMultilineText(lesson.homework),
-            evaluation: capitalizeMultilineText(lesson.evaluation),
+            evaluation_tips: capitalizeMultilineText(lesson.evaluation_tips),
             notes: capitalizeMultilineText(lesson.notes),
             specialist_subject_knowledge_required: capitalizeMultilineText(lesson.specialist_subject_knowledge_required),
             knowledge_revisited: capitalizeMultilineText(lesson.knowledge_revisited),
@@ -1581,8 +1581,8 @@ export default function NewLessonFormTeacher() {
                 </div>
                 <Textarea
                   placeholder={"• Reflection on students' progress...\n• What worked well?\n• What could be improved?"}
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  value={lesson.evaluation_tips || ""}
+                  onChange={(e) => updateField("evaluation_tips", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                 />
               </section>

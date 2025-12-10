@@ -147,11 +147,11 @@ async function fetchAnalyticsData(userId: string): Promise<AnalyticsData> {
 
   // Evaluation metrics (both teacher and tutor lessons)
   const teacherLessonsWithEvaluation = allTeacherLessons.filter(l =>
-    l.evaluation && l.evaluation.trim() !== ''
+    l.teacher_evaluation && l.teacher_evaluation.trim() !== ''
   ).length;
 
   const tutorLessonsWithEvaluation = allTutorLessons.filter(l =>
-    l.evaluation && l.evaluation.trim() !== ''
+    l.teacher_evaluation && l.teacher_evaluation.trim() !== ''
   ).length;
 
   const totalLessonsWithEvaluation = teacherLessonsWithEvaluation + tutorLessonsWithEvaluation;
@@ -237,7 +237,7 @@ function formatLessonData(lesson: LessonRow): LessonData {
     class: isTeacherLesson ? (lesson as TeacherLessonRow).class : undefined,
     first_name: !isTeacherLesson ? (lesson as TutorLessonRow).first_name || undefined : undefined,
     last_name: !isTeacherLesson ? (lesson as TutorLessonRow).last_name || undefined : undefined,
-    evaluation: lesson.evaluation || undefined,
+    teacher_evaluation: lesson.teacher_evaluation || undefined,
   };
 }
 

@@ -68,7 +68,7 @@ const defaultSections: PrintSection[] = [
   { id: "structure", label: "Lesson Structure", icon: <BookOpen size={16} />, enabled: true },
   { id: "resources", label: "Resources", icon: <Package size={16} />, enabled: true },
   { id: "homework", label: "Homework", icon: <ClipboardList size={16} />, enabled: true },
-  { id: "evaluation", label: "Evaluation & Notes", icon: <StickyNote size={16} />, enabled: false },
+  { id: "evaluation_tips", label: "Evaluation & Notes", icon: <StickyNote size={16} />, enabled: false },
 ];
 
 export function TutorPrintPreviewDialog({
@@ -643,11 +643,11 @@ function generateTutorPlainText(
     text += `HOMEWORK\n${"-".repeat(30)}\n${lesson.homework}\n\n`;
   }
 
-  if (sections.includes("evaluation") && lesson.evaluation) {
-    text += `EVALUATION\n${"-".repeat(30)}\n${lesson.evaluation}\n\n`;
+  if (sections.includes("evaluation_tips") && lesson.evaluation_tips) {
+    text += `EVALUATION\n${"-".repeat(30)}\n${lesson.evaluation_tips}\n\n`;
   }
 
-  if (sections.includes("evaluation") && lesson.notes) {
+  if (sections.includes("evaluation_tips") && lesson.notes) {
     text += `NOTES\n${"-".repeat(30)}\n${lesson.notes}\n\n`;
   }
 

@@ -17,7 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info, Loader2, Sparkles } from "lucide-react";
+import { ClipboardList, Info, Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { useUserMode } from "@/components/UserModeContext";
 import { EditLessonFormSkeleton } from "../../skeletons/EditLessonFormSkeleton";
 
@@ -37,7 +37,8 @@ export default function EditLessonFormTeacher() {
     outcomes: "",
     resources: [],
     homework: "",
-    evaluation: "",
+    evaluation_tips: "",
+    teacher_evaluation: "",
     notes: "",
     exam_board: "",
     subject: "",
@@ -78,9 +79,9 @@ export default function EditLessonFormTeacher() {
 
   useEffect(() => {
     if (mode !== "teacher") {
-      return ;
+      return;
     }
-    
+
     if (error || Object.keys(formErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -354,7 +355,7 @@ export default function EditLessonFormTeacher() {
       updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
       updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
-      updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
+      updateField("evaluation_tips", formatAsBulletPoints(generatedPlan.evaluation_tips) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
       updateField("created_with_ai", true);
 
@@ -1260,12 +1261,50 @@ export default function EditLessonFormTeacher() {
 
               <Separator />
 
-              {/* Evaluation */}
+              {/* Evaluation Tips - Bullet Points */}
+              <section className="space-y-4">
+                {lesson.evaluation_tips ? (
+                  <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 px-4 py-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-emerald-600" />
+                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                          Reflection & Assessment
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4 sm:p-5">
+                      <ul className="space-y-3">
+                        {lesson.evaluation_tips
+                          .split('\n')
+                          .filter((line: string) => line.trim())
+                          .map((tip: string, index: number) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0 mt-0.5">
+                                {index + 1}
+                              </span>
+                              <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                                {tip.replace(/^[•\-\*]\s*/, '')}
+                              </p>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-muted/30 rounded-xl p-6 text-center">
+                    <ClipboardList className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No evaluation tips available</p>
+                  </div>
+                )}
+              </section>
+
+              {/* Teacher Evaluation */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-1 bg-primary rounded-full" />
                   <div className="flex items-center gap-1">
-                    <h3 className="text-base sm:text-lg font-semibold">Evaluation</h3>
+                    <h3 className="text-base sm:text-lg font-semibold">Your Evaluation</h3>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -1281,9 +1320,9 @@ export default function EditLessonFormTeacher() {
                   </div>
                 </div>
                 <Textarea
-                  placeholder={"• Reflection on students' progress...\n• What worked well?\n• What could be improved?"}
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  placeholder={""}
+                  value={lesson.teacher_evaluation || ""}
+                  onChange={(e) => updateField("teacher_evaluation", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                 />
               </section>

@@ -103,7 +103,7 @@ This is a DETAILED lesson plan with comprehensive pedagogical information for ea
     }
   ],
   "homework": "• Clear homework task that reinforces and extends learning\\n• Expected time to complete\\n• Success criteria",
-  "evaluation": "• How to assess if learning objectives were met\\n• Questions to reflect on teaching effectiveness\\n• What worked well and areas for improvement",
+  "evaluation_tips": "• How to assess if learning objectives were met\\n• Questions to reflect on teaching effectiveness\\n• What worked well and areas for improvement",
   "notes": "• Important reminders for the teacher\\n• Common misconceptions to address\\n• Timing considerations\\n• Behaviour management strategies",
   "resources": [
     {"title": "Resource 1 name", "url": ""},
@@ -256,7 +256,7 @@ This is a TUTORING SESSION plan (1-on-1 or small group). Focus on:
     {"title": "Visual aids or manipulatives if needed", "url": ""}
   ],
   "homework": "Practice task to reinforce today's learning:\\n\\n• Specific problems to complete: [e.g., 'Complete questions 5-10 on worksheet' or 'Practice 5 similar problems']\\n• Estimated time: 20-30 minutes\\n• Purpose: Reinforce [specific skill] practiced today\\n• Instructions: Show all working, try independently first\\n• If stuck: Review notes from today, watch [recommended video], message me with specific questions\\n• Bring to next session: Completed work and any questions about problems that were difficult\\n• Optional extension: [Challenge problem for if they finish early]",
-  "evaluation": "Post-session reflection and assessment:\\n\\n**Student Progress:**\\n• What progress did ${data.student_name || "the student"} make toward today's objectives? (Rate: Excellent/Good/Some/Limited progress)\\n• Concepts they grasped well and demonstrated confidence with:\\n• Areas that still need work or caused confusion:\\n• Observed confidence level and engagement: (Rate 1-10)\\n\\n**Teaching Effectiveness:**\\n• What teaching strategies worked best today? (visual aids, worked examples, real-world connections, etc.)\\n• What would I do differently next time?\\n• Any breakthrough moments or 'aha!' insights?\\n\\n**Next Session Planning:**\\n• Focus areas for next time based on today's performance\\n• Concepts to review before introducing new material\\n• Estimated pace: Can we move forward or need to consolidate?\\n\\n**Parent Communication Notes:**\\n• Key achievements to share with parents: 'Today [student] successfully...'\\n• Practice recommendations for home: 'Please help [student] practice...'\\n• Areas where parents can provide support\\n• Next session focus and goals\\n• Any concerns or celebrations to communicate",
+  "evaluation_tips": "Post-session reflection and assessment:\\n\\n**Student Progress:**\\n• What progress did ${data.student_name || "the student"} make toward today's objectives? (Rate: Excellent/Good/Some/Limited progress)\\n• Concepts they grasped well and demonstrated confidence with:\\n• Areas that still need work or caused confusion:\\n• Observed confidence level and engagement: (Rate 1-10)\\n\\n**Teaching Effectiveness:**\\n• What teaching strategies worked best today? (visual aids, worked examples, real-world connections, etc.)\\n• What would I do differently next time?\\n• Any breakthrough moments or 'aha!' insights?\\n\\n**Next Session Planning:**\\n• Focus areas for next time based on today's performance\\n• Concepts to review before introducing new material\\n• Estimated pace: Can we move forward or need to consolidate?\\n\\n**Parent Communication Notes:**\\n• Key achievements to share with parents: 'Today [student] successfully...'\\n• Practice recommendations for home: 'Please help [student] practice...'\\n• Areas where parents can provide support\\n• Next session focus and goals\\n• Any concerns or celebrations to communicate",
   "notes": "Session observations and reminders:\\n\\n**Student Profile:**\\n• Engagement level today: (High/Medium/Low) - Note: [What affected this?]\\n• Confidence level: (Growing/Stable/Needs boost) - Note: [Specific observations]\\n• Learning style preferences: [What worked: visual/verbal/hands-on/written?]\\n• Pace that works best: [Fast/Moderate/Slow and steady]\\n\\n**Teaching Strategies That Worked:**\\n• [e.g., 'Diagrams really helped with understanding']\\n• [e.g., 'Real-world examples about sports clicked']\\n• [e.g., 'Breaking into smaller steps reduced anxiety']\\n\\n**Motivational Notes:**\\n• What encouragement/praise resonates with this student?\\n• Rewards or goals that motivate them\\n• Topics or contexts they find interesting\\n\\n**Important Reminders:**\\n• Specific struggles to be aware of: [e.g., 'Gets confused when multiple steps']\\n• Strengths to build on: [e.g., 'Great at spotting patterns']\\n• Parent preferences or requests: [Any special instructions]\\n• Best times/days for this student (energy levels, focus)\\n\\n**Preparation for Next Session:**\\n• Materials to bring: [Worksheets, specific textbook, tools]\\n• Concepts to review at start of next session\\n• New topics to introduce if ready\\n• Questions to ask to check retention of today's learning\\n• Adjustments to make based on today's observations"
 }`;
 
@@ -347,11 +347,11 @@ export async function POST(request: NextRequest) {
 
       // Evaluation defaults - with examples
       if (
-        !plan.evaluation ||
-        (Array.isArray(plan.evaluation) && plan.evaluation.length === 0)
+        !plan.evaluation_tips ||
+        (Array.isArray(plan.evaluation_tips) && plan.evaluation_tips.length === 0)
       ) {
         if (planType === "tutor") {
-          plan.evaluation = [
+          plan.evaluation_tips = [
             `**Student Progress:** (e.g., ${name} made good progress toward today's objectives, demonstrating understanding of the core concept)`,
             "**Concepts Grasped:** (e.g., Quickly understood how to set up equations, showed confidence with basic problems)",
             "**Areas Needing Support:** (e.g., Still struggling with word problems - needs more practice translating words to equations)",
@@ -360,7 +360,7 @@ export async function POST(request: NextRequest) {
             "**Next Session Focus:** (e.g., Revisit word problems with simpler examples before progressing)",
           ];
         } else {
-          plan.evaluation = [
+          plan.evaluation_tips = [
             "**Objectives Achieved:** (e.g., Most students met learning objectives, evidenced by exit ticket results)",
             "**Evidence of Learning:** (e.g., Student discussions showed good understanding of key concepts)",
             "**Misconceptions Observed:** (e.g., Several students confused X with Y - address next lesson)",

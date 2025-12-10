@@ -25,7 +25,7 @@ export type LessonPlanTutor = {
   learning?: string | null;
   assessing?: string | null;
   adapting?: string | null;
-  evaluation?: string | null;
+  evaluation_tips?: string | null;
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
   lesson_structure?: Record<string, string> | null; // JSONB
@@ -39,5 +39,6 @@ export type LessonPlanTutor = {
   },
   exam_board?: string,
   created_with_ai?: boolean;
+  teacher_evaluation?: string | null;
 };
 

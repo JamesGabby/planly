@@ -393,14 +393,14 @@ export function generateTutorPrintContent(
     </section>
   ` : ""}
 
-  ${sections.includes("evaluation") && lesson.evaluation ? `
+  ${sections.includes("evaluation_tips") && lesson.evaluation_tips ? `
     <section class="section">
       <h2 class="section-title">✅ Evaluation</h2>
-      <div class="card">${formatContent(lesson.evaluation)}</div>
+      <div class="card">${formatContent(lesson.evaluation_tips)}</div>
     </section>
   ` : ""}
 
-  ${sections.includes("evaluation") && lesson.notes ? `
+  ${sections.includes("evaluation_tips") && lesson.notes ? `
     <section class="section">
       <h2 class="section-title">📝 Notes</h2>
       <div class="card">${formatContent(lesson.notes)}</div>

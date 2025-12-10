@@ -364,7 +364,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
 
       {/* --- EVALUATION & NOTES (Read-only) --- */}
       <section className="space-y-4 sm:space-y-6">
-        {lesson.evaluation && (
+        {lesson.teacher_evaluation && (
           <div>
             <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
               <CheckCircle2 className="text-primary flex-shrink-0" size={24} />
@@ -372,7 +372,7 @@ export function TutorExpandedLessonView({ lesson }: { lesson: LessonPlanTutor })
             </h3>
             <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-sm">
               <div className="text-sm text-muted-foreground">
-                <FormattedContent content={lesson.evaluation} />
+                <FormattedContent content={lesson.teacher_evaluation} />
               </div>
             </div>
           </div>

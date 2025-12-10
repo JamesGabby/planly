@@ -32,7 +32,7 @@ export default function NewLessonFormTutor() {
     outcomes: "",
     resources: [],
     homework: "",
-    evaluation: "",
+    evaluation_tips: "",
     notes: "",
     first_name: "",
     last_name: "",
@@ -361,7 +361,7 @@ export default function NewLessonFormTutor() {
       updateField("objectives", formatAsBulletPoints(generatedPlan.objectives) || lesson.objectives || "");
       updateField("outcomes", formatAsBulletPoints(generatedPlan.outcomes) || lesson.outcomes || "");
       updateField("homework", formatAsBulletPoints(generatedPlan.homework) || "");
-      updateField("evaluation", formatAsBulletPoints(generatedPlan.evaluation) || "");
+      updateField("evaluation_tips", formatAsBulletPoints(generatedPlan.evaluation_tips) || "");
       updateField("notes", formatAsBulletPoints(generatedPlan.notes) || "");
       updateField("created_with_ai", true);
 
@@ -503,7 +503,7 @@ export default function NewLessonFormTutor() {
             objectives: capitalizeMultilineText(lesson.objectives),
             outcomes: capitalizeMultilineText(lesson.outcomes),
             homework: capitalizeMultilineText(lesson.homework),
-            evaluation: capitalizeMultilineText(lesson.evaluation),
+            evaluation_tips: capitalizeMultilineText(lesson.evaluation_tips),
             notes: capitalizeMultilineText(lesson.notes),
 
             // Other fields
@@ -1084,8 +1084,8 @@ export default function NewLessonFormTutor() {
 
                 <Textarea
                   placeholder={"• How did the student respond to different teaching methods?\n• What progress was made toward objectives?\n• Areas to focus on next session..."}
-                  value={lesson.evaluation || ""}
-                  onChange={(e) => updateField("evaluation", e.target.value)}
+                  value={lesson.evaluation_tips || ""}
+                  onChange={(e) => updateField("evaluation_tips", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                 />
               </section>
