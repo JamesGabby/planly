@@ -21,10 +21,7 @@ import {
   Shield,
   Play,
   ChevronDown,
-  Menu,
-  X,
 } from "lucide-react";
-import { FloatingParticles } from "@/components/landing/floating-particles";
 import { TypewriterText } from "@/components/landing/TypewriterText";
 import { HeroAnimation } from "@/components/three-animations/hero-animation";
 
