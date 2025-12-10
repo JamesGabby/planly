@@ -4,6 +4,15 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
+// Define interface for animated mesh with custom properties
+interface AnimatedMesh extends THREE.Mesh<THREE.BufferGeometry, THREE.MeshPhongMaterial> {
+  orbitSpeed: number;
+  orbitRadius: number;
+  orbitOffset: number;
+  floatSpeed: number;
+  floatOffset: number;
+}
+
 export function HeroAnimation() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -37,7 +46,7 @@ export function HeroAnimation() {
     container.appendChild(renderer.domElement);
 
     // Get CSS custom properties for theming
-    const getThemeColor = (cssVar: string, fallback: string) => {
+    const getThemeColor = (cssVar: string, fallback: string): THREE.Color => {
       if (typeof window !== "undefined") {
         const style = getComputedStyle(document.documentElement);
         const value = style.getPropertyValue(cssVar).trim();
@@ -94,8 +103,8 @@ export function HeroAnimation() {
     scene.add(core);
 
     // Floating geometric shapes (representing lessons/knowledge nodes)
-    const shapes: THREE.Mesh[] = [];
-    const shapeGeometries = [
+    const shapes: AnimatedMesh[] = [];
+    const shapeGeometries: THREE.BufferGeometry[] = [
       new THREE.TetrahedronGeometry(0.8),
       new THREE.OctahedronGeometry(0.6),
       new THREE.BoxGeometry(0.7, 0.7, 0.7),
@@ -114,7 +123,7 @@ export function HeroAnimation() {
         flatShading: true,
       });
 
-      const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(geometry, material) as AnimatedMesh;
 
       // Position in a spherical distribution
       const radius = 8 + Math.random() * 15;
@@ -129,11 +138,11 @@ export function HeroAnimation() {
       mesh.rotation.y = Math.random() * Math.PI;
 
       // Store animation data
-      (mesh as any).orbitSpeed = 0.1 + Math.random() * 0.2;
-      (mesh as any).orbitRadius = radius;
-      (mesh as any).orbitOffset = Math.random() * Math.PI * 2;
-      (mesh as any).floatSpeed = 0.5 + Math.random() * 0.5;
-      (mesh as any).floatOffset = Math.random() * Math.PI * 2;
+      mesh.orbitSpeed = 0.1 + Math.random() * 0.2;
+      mesh.orbitRadius = radius;
+      mesh.orbitOffset = Math.random() * Math.PI * 2;
+      mesh.floatSpeed = 0.5 + Math.random() * 0.5;
+      mesh.floatOffset = Math.random() * Math.PI * 2;
 
       shapes.push(mesh);
       scene.add(mesh);
@@ -185,9 +194,9 @@ export function HeroAnimation() {
       opacity: 0.15,
     });
 
-    const connections: THREE.Line[] = [];
+    const connections: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>[] = [];
     for (let i = 0; i < 30; i++) {
-      const points = [];
+      const points: THREE.Vector3[] = [];
       const startShape = shapes[Math.floor(Math.random() * shapes.length)];
       const endShape = shapes[Math.floor(Math.random() * shapes.length)];
 
@@ -242,10 +251,15 @@ export function HeroAnimation() {
     scene.add(pointLight3);
 
     // Mouse interaction
-    const mouse = { x: 0, y: 0 };
-    const targetRotation = { x: 0, y: 0 };
+    interface MousePosition {
+      x: number;
+      y: number;
+    }
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const mouse: MousePosition = { x: 0, y: 0 };
+    const targetRotation: MousePosition = { x: 0, y: 0 };
+
+    const handleMouseMove = (event: MouseEvent): void => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       targetRotation.x = mouse.y * 0.3;
@@ -255,7 +269,7 @@ export function HeroAnimation() {
     window.addEventListener("mousemove", handleMouseMove);
 
     // Handle resize
-    const handleResize = () => {
+    const handleResize = (): void => {
       const newWidth = container.clientWidth;
       const newHeight = container.clientHeight;
       camera.aspect = newWidth / newHeight;
@@ -269,7 +283,7 @@ export function HeroAnimation() {
     let animationId: number;
     const clock = new THREE.Clock();
 
-    const animate = () => {
+    const animate = (): void => {
       animationId = requestAnimationFrame(animate);
       const time = clock.getElapsedTime();
 
@@ -287,16 +301,14 @@ export function HeroAnimation() {
 
       // Animate shapes
       shapes.forEach((shape, i) => {
-        const data = shape as any;
-
         // Orbital motion
-        const angle = time * data.orbitSpeed + data.orbitOffset;
-        const floatY = Math.sin(time * data.floatSpeed + data.floatOffset) * 0.5;
+        const angle = time * shape.orbitSpeed + shape.orbitOffset;
+        const floatY = Math.sin(time * shape.floatSpeed + shape.floatOffset) * 0.5;
 
         shape.position.x =
-          data.orbitRadius * Math.cos(angle) * Math.sin(data.orbitOffset);
+          shape.orbitRadius * Math.cos(angle) * Math.sin(shape.orbitOffset);
         shape.position.z =
-          data.orbitRadius * Math.sin(angle) * Math.sin(data.orbitOffset);
+          shape.orbitRadius * Math.sin(angle) * Math.sin(shape.orbitOffset);
         shape.position.y += floatY * 0.01;
 
         // Rotation
@@ -304,9 +316,7 @@ export function HeroAnimation() {
         shape.rotation.y += 0.01;
 
         // Pulse opacity based on distance to center
-        const dist = shape.position.length();
-        (shape.material as THREE.MeshPhongMaterial).opacity =
-          0.4 + Math.sin(time + i) * 0.2;
+        shape.material.opacity = 0.4 + Math.sin(time + i) * 0.2;
       });
 
       // Rotate rings
@@ -321,7 +331,8 @@ export function HeroAnimation() {
 
       // Update connection lines
       connections.forEach((line, i) => {
-        const positions = line.geometry.attributes.position.array as Float32Array;
+        const positionAttribute = line.geometry.attributes.position;
+        const positions = positionAttribute.array as Float32Array;
         const startIdx = i % shapes.length;
         const endIdx = (i + 1) % shapes.length;
 
@@ -332,7 +343,7 @@ export function HeroAnimation() {
         positions[4] = shapes[endIdx].position.y;
         positions[5] = shapes[endIdx].position.z;
 
-        line.geometry.attributes.position.needsUpdate = true;
+        positionAttribute.needsUpdate = true;
       });
 
       // Smooth camera rotation based on mouse
@@ -360,10 +371,29 @@ export function HeroAnimation() {
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
-          if (Array.isArray(object.material)) {
-            object.material.forEach((m) => m.dispose());
+          const material = object.material;
+          if (Array.isArray(material)) {
+            material.forEach((m: THREE.Material) => m.dispose());
           } else {
-            object.material.dispose();
+            material.dispose();
+          }
+        }
+        if (object instanceof THREE.Line) {
+          object.geometry.dispose();
+          const material = object.material;
+          if (Array.isArray(material)) {
+            material.forEach((m: THREE.Material) => m.dispose());
+          } else {
+            material.dispose();
+          }
+        }
+        if (object instanceof THREE.Points) {
+          object.geometry.dispose();
+          const material = object.material;
+          if (Array.isArray(material)) {
+            material.forEach((m: THREE.Material) => m.dispose());
+          } else {
+            material.dispose();
           }
         }
       });
