@@ -15,11 +15,21 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LessonPlanTutor, Resource } from "../../types/lesson_tutor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Users } from "lucide-react";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { AIGenerateButton } from "@/components/ui/generate-ai-button";
+import { TUTORING_SUBJECTS } from "@/lib/constants";
 
 const supabase = createClient();
+
+type SelectionType = "student" | "class";
+
+interface ClassData {
+  class_id: string;
+  class_name: string;
+  subject?: string;
+  year_group?: string;
+}
 
 export default function NewLessonFormTutor() {
   const router = useRouter();
@@ -59,33 +69,26 @@ export default function NewLessonFormTutor() {
     },
   ]);
 
-  // Top 15 tutoring subjects
-  const TUTORING_SUBJECTS = [
-    "Mathematics",
-    "English",
-    "Science",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "History",
-    "Geography",
-    "Spanish",
-    "French",
-    "German",
-    "Computer Science",
-    "Economics",
-    "Music",
-    "Art",
-  ];
-
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Selection type state
+  const [selectionType, setSelectionType] = useState<SelectionType>("student");
+
+  // Student states
   const [students, setStudents] = useState<{ student_id: string; first_name: string; last_name: string }[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [showNewStudentInputs, setShowNewStudentInputs] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+
+  // Class states
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [selectedClassName, setSelectedClassName] = useState<string>("");
+
   const [showCustomSubjectInput, setShowCustomSubjectInput] = useState(false);
 
   useEffect(() => {
@@ -96,6 +99,7 @@ export default function NewLessonFormTutor() {
 
   useEffect(() => {
     fetchStudents();
+    fetchClasses();
   }, []);
 
   async function fetchStudents() {
@@ -123,6 +127,42 @@ export default function NewLessonFormTutor() {
     }
   }
 
+  async function fetchClasses() {
+    try {
+      setLoadingClasses(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("tutor_classes")
+        .select("class_id, class_name, year_group")
+        .eq("user_id", user.id)
+        .order("class_name", { ascending: true });
+
+      if (error) throw error;
+
+      setClasses(data || []);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+      toast.error("Failed to load classes");
+    } finally {
+      setLoadingClasses(false);
+    }
+  }
+
+  function handleSelectionTypeChange(type: SelectionType) {
+    setSelectionType(type);
+    // Reset selections when switching
+    setSelectedStudentId("");
+    setSelectedClassId("");
+    setSelectedClassName("");
+    setShowNewStudentInputs(false);
+    updateField("first_name", "");
+    updateField("last_name", "");
+  }
+
   function handleStudentChange(value: string) {
     if (value === "other") {
       setShowNewStudentInputs(true);
@@ -142,10 +182,27 @@ export default function NewLessonFormTutor() {
     }
   }
 
+  function handleClassChange(value: string) {
+    setSelectedClassId(value);
+    const selectedClass = classes.find(c => c.class_id === value);
+    if (selectedClass) {
+      setSelectedClassName(selectedClass.class_name);
+      // Optionally auto-fill subject if the class has one
+      if (selectedClass.subject && !lesson.subject) {
+        updateField("subject", selectedClass.subject);
+      }
+    }
+  }
+
   async function createStudentProfile(
     firstName?: string,
     lastName?: string
-  ): Promise<string> {
+  ): Promise<string | null> {
+    // If selecting a class, we don't need a student profile
+    if (selectionType === "class") {
+      return null;
+    }
+
     if (!firstName?.trim()) {
       throw new Error("Student firstname is required.");
     }
@@ -243,7 +300,13 @@ export default function NewLessonFormTutor() {
 
   function validateBasicFields() {
     const errors: { [key: string]: string } = {};
-    if (!lesson.first_name?.trim()) errors.first_name = "Student first name is required.";
+
+    if (selectionType === "student") {
+      if (!lesson.first_name?.trim()) errors.first_name = "Student first name is required.";
+    } else {
+      if (!selectedClassId) errors.class_id = "Please select a class.";
+    }
+
     if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
     if (!lesson.subject?.trim()) errors.subject = "Subject is required.";
     setFormErrors(errors);
@@ -253,7 +316,12 @@ export default function NewLessonFormTutor() {
   function validateForm() {
     const errors: { [key: string]: string } = {};
 
-    if (!lesson.first_name?.trim()) errors.first_name = "First Name is required.";
+    if (selectionType === "student") {
+      if (!lesson.first_name?.trim()) errors.first_name = "First Name is required.";
+    } else {
+      if (!selectedClassId) errors.class_id = "Please select a class.";
+    }
+
     if (!lesson.date_of_lesson?.trim()) errors.date_of_lesson = "Date is required.";
     if (!lesson.time_of_lesson?.trim()) errors.time_of_lesson = "Time is required.";
     if (!lesson.topic?.trim()) errors.topic = "Topic is required.";
@@ -264,9 +332,11 @@ export default function NewLessonFormTutor() {
     return Object.keys(errors).length === 0;
   }
 
+  // ... rest of the component continues in Part 2
+
   async function generateLessonPlan() {
     if (!validateBasicFields()) {
-      toast.error("Please fill in Student Name, Subject, and Topic before generating.");
+      toast.error("Please fill in required fields before generating.");
       return;
     }
 
@@ -274,7 +344,10 @@ export default function NewLessonFormTutor() {
     setError(null);
 
     try {
-      const studentName = `${lesson.first_name || ""} ${lesson.last_name || ""}`.trim();
+      // Determine the name to use based on selection type
+      const targetName = selectionType === "student"
+        ? `${lesson.first_name || ""} ${lesson.last_name || ""}`.trim()
+        : selectedClassName;
 
       const response = await fetch("/api/generate-lesson", {
         method: "POST",
@@ -282,10 +355,11 @@ export default function NewLessonFormTutor() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          planType: "tutor",
+          planType: selectionType === "student" ? "tutor" : "class",
           topic: lesson.topic,
           subject: lesson.subject,
-          student_name: studentName,
+          student_name: selectionType === "student" ? targetName : undefined,
+          class_name: selectionType === "class" ? targetName : undefined,
           objectives: lesson.objectives,
           outcomes: lesson.outcomes,
           duration: "60 minutes",
@@ -298,7 +372,7 @@ export default function NewLessonFormTutor() {
       }
 
       const generatedPlan = await response.json();
-      console.log("Generated Plan Response:", generatedPlan); // 👈 Add this
+      console.log("Generated Plan Response:", generatedPlan);
 
       // ADD THIS FORMATTING HELPER
       type BulletPointObject = {
@@ -373,7 +447,11 @@ export default function NewLessonFormTutor() {
         setStages(generatedPlan.lesson_structure);
       }
 
-      toast.success("✨ Tutoring session plan generated successfully! Review and personalise as needed.");
+      const successMessage = selectionType === "student"
+        ? "✨ Tutoring session plan generated successfully! Review and personalise as needed."
+        : "✨ Class lesson plan generated successfully! Review and personalise as needed.";
+
+      toast.success(successMessage);
 
       setTimeout(() => {
         window.scrollTo({ top: 400, behavior: "smooth" });
@@ -416,7 +494,6 @@ export default function NewLessonFormTutor() {
       const toProperTitleCase = (str: string | undefined | null): string => {
         if (!str) return "";
 
-        // Words that should remain lowercase unless they're the first or last word
         const minorWords = new Set([
           'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'at', 'by', 'for', 'from',
           'in', 'into', 'of', 'on', 'onto', 'to', 'with', 'as', 'up', 'yet', 'so'
@@ -427,12 +504,10 @@ export default function NewLessonFormTutor() {
           const isFirstWord = index === 0;
           const isLastWord = index + word.length === str.length;
 
-          // Always capitalize first and last words, or if not a minor word
           if (isFirstWord || isLastWord || !minorWords.has(lowerWord)) {
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
           }
 
-          // Keep minor words lowercase
           return lowerWord;
         });
       };
@@ -446,7 +521,6 @@ export default function NewLessonFormTutor() {
 
       const capitalizeText = (str: string | undefined | null): string => {
         if (!str) return "";
-        // For longer text fields, capitalize first letter while preserving bullet points and formatting
         return str.replace(/^(\s*[•\-*]?\s*)([a-z])/, (match, prefix, firstChar) => {
           return prefix + firstChar.toUpperCase();
         });
@@ -454,16 +528,19 @@ export default function NewLessonFormTutor() {
 
       const capitalizeMultilineText = (str: string | undefined | null): string => {
         if (!str) return "";
-        // Capitalize first letter of each line that starts with bullet points
         return str.replace(/^(\s*[•\-*]?\s*)([a-z])/gm, (match, prefix, firstChar) => {
           return prefix + firstChar.toUpperCase();
         });
       };
 
-      const studentId = await createStudentProfile(
-        capitalizeProperName(lesson.first_name),
-        capitalizeProperName(lesson.last_name)
-      );
+      // Handle student_id based on selection type
+      let studentId: string | null = null;
+      if (selectionType === "student") {
+        studentId = await createStudentProfile(
+          capitalizeProperName(lesson.first_name),
+          capitalizeProperName(lesson.last_name)
+        );
+      }
 
       // Format resources with capitalized titles
       const formattedResources =
@@ -486,40 +563,48 @@ export default function NewLessonFormTutor() {
 
       const timestamp = new Date().toISOString();
 
+      // Build the insert data object
+      const insertData: Record<string, unknown> = {
+        ...lesson,
+        // Name fields - proper name capitalization (only for student selection)
+        first_name: selectionType === "student" ? capitalizeProperName(lesson.first_name) : null,
+        last_name: selectionType === "student" ? capitalizeProperName(lesson.last_name) : null,
+
+        // Basic fields - capitalize appropriately
+        subject: capitalizeFirstLetter(lesson.subject),
+        topic: toProperTitleCase(lesson.topic),
+
+        // Longer text fields - capitalize while preserving formatting
+        objectives: capitalizeMultilineText(lesson.objectives),
+        outcomes: capitalizeMultilineText(lesson.outcomes),
+        homework: capitalizeMultilineText(lesson.homework),
+        evaluation_tips: capitalizeMultilineText(lesson.evaluation_tips),
+        notes: capitalizeMultilineText(lesson.notes),
+
+        // Other fields
+        user_id: user.id,
+        student_id: studentId,
+        class_id: selectionType === "class" ? selectedClassId : null,
+        class_name: selectionType === "class" ? selectedClassName : null,
+        lesson_type: selectionType, // 'student' or 'class'
+        resources: formattedResources,
+        lesson_structure: formattedStages,
+        created_at: timestamp,
+        updated_at: timestamp,
+        created_with_ai: lesson.created_with_ai || false,
+      };
+
       const { error: insertError } = await supabase
         .from("tutor_lesson_plans")
-        .insert([
-          {
-            ...lesson,
-            // Name fields - proper name capitalization
-            first_name: capitalizeProperName(lesson.first_name),
-            last_name: capitalizeProperName(lesson.last_name),
-
-            // Basic fields - capitalize appropriately
-            subject: capitalizeFirstLetter(lesson.subject),
-            topic: toProperTitleCase(lesson.topic), // Title case for topic
-
-            // Longer text fields - capitalize while preserving formatting
-            objectives: capitalizeMultilineText(lesson.objectives),
-            outcomes: capitalizeMultilineText(lesson.outcomes),
-            homework: capitalizeMultilineText(lesson.homework),
-            evaluation_tips: capitalizeMultilineText(lesson.evaluation_tips),
-            notes: capitalizeMultilineText(lesson.notes),
-
-            // Other fields
-            user_id: user.id,
-            student_id: studentId,
-            resources: formattedResources,
-            lesson_structure: formattedStages,
-            created_at: timestamp,
-            updated_at: timestamp,
-            created_with_ai: lesson.created_with_ai || false,
-          },
-        ]);
+        .insert([insertData]);
 
       if (insertError) throw insertError;
 
-      toast.success("Tutoring lesson plan created successfully!");
+      const successMessage = selectionType === "student"
+        ? "Tutoring lesson plan created successfully!"
+        : "Class lesson plan created successfully!";
+
+      toast.success(successMessage);
       router.push(`/dashboard/lesson-plans`);
     } catch (err) {
       console.error(err);
@@ -546,16 +631,20 @@ export default function NewLessonFormTutor() {
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            New Tutoring Session Plan
+            {selectionType === "student" ? "New Tutoring Session Plan" : "New Class Lesson Plan"}
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm max-w-2xl">
-            Create a personalised 1-on-1 tutoring session plan, or let AI help you generate one.
+            {selectionType === "student"
+              ? "Create a personalised 1-on-1 tutoring session plan, or let AI help you generate one."
+              : "Create a lesson plan for your class, or let AI help you generate one."}
           </p>
         </div>
 
         <Card className="border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-3 sm:pb-4 px-4 sm:px-6">
-            <CardTitle className="text-lg sm:text-xl font-semibold">Session Details</CardTitle>
+            <CardTitle className="text-lg sm:text-xl font-semibold">
+              {selectionType === "student" ? "Session Details" : "Lesson Details"}
+            </CardTitle>
             <ModeSwitcher />
           </CardHeader>
 
@@ -568,71 +657,152 @@ export default function NewLessonFormTutor() {
                 </div>
               )}
 
-              {/* Student Information Section */}
+              {/* Student/Class Selection Section */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Student Information</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">Who is this lesson for?</h3>
                 </div>
 
+                {/* Selection Type Toggle */}
                 <div className="bg-muted/30 rounded-lg p-4 space-y-4">
-                  {/* Student Dropdown */}
-                  <div>
-                    <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
-                      Select Student <span className="text-destructive">*</span>
-                    </Label>
-
-                    <Select
-                      value={showNewStudentInputs ? "other" : selectedStudentId}
-                      onValueChange={handleStudentChange}
-                      disabled={loadingStudents}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      type="button"
+                      variant={selectionType === "student" ? "default" : "outline"}
+                      className={`flex-1 justify-center gap-2 ${selectionType === "student"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background hover:bg-muted"
+                        }`}
+                      onClick={() => handleSelectionTypeChange("student")}
                     >
-                      <SelectTrigger className={`mt-1 w-full ${formErrors.first_name ? "border-destructive" : ""}`}>
-                        <SelectValue placeholder={loadingStudents ? "Loading students..." : "Select a student..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((student) => (
-                          <SelectItem key={student.student_id} value={student.student_id}>
-                            {student.first_name} {student.last_name}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="other">+ Add New Student</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {formErrors.first_name && (
-                      <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
-                    )}
+                      <User className="h-4 w-4" />
+                      Individual Student
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectionType === "class" ? "default" : "outline"}
+                      className={`flex-1 justify-center gap-2 ${selectionType === "class"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background hover:bg-muted"
+                        }`}
+                      onClick={() => handleSelectionTypeChange("class")}
+                    >
+                      <Users className="h-4 w-4" />
+                      Class
+                    </Button>
                   </div>
 
-                  {/* New Student Input Fields - Only show when "other" is selected */}
-                  {showNewStudentInputs && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  {/* Student Selection */}
+                  {selectionType === "student" && (
+                    <>
                       <div>
                         <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
-                          First Name <span className="text-destructive">*</span>
+                          Select Student <span className="text-destructive">*</span>
                         </Label>
-                        <Input
-                          value={lesson.first_name || ""}
-                          onChange={(e) => updateField("first_name", e.target.value)}
-                          placeholder="e.g. Sarah"
-                          className={`mt-1 ${formErrors.first_name ? "border-destructive" : ""}`}
-                          autoFocus
-                        />
-                        {formErrors.first_name && (
+
+                        <Select
+                          value={showNewStudentInputs ? "other" : selectedStudentId}
+                          onValueChange={handleStudentChange}
+                          disabled={loadingStudents}
+                        >
+                          <SelectTrigger className={`mt-1 w-full ${formErrors.first_name ? "border-destructive" : ""}`}>
+                            <SelectValue placeholder={loadingStudents ? "Loading students..." : "Select a student..."} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {students.map((student) => (
+                              <SelectItem key={student.student_id} value={student.student_id}>
+                                {student.first_name} {student.last_name}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="other">+ Add New Student</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {formErrors.first_name && !showNewStudentInputs && (
                           <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
                         )}
                       </div>
 
-                      <div>
-                        <Label className="text-sm">Last Name</Label>
-                        <Input
-                          value={lesson.last_name || ""}
-                          onChange={(e) => updateField("last_name", e.target.value)}
-                          placeholder="e.g. Johnson"
-                          className="mt-1"
-                        />
-                      </div>
+                      {/* New Student Input Fields - Only show when "other" is selected */}
+                      {showNewStudentInputs && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                          <div>
+                            <Label className={`text-sm ${formErrors.first_name ? "text-destructive" : ""}`}>
+                              First Name <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              value={lesson.first_name || ""}
+                              onChange={(e) => updateField("first_name", e.target.value)}
+                              placeholder="e.g. Sarah"
+                              className={`mt-1 ${formErrors.first_name ? "border-destructive" : ""}`}
+                              autoFocus
+                            />
+                            {formErrors.first_name && (
+                              <p className="text-destructive text-xs mt-1">{formErrors.first_name}</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label className="text-sm">Last Name</Label>
+                            <Input
+                              value={lesson.last_name || ""}
+                              onChange={(e) => updateField("last_name", e.target.value)}
+                              placeholder="e.g. Johnson"
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Class Selection */}
+                  {selectionType === "class" && (
+                    <div>
+                      <Label className={`text-sm ${formErrors.class_id ? "text-destructive" : ""}`}>
+                        Select Class <span className="text-destructive">*</span>
+                      </Label>
+
+                      <Select
+                        value={selectedClassId}
+                        onValueChange={handleClassChange}
+                        disabled={loadingClasses}
+                      >
+                        <SelectTrigger className={`mt-1 w-full ${formErrors.class_id ? "border-destructive" : ""}`}>
+                          <SelectValue placeholder={loadingClasses ? "Loading classes..." : "Select a class..."} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {classes.length === 0 && !loadingClasses ? (
+                            <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                              No classes found. Create a class first.
+                            </div>
+                          ) : (
+                            classes.map((cls) => (
+                              <SelectItem key={cls.class_id} value={cls.class_id}>
+                                {cls.class_name}
+                                {cls.year_group && ` (${cls.year_group})`}
+                                {cls.subject && ` - ${cls.subject}`}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+
+                      {formErrors.class_id && (
+                        <p className="text-destructive text-xs mt-1">{formErrors.class_id}</p>
+                      )}
+
+                      {classes.length === 0 && !loadingClasses && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="mt-2 p-0 h-auto text-sm"
+                          onClick={() => router.push("/dashboard/classes/new")}
+                        >
+                          + Create a new class
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -642,7 +812,9 @@ export default function NewLessonFormTutor() {
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Session Details</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    {selectionType === "student" ? "Session Details" : "Lesson Details"}
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -700,7 +872,7 @@ export default function NewLessonFormTutor() {
 
                   <div>
                     <Label className={`text-sm ${formErrors.date_of_lesson ? "text-destructive" : ""}`}>
-                      Date of Session <span className="text-destructive">*</span>
+                      Date of {selectionType === "student" ? "Session" : "Lesson"} <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       type="date"
@@ -715,7 +887,7 @@ export default function NewLessonFormTutor() {
 
                   <div>
                     <Label className={`text-sm ${formErrors.time_of_lesson ? "text-destructive" : ""}`}>
-                      Time of Session <span className="text-destructive">*</span>
+                      Time of {selectionType === "student" ? "Session" : "Lesson"} <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       type="time"
@@ -741,7 +913,7 @@ export default function NewLessonFormTutor() {
               <AIGenerateButton
                 onClick={generateLessonPlan}
                 isGenerating={generating}
-                label="Generate Tutoring Session with AI"
+                label={selectionType === "student" ? "Generate Tutoring Session with AI" : "Generate Class Lesson with AI"}
               />
 
               <Separator />
@@ -756,7 +928,7 @@ export default function NewLessonFormTutor() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className={`text-sm ${formErrors.objectives ? "text-destructive" : ""}`}>
-                      Session Objectives <span className="text-destructive">*</span>
+                      {selectionType === "student" ? "Session" : "Lesson"} Objectives <span className="text-destructive">*</span>
                     </Label>
                     <Textarea
                       value={lesson.objectives || ""}
@@ -795,7 +967,9 @@ export default function NewLessonFormTutor() {
                           updateField("objectives", newValue);
                         }
                       }}
-                      placeholder={"e.g.\n• Understand how to add fractions\n• Build confidence with word problems"}
+                      placeholder={selectionType === "student"
+                        ? "e.g.\n• Understand how to add fractions\n• Build confidence with word problems"
+                        : "e.g.\n• Students will understand key concepts\n• Students will be able to apply knowledge"}
                       className={`min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm ${formErrors.objectives ? "border-destructive" : ""}`}
                     />
                     {formErrors.objectives && (
@@ -842,7 +1016,9 @@ export default function NewLessonFormTutor() {
                           updateField("outcomes", newValue);
                         }
                       }}
-                      placeholder={"e.g.\n• Student can solve 5 fraction problems independently\n• Student demonstrates understanding through explanation"}
+                      placeholder={selectionType === "student"
+                        ? "e.g.\n• Student can solve 5 fraction problems independently\n• Student demonstrates understanding through explanation"
+                        : "e.g.\n• Students can demonstrate understanding through discussion\n• Students complete practice exercises with 80% accuracy"}
                       className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
                     />
                   </div>
@@ -851,17 +1027,19 @@ export default function NewLessonFormTutor() {
 
               <Separator />
 
-
-
-              {/* Session Structure - Enhanced for tutoring */}
+              {/* Session Structure */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Session Structure</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    {selectionType === "student" ? "Session Structure" : "Lesson Structure"}
+                  </h3>
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Plan each phase of your tutoring session with personalised support strategies.
+                  {selectionType === "student"
+                    ? "Plan each phase of your tutoring session with personalised support strategies."
+                    : "Plan each phase of your lesson with differentiated teaching strategies."}
                 </p>
 
                 <div className="space-y-4">
@@ -913,27 +1091,35 @@ export default function NewLessonFormTutor() {
                         </div>
                       </div>
 
-                      {/* Stage Content for Tutoring */}
+                      {/* Stage Content */}
                       <div className="p-4 sm:p-5 space-y-4">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          {/* Tutor Actions */}
+                          {/* Tutor/Teacher Actions */}
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium">{"What You'll Do"}</Label>
+                            <Label className="text-sm font-medium">
+                              {selectionType === "student" ? "What You'll Do" : "Teaching Activities"}
+                            </Label>
                             <Textarea
                               value={stage.teaching || ""}
                               onChange={(e) => updateStage(i, "teaching", e.target.value)}
-                              placeholder="e.g., Use visual aids to explain the concept, demonstrate problem-solving steps..."
+                              placeholder={selectionType === "student"
+                                ? "e.g., Use visual aids to explain the concept, demonstrate problem-solving steps..."
+                                : "e.g., Introduce concept with presentation, model examples on whiteboard..."}
                               className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-sm"
                             />
                           </div>
 
                           {/* Student Activities */}
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium">Student Activities</Label>
+                            <Label className="text-sm font-medium">
+                              {selectionType === "student" ? "Student Activities" : "Learning Activities"}
+                            </Label>
                             <Textarea
                               value={stage.learning || ""}
                               onChange={(e) => updateStage(i, "learning", e.target.value)}
-                              placeholder="e.g., Practice problems with guidance, explain their thinking process..."
+                              placeholder={selectionType === "student"
+                                ? "e.g., Practice problems with guidance, explain their thinking process..."
+                                : "e.g., Group discussion, pair work, independent practice..."}
                               className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-sm"
                             />
                           </div>
@@ -944,18 +1130,24 @@ export default function NewLessonFormTutor() {
                             <Textarea
                               value={stage.assessing || ""}
                               onChange={(e) => updateStage(i, "assessing", e.target.value)}
-                              placeholder="e.g., Ask student to explain concept back, observe problem-solving approach..."
+                              placeholder={selectionType === "student"
+                                ? "e.g., Ask student to explain concept back, observe problem-solving approach..."
+                                : "e.g., Questioning, mini whiteboard responses, exit tickets..."}
                               className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-sm"
                             />
                           </div>
 
                           {/* Differentiation */}
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium">Adapt & Support</Label>
+                            <Label className="text-sm font-medium">
+                              {selectionType === "student" ? "Adapt & Support" : "Differentiation"}
+                            </Label>
                             <Textarea
                               value={stage.adapting || ""}
                               onChange={(e) => updateStage(i, "adapting", e.target.value)}
-                              placeholder="e.g., If struggling: break down steps. If excelling: introduce challenges..."
+                              placeholder={selectionType === "student"
+                                ? "e.g., If struggling: break down steps. If excelling: introduce challenges..."
+                                : "e.g., Support: scaffolded worksheets. Challenge: extension tasks..."}
                               className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-sm"
                             />
                           </div>
@@ -970,7 +1162,7 @@ export default function NewLessonFormTutor() {
                     onClick={addStage}
                     className="w-full sm:w-auto"
                   >
-                    + Add Session Phase
+                    + Add {selectionType === "student" ? "Session" : "Lesson"} Phase
                   </Button>
                 </div>
               </section>
@@ -985,7 +1177,9 @@ export default function NewLessonFormTutor() {
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Add materials, worksheets, or helpful links for this session.
+                  {selectionType === "student"
+                    ? "Add materials, worksheets, or helpful links for this session."
+                    : "Add materials, worksheets, or resources for this lesson."}
                 </p>
 
                 <div className="space-y-3">
@@ -1054,15 +1248,21 @@ export default function NewLessonFormTutor() {
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Practice/Homework</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    {selectionType === "student" ? "Practice/Homework" : "Homework"}
+                  </h3>
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Optional practice task for the student to complete independently.
+                  {selectionType === "student"
+                    ? "Optional practice task for the student to complete independently."
+                    : "Optional homework assignment for students to complete."}
                 </p>
 
                 <Textarea
-                  placeholder={"• Practice problems to reinforce learning...\n• Specific exercises or worksheets...\n• Real-world application tasks..."}
+                  placeholder={selectionType === "student"
+                    ? "• Practice problems to reinforce learning...\n• Specific exercises or worksheets...\n• Real-world application tasks..."
+                    : "• Homework exercises...\n• Reading assignments...\n• Research tasks..."}
                   value={lesson.homework || ""}
                   onChange={(e) => updateField("homework", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
@@ -1075,7 +1275,9 @@ export default function NewLessonFormTutor() {
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Session Evaluation Tips</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    {selectionType === "student" ? "Session Evaluation Tips" : "Lesson Evaluation Tips"}
+                  </h3>
                 </div>
 
                 <Textarea
@@ -1092,15 +1294,21 @@ export default function NewLessonFormTutor() {
               <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h3 className="text-base sm:text-lg font-semibold">Session Notes</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    {selectionType === "student" ? "Session Notes" : "Lesson Notes"}
+                  </h3>
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground -mt-2 mb-4">
-                  Important observations, parent communication, or reminders for next time.
+                  {selectionType === "student"
+                    ? "Important observations, parent communication, or reminders for next time."
+                    : "Important observations, reminders, or notes for future reference."}
                 </p>
 
                 <Textarea
-                  placeholder={"• Student's mood and engagement level\n• Parent feedback or requests\n• Materials to prepare for next session\n• Learning style observations..."}
+                  placeholder={selectionType === "student"
+                    ? "• Student's mood and engagement level\n• Parent feedback or requests\n• Materials to prepare for next session\n• Learning style observations..."
+                    : "• Class engagement levels\n• Students needing additional support\n• Materials to prepare for next lesson\n• Topics to revisit..."}
                   value={lesson.notes || ""}
                   onChange={(e) => updateField("notes", e.target.value)}
                   className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm"
@@ -1129,7 +1337,9 @@ export default function NewLessonFormTutor() {
                       Saving...
                     </>
                   ) : (
-                    "Create Tutoring Session Plan"
+                    selectionType === "student"
+                      ? "Create Tutoring Session Plan"
+                      : "Create Class Lesson Plan"
                   )}
                 </Button>
               </div>

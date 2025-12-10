@@ -20,73 +20,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info, Loader2 } from "lucide-react";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { AIGenerateButton } from "@/components/ui/generate-ai-button";
+import { UK_SCHOOL_SUBJECTS } from "@/lib/constants";
 
 const supabase = createClient();
-
-// UK subjects taught from Year 1 to Year 13
-const UK_SCHOOL_SUBJECTS = [
-  // Core subjects
-  "English",
-  "Mathematics",
-  "Science",
-  // Foundation subjects (Primary & Secondary)
-  "Art and Design",
-  "Citizenship",
-  "Computing",
-  "Design and Technology",
-  "Geography",
-  "History",
-  "Music",
-  "Physical Education",
-  "PSHE",
-  // Languages
-  "French",
-  "Spanish",
-  "German",
-  "Mandarin",
-  "Latin",
-  // Secondary/GCSE/A-Level subjects
-  "Biology",
-  "Chemistry",
-  "Physics",
-  "English Literature",
-  "English Language",
-  "Religious Education",
-  "Business Studies",
-  "Economics",
-  "Psychology",
-  "Sociology",
-  "Philosophy",
-  "Politics",
-  "Law",
-  "Media Studies",
-  "Film Studies",
-  "Drama",
-  "Dance",
-  "Photography",
-  "Graphic Design",
-  "Textiles",
-  "Food Technology",
-  "Health and Social Care",
-  "Child Development",
-  "Travel and Tourism",
-  "Accounting",
-  "Statistics",
-  "Further Mathematics",
-  "Computer Science",
-  "ICT",
-  "Electronics",
-  "Engineering",
-  "Product Design",
-  "Classical Civilisation",
-  "Ancient History",
-  "Archaeology",
-  "Geology",
-  "Astronomy",
-  "Environmental Science",
-  "Sports Science",
-  "Music Technology",
-];
 
 export default function NewLessonFormTeacher() {
   const router = useRouter();
@@ -111,7 +47,7 @@ export default function NewLessonFormTeacher() {
     literacy_opportunities: "",
     subject_pedagogies: "",
     health_and_safety_considerations: "",
-    created_with_ai: false, // ADD THIS LINE
+    created_with_ai: false, 
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
