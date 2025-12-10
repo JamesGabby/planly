@@ -126,7 +126,7 @@ export default function LandingPage() {
               className="px-10 py-7 text-lg font-semibold shadow-2xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 gap-3 group relative overflow-hidden"
               asChild
             >
-              <Link href="/dashboard/lesson-plans">
+              <Link href="/dashboard">
                 <span className="relative z-10">Start Planning for Free</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -245,7 +245,7 @@ export default function LandingPage() {
                 {"Whether you're a trainee teacher finding your feet, an NQT/ECT building your practice, or an experienced educator maximizing efficiency—our platform grows with you every step of the way."}
               </p>
               <Button size="lg" className="gap-2 group px-8 py-6 text-lg font-semibold shadow-xl hover:scale-105 transition-all duration-300" asChild>
-                <Link href="/dashboard/lesson-plans">
+                <Link href="/dashboard">
                   Start Your Free Account
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -413,7 +413,7 @@ export default function LandingPage() {
               className="text-lg px-10 py-7 gap-2 shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 group text-primary font-semibold"
               asChild
             >
-              <Link href="/dashboard/lesson-plans">
+              <Link href="/dashboard">
                 Start Free Today
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -488,7 +488,7 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
-                <li><Link href="/dashboard/lesson-plans" className="hover:text-primary transition-colors">Dashboard</Link></li>
+                <li><Link href="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link></li>
                 <li><Link href="#" className="hover:text-primary transition-colors">Pricing</Link></li>
               </ul>
             </div>
