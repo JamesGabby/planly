@@ -213,7 +213,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground scroll-smooth overflow-x-hidden">
       {/* Hero Section - Softer Backdrop Version */}
-      <section className="relative min-h-screen flex items-center pt-20" ref={heroAnimation.ref}>
+      <section className="relative min-h-screen flex items-center pt-10" ref={heroAnimation.ref}>
         {/* Three.js Animation Background */}
         <HeroAnimation />
 
@@ -231,12 +231,12 @@ export default function LandingPage() {
             className="absolute inset-0 -mx-4 sm:-mx-6 pointer-events-none"
             style={{
               background: `radial-gradient(
-          ellipse 80% 70% at 50% 50%,
-          hsl(var(--background) / 0.85) 0%,
-          hsl(var(--background) / 0.6) 40%,
-          hsl(var(--background) / 0.3) 70%,
-          transparent 100%
-        )`,
+                ellipse 80% 70% at 50% 50%,
+                hsl(var(--background) / 0.85) 0%,
+                hsl(var(--background) / 0.6) 40%,
+                hsl(var(--background) / 0.3) 70%,
+                transparent 100%
+              )`,
             }}
           />
 
@@ -246,10 +246,10 @@ export default function LandingPage() {
             {/* Animated Badge */}
             <div
               className={`inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full 
-          bg-background/80 backdrop-blur-md
-          border border-primary/30 
-          shadow-xl shadow-background/20 
-          ${heroAnimation.isInView ? "animate-slide-up" : "opacity-0"}`}
+                bg-background/80 backdrop-blur-md
+                border border-primary/30 
+                shadow-xl shadow-background/20 
+                ${heroAnimation.isInView ? "animate-slide-up" : "opacity-0"}`}
             >
               <div className="relative">
                 <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -265,8 +265,8 @@ export default function LandingPage() {
             {/* Main Headline */}
             <h1
               className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold max-w-5xl leading-[1.1] tracking-tight
-          drop-shadow-[0_2px_10px_hsl(var(--background))]
-          ${heroAnimation.isInView ? "animate-slide-up animation-delay-100" : "opacity-0"}`}
+                drop-shadow-[0_2px_10px_hsl(var(--background))]
+                ${heroAnimation.isInView ? "animate-slide-up animation-delay-100" : "opacity-0"}`}
             >
               Create Outstanding Lessons in{" "}
               <TypewriterText texts={["Minutes", "Seconds", "No Time"]} />
