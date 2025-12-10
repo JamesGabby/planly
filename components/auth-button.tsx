@@ -22,7 +22,7 @@ export async function AuthButton() {
     : `Welcome back, ${displayName}!`;
 
   return user ? (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 capitalize">
       {welcomeMessage}
       <LogoutButton />
     </div>

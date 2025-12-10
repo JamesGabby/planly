@@ -350,7 +350,7 @@ export default async function DashboardPage() {
       <div className="max-w-7xl mx-auto p-6 lg:p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2">
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2 capitalize">
             {isFirstLogin ? (
               <>Welcome, {firstName}! 🎉</>
             ) : (
