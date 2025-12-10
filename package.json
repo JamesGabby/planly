@@ -26,6 +26,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "^2.75.0",
     "@tailwindcss/line-clamp": "^0.4.4",
+    "@types/three": "^0.181.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -40,7 +41,8 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.5.1",
     "tailwind-merge": "^3.3.0",
-    "tailwind-variants": "^3.1.1"
+    "tailwind-variants": "^3.1.1",
+    "three": "^0.181.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
