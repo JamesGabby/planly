@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ThemeSwitcher } from "./theme-switcher";
 import { Poppins } from "next/font/google";
 
@@ -16,7 +17,7 @@ export function Footer() {
       </p>
       <ThemeSwitcher />
       <div className="flex items-center gap-1">
-        Built by James Gabbitus 
+        Built by <Link href={'https://jamesgabbitus.dev'}  target="_blank" rel="noopener noreferrer">James Gabbitus</Link>
       </div>
     </footer>
   )
