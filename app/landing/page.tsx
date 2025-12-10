@@ -492,7 +492,7 @@ export default function LandingPage() {
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed font-light">
                 {
-                  "Whether you're a trainee teacher finding your feet, an NQT/ECT building your practice, or an experienced educator maximizing efficiency—our platform grows with you every step of the way."
+                  "Whether you're a trainee teacher finding your feet, an NQT/ECT building your practice, or an experienced educator maximising efficiency—our platform grows with you every step of the way."
                 }
               </p>
               <Button
