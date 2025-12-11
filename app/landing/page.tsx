@@ -262,8 +262,8 @@ export default function LandingPage() {
             {/* Main Headline */}
             <h1
               className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold max-w-5xl leading-[1.1] tracking-tight
-    drop-shadow-[0_2px_10px_hsl(var(--background))]
-    ${heroAnimation.isInView ? "animate-slide-up animation-delay-100" : "opacity-0"}`}
+                drop-shadow-[0_2px_10px_hsl(var(--background))]
+                ${heroAnimation.isInView ? "animate-slide-up animation-delay-100" : "opacity-0"}`}
             >
               <span className="block sm:inline">Create Outstanding Lessons in</span>{" "}
               <span className="inline-block min-w-[4.5ch] sm:min-w-0">
