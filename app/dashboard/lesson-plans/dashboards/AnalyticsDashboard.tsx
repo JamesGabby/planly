@@ -487,7 +487,7 @@ export function AnalyticsDashboard({ data }: Props) {
           value={`${data.overview.completionRate}%`}
           icon={CheckCircle2}
           color="amber"
-          subtitle="Lessons with teacher_evaluation"
+          subtitle="Lessons with evaluation"
         />
       </div>
 
