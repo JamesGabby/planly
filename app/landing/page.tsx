@@ -262,11 +262,13 @@ export default function LandingPage() {
             {/* Main Headline */}
             <h1
               className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold max-w-5xl leading-[1.1] tracking-tight
-                drop-shadow-[0_2px_10px_hsl(var(--background))]
-                ${heroAnimation.isInView ? "animate-slide-up animation-delay-100" : "opacity-0"}`}
+    drop-shadow-[0_2px_10px_hsl(var(--background))]
+    ${heroAnimation.isInView ? "animate-slide-up animation-delay-100" : "opacity-0"}`}
             >
-              Create Outstanding Lessons in{" "}
-              <TypewriterText texts={["Minutes", "Seconds", "No Time"]} />
+              <span className="block sm:inline">Create Outstanding Lessons in</span>{" "}
+              <span className="inline-block min-w-[4.5ch] sm:min-w-0">
+                <TypewriterText texts={["Minutes", "Seconds", "No Time"]} />
+              </span>
             </h1>
 
             {/* Subheadline with subtle background pill */}
@@ -309,12 +311,12 @@ export default function LandingPage() {
                 variant="outline"
                 size="lg"
                 className="w-full sm:w-auto px-6 sm:px-10 py-6 sm:py-7 text-base sm:text-lg font-semibold 
-            border-2 
-            bg-background/50 backdrop-blur-sm
-            hover:bg-accent/50 
-            hover:scale-[1.02] 
-            transition-all duration-300 
-            group"
+                  border-2 
+                  bg-background/50 backdrop-blur-sm
+                  hover:bg-accent/50 
+                  hover:scale-[1.02] 
+                  transition-all duration-300 
+                  group"
                 asChild
               >
                 <Link href="#features" className="flex items-center gap-2">
