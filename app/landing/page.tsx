@@ -207,6 +207,8 @@ export default function LandingPage() {
   const testimonialsAnimation = useInView(0.1);
   const ctaAnimation = useInView(0.1);
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <main className="min-h-screen bg-background text-foreground scroll-smooth overflow-x-hidden">
       {/* Hero Section - Softer Backdrop Version */}
@@ -918,7 +920,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="pt-8 border-t text-center text-sm text-muted-foreground">
-            <p>© 2025 Lessonly. Built for UK educators with ❤️</p>
+            <p>© {currentYear} Lessonly. Built for UK educators with ❤️</p>
           </div>
         </div>
       </footer>
