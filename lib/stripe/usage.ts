@@ -17,7 +17,7 @@ export async function checkUsageLimit(
   userId: string,
   type: 'ai_lesson_plan' | 'classes' | 'students'
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Check subscription status
   const { data: subscription } = await supabase
@@ -62,7 +62,7 @@ export async function recordUsage(
   userId: string,
   type: 'ai_lesson_plan' | 'classes' | 'students'
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   await supabase.from('usage').insert({
     user_id: userId,
