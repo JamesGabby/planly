@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { getStripe } from '@/lib/stripe/stripe-client';
 
 interface PricingCardProps {
   name: string;
