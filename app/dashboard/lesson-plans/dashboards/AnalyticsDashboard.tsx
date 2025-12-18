@@ -220,6 +220,8 @@ interface InsightCardProps {
 
 function InsightCard({ title, data }: InsightCardProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  // Calculate percentage for the first item (e.g., "With Homework")
+  const mainPercentage = total > 0 ? (data[0].value / total) * 100 : 0;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -254,10 +256,10 @@ function InsightCard({ title, data }: InsightCardProps) {
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Total
+              {data[0].name}
             </span>
             <span className="text-lg font-bold text-gray-900 dark:text-white">
-              {total}
+              {mainPercentage.toFixed(0)}%
             </span>
           </div>
         </div>
