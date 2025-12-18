@@ -9,6 +9,107 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Helper to safely extract subscription ID from invoice
+function getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+  // Cast to unknown first, then to Record to handle different API versions
+  const invoiceAny = invoice as unknown as Record<string, unknown>;
+  
+  // Try various possible locations for subscription ID
+  if (typeof invoiceAny.subscription === 'string') {
+    return invoiceAny.subscription;
+  }
+  
+  if (invoiceAny.subscription && typeof invoiceAny.subscription === 'object') {
+    const sub = invoiceAny.subscription as Record<string, unknown>;
+    if (typeof sub.id === 'string') {
+      return sub.id;
+    }
+  }
+
+  // Newer API versions might have it in parent
+  if (invoiceAny.parent && typeof invoiceAny.parent === 'object') {
+    const parent = invoiceAny.parent as Record<string, unknown>;
+    if (parent.subscription_details && typeof parent.subscription_details === 'object') {
+      const subDetails = parent.subscription_details as Record<string, unknown>;
+      if (typeof subDetails.subscription === 'string') {
+        return subDetails.subscription;
+      }
+      if (subDetails.subscription && typeof subDetails.subscription === 'object') {
+        const sub = subDetails.subscription as Record<string, unknown>;
+        if (typeof sub.id === 'string') {
+          return sub.id;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+// Helper to get subscription period dates
+function getSubscriptionPeriodDates(subscription: Stripe.Subscription): {
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+} {
+  // Cast to unknown first, then to Record to handle different API versions
+  const subAny = subscription as unknown as Record<string, unknown>;
+  
+  // Try direct fields first (older API versions)
+  if (
+    typeof subAny.current_period_start === 'number' &&
+    typeof subAny.current_period_end === 'number'
+  ) {
+    return {
+      currentPeriodStart: new Date(subAny.current_period_start * 1000).toISOString(),
+      currentPeriodEnd: new Date(subAny.current_period_end * 1000).toISOString(),
+    };
+  }
+
+  // Try latest_invoice (newer API versions)
+  const latestInvoice = subscription.latest_invoice;
+  if (latestInvoice && typeof latestInvoice !== 'string') {
+    // Cast to unknown first, then to Record
+    const invoiceAny = latestInvoice as unknown as Record<string, unknown>;
+    if (
+      typeof invoiceAny.period_start === 'number' &&
+      typeof invoiceAny.period_end === 'number'
+    ) {
+      return {
+        currentPeriodStart: new Date(invoiceAny.period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date(invoiceAny.period_end * 1000).toISOString(),
+      };
+    }
+  }
+
+  // Fallback: calculate from subscription created date and price interval
+  const subscriptionItem = subscription.items.data[0];
+  const createdDate = new Date(subscription.created * 1000);
+  const price = subscriptionItem.price;
+  const interval = price.recurring?.interval || 'month';
+  const intervalCount = price.recurring?.interval_count || 1;
+
+  const endDate = new Date(createdDate);
+  switch (interval) {
+    case 'day':
+      endDate.setDate(endDate.getDate() + intervalCount);
+      break;
+    case 'week':
+      endDate.setDate(endDate.getDate() + 7 * intervalCount);
+      break;
+    case 'month':
+      endDate.setMonth(endDate.getMonth() + intervalCount);
+      break;
+    case 'year':
+      endDate.setFullYear(endDate.getFullYear() + intervalCount);
+      break;
+  }
+
+  return {
+    currentPeriodStart: createdDate.toISOString(),
+    currentPeriodEnd: endDate.toISOString(),
+  };
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature')!;
@@ -54,8 +155,9 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        // Handle failed payment - send email, etc.
-        console.log('Payment failed for subscription:', invoice.subscription);
+        const subscriptionId = getSubscriptionIdFromInvoice(invoice);
+        console.log('Payment failed for subscription:', subscriptionId);
+        // Handle failed payment - send email, update status, etc.
         break;
       }
     }
@@ -71,12 +173,14 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSubscriptionCreated(subscriptionId: string) {
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ['latest_invoice'],
+  });
   await upsertSubscription(subscription);
 }
 
 async function upsertSubscription(subscription: Stripe.Subscription) {
-  const userId = subscription.metadata.supabase_user_id;
+  let userId = subscription.metadata.supabase_user_id;
 
   if (!userId) {
     // Try to get user ID from customer
@@ -84,23 +188,22 @@ async function upsertSubscription(subscription: Stripe.Subscription) {
       subscription.customer as string
     );
     if ('metadata' in customer && customer.metadata.supabase_user_id) {
-      subscription.metadata.supabase_user_id = customer.metadata.supabase_user_id;
+      userId = customer.metadata.supabase_user_id;
     }
   }
 
+  const subscriptionItem = subscription.items.data[0];
+  const { currentPeriodStart, currentPeriodEnd } = getSubscriptionPeriodDates(subscription);
+
   const subscriptionData = {
     id: subscription.id,
-    user_id: subscription.metadata.supabase_user_id,
+    user_id: userId,
     status: subscription.status,
-    price_id: subscription.items.data[0].price.id,
-    quantity: subscription.items.data[0].quantity,
+    price_id: subscriptionItem.price.id,
+    quantity: subscriptionItem.quantity,
     cancel_at_period_end: subscription.cancel_at_period_end,
-    current_period_start: new Date(
-      subscription.current_period_start * 1000
-    ).toISOString(),
-    current_period_end: new Date(
-      subscription.current_period_end * 1000
-    ).toISOString(),
+    current_period_start: currentPeriodStart,
+    current_period_end: currentPeriodEnd,
     updated_at: new Date().toISOString(),
   };
 
