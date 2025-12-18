@@ -37,5 +37,6 @@ export type LessonPlanTeacher = {
   student?: string;
   created_with_ai?: boolean;
   teacher_evaluation?: string | null;
+  duration?: string;
 };
 

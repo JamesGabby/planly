@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-type LessonPlanType = "teacher" | "student" | "tutor";
+type LessonPlanType = "teacher" | "student" | "tutor" | "class";
 
 interface GenerateLessonRequest {
   // Common fields
@@ -29,6 +29,84 @@ interface GenerateLessonRequest {
   learning_style?: string;
   specific_needs?: string;
   parent_goals?: string;
+}
+
+// ============================================
+// RETRY UTILITY FUNCTION
+// ============================================
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries: number = 5,
+  baseDelayMs: number = 1000
+): Promise<Response> {
+  let lastError: Error | null = null;
+  const retryableStatusCodes = [503, 429, 500, 502, 504];
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+
+      // If successful, return the response
+      if (response.ok) {
+        return response;
+      }
+
+      // Check if it's a retryable error
+      if (retryableStatusCodes.includes(response.status)) {
+        // Clone the response before reading it so we can return it if this is the last attempt
+        const clonedResponse = response.clone();
+        
+        let errorMessage = `Status ${response.status}`;
+        try {
+          const errorData = await clonedResponse.json();
+          errorMessage = errorData.error?.message || errorMessage;
+        } catch {
+          // Ignore JSON parse errors for error message
+        }
+
+        console.warn(
+          `Attempt ${attempt + 1}/${maxRetries} failed: ${errorMessage}`
+        );
+
+        // Don't retry on the last attempt - return the original response
+        if (attempt >= maxRetries - 1) {
+          return response;
+        }
+
+        // Exponential backoff with jitter
+        const delayTime = baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000;
+        console.log(`Retrying in ${Math.round(delayTime)}ms...`);
+        await delay(delayTime);
+        continue;
+      }
+
+      // For non-retryable errors, return the response to be handled by the caller
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(
+        `Attempt ${attempt + 1}/${maxRetries} failed with network error:`,
+        lastError.message
+      );
+
+      // Don't retry on the last attempt
+      if (attempt >= maxRetries - 1) {
+        throw lastError;
+      }
+
+      const delayTime = baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000;
+      console.log(`Retrying in ${Math.round(delayTime)}ms...`);
+      await delay(delayTime);
+    }
+  }
+
+  // All retries exhausted
+  throw lastError || new Error("All retry attempts failed");
 }
 
 function getPromptForType(data: GenerateLessonRequest): string {
@@ -202,6 +280,7 @@ ${data.student_name ? `- Student Name: ${data.student_name}` : ""}
 ${data.learning_style ? `- Learning Style: ${data.learning_style}` : ""}
 ${data.specific_needs ? `- Specific Needs/Goals: ${data.specific_needs}` : ""}
 ${data.parent_goals ? `- Parent Goals: ${data.parent_goals}` : ""}
+${data.duration ? `- Duration: ${data.duration}` : "60 minutes"}
 
 This is a TUTORING SESSION plan (1-on-1 or small group). Focus on:
 - Personalized, responsive instruction tailored to ${data.student_name || "the student"}
@@ -259,8 +338,73 @@ This is a TUTORING SESSION plan (1-on-1 or small group). Focus on:
   "evaluation_tips": "Post-session reflection and assessment:\\n\\n**Student Progress:**\\n• What progress did ${data.student_name || "the student"} make toward today's objectives? (Rate: Excellent/Good/Some/Limited progress)\\n• Concepts they grasped well and demonstrated confidence with:\\n• Areas that still need work or caused confusion:\\n• Observed confidence level and engagement: (Rate 1-10)\\n\\n**Teaching Effectiveness:**\\n• What teaching strategies worked best today? (visual aids, worked examples, real-world connections, etc.)\\n• What would I do differently next time?\\n• Any breakthrough moments or 'aha!' insights?\\n\\n**Next Session Planning:**\\n• Focus areas for next time based on today's performance\\n• Concepts to review before introducing new material\\n• Estimated pace: Can we move forward or need to consolidate?\\n\\n**Parent Communication Notes:**\\n• Key achievements to share with parents: 'Today [student] successfully...'\\n• Practice recommendations for home: 'Please help [student] practice...'\\n• Areas where parents can provide support\\n• Next session focus and goals\\n• Any concerns or celebrations to communicate",
   "notes": "Session observations and reminders:\\n\\n**Student Profile:**\\n• Engagement level today: (High/Medium/Low) - Note: [What affected this?]\\n• Confidence level: (Growing/Stable/Needs boost) - Note: [Specific observations]\\n• Learning style preferences: [What worked: visual/verbal/hands-on/written?]\\n• Pace that works best: [Fast/Moderate/Slow and steady]\\n\\n**Teaching Strategies That Worked:**\\n• [e.g., 'Diagrams really helped with understanding']\\n• [e.g., 'Real-world examples about sports clicked']\\n• [e.g., 'Breaking into smaller steps reduced anxiety']\\n\\n**Motivational Notes:**\\n• What encouragement/praise resonates with this student?\\n• Rewards or goals that motivate them\\n• Topics or contexts they find interesting\\n\\n**Important Reminders:**\\n• Specific struggles to be aware of: [e.g., 'Gets confused when multiple steps']\\n• Strengths to build on: [e.g., 'Great at spotting patterns']\\n• Parent preferences or requests: [Any special instructions]\\n• Best times/days for this student (energy levels, focus)\\n\\n**Preparation for Next Session:**\\n• Materials to bring: [Worksheets, specific textbook, tools]\\n• Concepts to review at start of next session\\n• New topics to introduce if ready\\n• Questions to ask to check retention of today's learning\\n• Adjustments to make based on today's observations"
 }`;
+      break;
 
-   
+      case "class":
+      specificContext = `
+${data.class ? `- Class Name: ${data.class}` : ""}
+${data.learning_style ? `- Learning Style: ${data.learning_style}` : ""}
+${data.specific_needs ? `- Specific Needs/Goals: ${data.specific_needs}` : ""}
+${data.parent_goals ? `- Parent Goals: ${data.parent_goals}` : ""}
+${data.duration ? `- Duration: ${data.duration}` : "60 minutes"}
+
+This is a TUTORING SESSION plan with a small class. Focus on:
+- Personalized, responsive instruction tailored to ${data.class || "the class"}
+- Frequent checks for understanding every 3-5 minutes
+- Adaptive pacing based on students response
+- Building students confidence and independence
+- Addressing specific knowledge gaps
+- Clear, actionable feedback`;
+
+      jsonStructure = `{
+  "objectives": "• Specific, achievable goals for this tutoring session with ${data.class || "the class"}\\n• Focused on the students's individual needs and current level\\n• 3-4 clear learning objectives",
+  "outcomes": "• What the students will be able to do independently by the end of this session\\n• Concrete, measurable progress indicators\\n• Success criteria that the students can self-assess",
+  "lesson_structure": [
+    {
+      "stage": "Starter",
+      "duration": "5-10 min",
+      "teaching": "What you'll do as the tutor: Build rapport, review previous learning, assess starting point with warm-up questions. Ask 'What do you remember about...?' Check any homework from last time. Create a positive, encouraging atmosphere.",
+      "learning": "What the students do: Answers warm-up questions to activate prior knowledge, shares any questions or concerns about the topic, demonstrates current understanding level through discussion",
+      "assessing": "Check understanding: Ask 'Can you explain...?' 'What do you already know about...?' 'Show me how to...' Listen carefully to identify knowledge gaps or misconceptions to address today.",
+      "adapting": "If students are struggling or anxious: Start with easier questions, provide lots of encouragement, break concepts into smaller steps. If students are confident: Move quickly through review, skip basics, jump to new material sooner."
+    },
+    {
+      "stage": "Main Teaching",
+      "duration": "15-20 min",
+      "teaching": "Explicit, clear teaching: Explain the key concept step-by-step with visual aids (diagrams, worked examples). Model problem-solving with think-aloud. Use real-world examples relevant to the students. Check understanding every 3-5 minutes with quick questions.",
+      "learning": "Active participation: Student takes notes in their own words, asks clarifying questions, works through guided examples alongside you, tries similar problems with your immediate support and feedback",
+      "assessing": "Frequent checks: 'Can you explain this back to me in your own words?' 'Why did we do that step?' 'What would happen if we changed this?' Watch their face for confusion. Observe their working - are they applying the method correctly?",
+      "adapting": "If struggling: Use different explanations (visual, verbal, hands-on), provide more worked examples, slow down pace, use simpler numbers or examples. If excelling: Reduce scaffolding faster, introduce more complex variations, ask 'what if' extension questions."
+    },
+    {
+      "stage": "Guided Practice", 
+      "duration": "15-20 min",
+      "teaching": "Gradual release: Provide less help as confidence grows. Give hints and prompts rather than answers: 'What should you try first?' 'How can you check that?' Sit beside students, not across - work together. Praise effort and strategy use.",
+      "learning": "Increasingly independent work: Student attempts problems with decreasing support, explains their reasoning out loud ('talk me through your thinking'), identifies and self-corrects mistakes with guidance, builds confidence through successful practice",
+      "assessing": "Deep understanding checks: Ask 'Why did you choose that method?' 'How do you know you're right?' 'Can you spot any mistakes here?' Watch confidence level - are they attempting problems willingly or hesitating? Note remaining areas of difficulty.",
+      "adapting": "If still struggling: Return to teaching mode, work through more examples together, break problems into substeps. If showing mastery: Step back more, let them work independently while you observe, introduce challenge problems or alternative methods."
+    },
+    {
+      "stage": "Plenary",
+      "duration": "5-10 min", 
+      "teaching": "Consolidate learning: Summarize key concepts covered today. Celebrate specific successes: 'You really got the hang of...' Set clear, manageable homework. Discuss what to focus on in the next session. Answer any final questions. End positively.",
+      "learning": "Demonstrate understanding: Student explains the main concepts in their own words, identifies what they found easy and what was challenging, understands what to practice at home, feels confident about next steps, asks any remaining questions",
+      "assessing": "Final understanding check: 'Explain to me how to [solve this type of problem]' 'What's the most important thing you learned today?' 'On a scale of 1-10, how confident do you feel now?' If confidence is low, make note to revisit next time.",
+      "adapting": "Based on today's session, plan next time: If students struggled, plan to review this topic again with different approach. If students succeeded, plan to build on this with next level of difficulty. Note what worked well to repeat."
+    }
+  ],
+  "resources": [
+    {"title": "Whiteboard/paper for working", "url": ""},
+    {"title": "Relevant textbook or workbook pages", "url": ""},
+    {"title": "Practice worksheet for this topic", "url": ""},
+    {"title": "Online practice tool or educational video", "url": "https://example.com"},
+    {"title": "Visual aids or manipulatives if needed", "url": ""}
+  ],
+  "homework": "Practice task to reinforce today's learning:\\n\\n• Specific problems to complete: [e.g., 'Complete questions 5-10 on worksheet' or 'Practice 5 similar problems']\\n• Estimated time: 20-30 minutes\\n• Purpose: Reinforce [specific skill] practiced today\\n• Instructions: Show all working, try independently first\\n• If stuck: Review notes from today, watch [recommended video], message me with specific questions\\n• Bring to next session: Completed work and any questions about problems that were difficult\\n• Optional extension: [Challenge problem for if they finish early]",
+  "evaluation_tips": "Post-session reflection and assessment:\\n\\n**Student Progress:**\\n• What progress did ${data.class || "the class"} make toward today's objectives? (Rate: Excellent/Good/Some/Limited progress)\\n• Concepts they grasped well and demonstrated confidence with:\\n• Areas that still need work or caused confusion:\\n• Observed confidence level and engagement: (Rate 1-10)\\n\\n**Teaching Effectiveness:**\\n• What teaching strategies worked best today? (visual aids, worked examples, real-world connections, etc.)\\n• What would I do differently next time?\\n• Any breakthrough moments or 'aha!' insights?\\n\\n**Next Session Planning:**\\n• Focus areas for next time based on today's performance\\n• Concepts to review before introducing new material\\n• Estimated pace: Can we move forward or need to consolidate?\\n\\n**Parent Communication Notes:**\\n• Key achievements to share with parents: 'Today [class] successfully...'\\n• Practice recommendations for home: 'Please help [class] practice...'\\n• Areas where parents can provide support\\n• Next session focus and goals\\n• Any concerns or celebrations to communicate",
+  "notes": "Session observations and reminders:\\n\\n**Student Profile:**\\n• Engagement level today: (High/Medium/Low) - Note: [What affected this?]\\n• Confidence level: (Growing/Stable/Needs boost) - Note: [Specific observations]\\n• Learning style preferences: [What worked: visual/verbal/hands-on/written?]\\n• Pace that works best: [Fast/Moderate/Slow and steady]\\n\\n**Teaching Strategies That Worked:**\\n• [e.g., 'Diagrams really helped with understanding']\\n• [e.g., 'Real-world examples about sports clicked']\\n• [e.g., 'Breaking into smaller steps reduced anxiety']\\n\\n**Motivational Notes:**\\n• What encouragement/praise resonates with this class?\\n• Rewards or goals that motivate them\\n• Topics or contexts they find interesting\\n\\n**Important Reminders:**\\n• Specific struggles to be aware of: [e.g., 'Gets confused when multiple steps']\\n• Strengths to build on: [e.g., 'Great at spotting patterns']\\n• Parent preferences or requests: [Any special instructions]\\n• Best times/days for this class (energy levels, focus)\\n\\n**Preparation for Next Session:**\\n• Materials to bring: [Worksheets, specific textbook, tools]\\n• Concepts to review at start of next session\\n• New topics to introduce if ready\\n• Questions to ask to check retention of today's learning\\n• Adjustments to make based on today's observations"
+}`;
+      break;
   }
 
   return `${basePrompt}${specificContext}
@@ -291,7 +435,8 @@ export async function POST(request: NextRequest) {
 
     const prompt = getPromptForType(body);
 
-    const response = await fetch(
+    // Use fetchWithRetry instead of regular fetch
+    const response = await fetchWithRetry(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
@@ -306,10 +451,13 @@ export async function POST(request: NextRequest) {
             topP: 0.95,
           },
         }),
-      }
+      },
+      5, // maxRetries
+      1000 // baseDelayMs (1 second)
     );
 
     if (!response.ok) {
+      // Clone before reading to avoid "body already read" error
       const errorData = await response.json();
       console.error("Gemini API error:", errorData);
       throw new Error(errorData.error?.message || "Failed to generate content");

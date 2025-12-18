@@ -48,6 +48,7 @@ export default function NewLessonFormTutor() {
     last_name: "",
     subject: "",
     created_with_ai: false,
+    duration: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -362,7 +363,7 @@ export default function NewLessonFormTutor() {
           class_name: selectionType === "class" ? targetName : undefined,
           objectives: lesson.objectives,
           outcomes: lesson.outcomes,
-          duration: "60 minutes",
+          duration: lesson.duration,
         }),
       });
 
@@ -584,14 +585,15 @@ export default function NewLessonFormTutor() {
         // Other fields
         user_id: user.id,
         student_id: studentId,
-        class_id: selectionType === "class" ? selectedClassId : null,
-        class_name: selectionType === "class" ? selectedClassName : null,
-        lesson_type: selectionType, // 'student' or 'class'
+        // class_id: selectionType === "class" ? selectedClassId : null,
+        // class_name: selectionType === "class" ? selectedClassName : null,
+        // lesson_type: selectionType, // 'student' or 'class'
         resources: formattedResources,
         lesson_structure: formattedStages,
         created_at: timestamp,
         updated_at: timestamp,
         created_with_ai: lesson.created_with_ai || false,
+        duration: lesson.duration,
       };
 
       const { error: insertError } = await supabase
@@ -905,6 +907,38 @@ export default function NewLessonFormTutor() {
                     />
                     {formErrors.time_of_lesson && (
                       <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                    )}
+                  </div>
+
+                  {/* Duration Input - NEW */}
+                  <div className="sm:col-span-2">
+                    <Label className={`text-sm ${formErrors.duration ? "text-destructive" : ""}`}>
+                      Duration
+                    </Label>
+                    <Select
+                      value={lesson.duration?.toString() || ""}
+                      onValueChange={(value) => updateField("duration", value)}
+                    >
+                      <SelectTrigger className={`mt-1 w-full ${formErrors.duration ? "border-destructive" : ""}`}>
+                        <SelectValue placeholder="Select duration..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20 minutes</SelectItem>
+                        <SelectItem value="25">25 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="35">35 minutes</SelectItem>
+                        <SelectItem value="40">40 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="50">50 minutes</SelectItem>
+                        <SelectItem value="55">55 minutes</SelectItem>
+                        <SelectItem value="60">60 minutes (1 hour)</SelectItem>
+                        <SelectItem value="75">75 minutes</SelectItem>
+                        <SelectItem value="90">90 minutes (1.5 hours)</SelectItem>
+                        <SelectItem value="120">120 minutes (2 hours)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formErrors.duration && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.duration}</p>
                     )}
                   </div>
                 </div>

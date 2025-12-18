@@ -47,7 +47,8 @@ export default function NewLessonFormTeacher() {
     literacy_opportunities: "",
     subject_pedagogies: "",
     health_and_safety_considerations: "",
-    created_with_ai: false, 
+    created_with_ai: false,
+    duration: "",
   });
 
   const [stages, setStages] = useState<LessonStage[]>([
@@ -361,7 +362,7 @@ export default function NewLessonFormTeacher() {
           literacy_opportunities: lesson.literacy_opportunities,
           subject_pedagogies: lesson.subject_pedagogies,
           health_and_safety_considerations: lesson.health_and_safety_considerations,
-          duration: "60 minutes",
+          duration: lesson.duration,
         }),
       });
 
@@ -798,8 +799,8 @@ export default function NewLessonFormTeacher() {
                                 role="option"
                                 aria-selected={highlightedIndex === index}
                                 className={`px-3 py-2 cursor-pointer text-sm transition-colors ${highlightedIndex === index
-                                    ? "bg-accent text-accent-foreground"
-                                    : "hover:bg-muted"
+                                  ? "bg-accent text-accent-foreground"
+                                  : "hover:bg-muted"
                                   }`}
                                 onMouseDown={(e) => {
                                   e.preventDefault();
@@ -877,6 +878,34 @@ export default function NewLessonFormTeacher() {
                     />
                     {formErrors.time_of_lesson && (
                       <p className="text-destructive text-xs mt-1">{formErrors.time_of_lesson}</p>
+                    )}
+                  </div>
+
+                  {/* Duration Input - NEW */}
+                  <div>
+                    <Label className={`text-sm ${formErrors.duration ? "text-destructive" : ""}`}>
+                      Duration (minutes)
+                    </Label>
+                    <Select
+                      value={lesson.duration?.toString() || ""}
+                      onValueChange={(value) => updateField("duration", value)}
+                    >
+                      <SelectTrigger className={`mt-1 w-full ${formErrors.duration ? "border-destructive" : ""}`}>
+                        <SelectValue placeholder="Select duration..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="50">50 minutes</SelectItem>
+                        <SelectItem value="55">55 minutes</SelectItem>
+                        <SelectItem value="60">60 minutes (1 hour)</SelectItem>
+                        <SelectItem value="75">75 minutes</SelectItem>
+                        <SelectItem value="90">90 minutes (1.5 hours)</SelectItem>
+                        <SelectItem value="120">120 minutes (2 hours)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formErrors.duration && (
+                      <p className="text-destructive text-xs mt-1">{formErrors.duration}</p>
                     )}
                   </div>
 
