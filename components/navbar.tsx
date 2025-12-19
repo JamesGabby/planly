@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   Menu,
   X,
@@ -14,16 +13,9 @@ import {
   LucideIcon
 } from "lucide-react";
 import { LogoutButton } from "./logout-button";
-import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
 import { usePathname } from "next/navigation";
 import { Logo } from "./logo";
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 interface NavLink {
   name: string;

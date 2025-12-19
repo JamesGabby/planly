@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -25,14 +24,7 @@ import {
 } from "lucide-react";
 import { TypewriterText } from "@/components/landing/TypewriterText";
 import { HeroAnimation } from "@/components/three-animations/hero-animation";
-import { Poppins } from "next/font/google";
 import { Logo } from "@/components/logo";
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 // Custom hook for intersection observer animations
 function useInView(threshold = 0.1) {
