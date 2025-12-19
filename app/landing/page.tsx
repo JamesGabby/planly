@@ -105,7 +105,7 @@ export default function LandingPage() {
     },
     {
       title: "Unified Dashboard",
-      desc: "One powerful hub to manage everything—teacher lessons, tutor sessions, student profiles, and class groups. Switch seamlessly between teaching and tutoring workflows.",
+      desc: "One powerful hub to manage everything: Teacher lessons, tutor sessions, student profiles, and class groups. Switch seamlessly between teaching and tutoring workflows.",
       icon: <LayoutDashboard className="w-8 h-8" />,
       gradient: "from-blue-500 to-cyan-500",
     },
@@ -161,7 +161,7 @@ export default function LandingPage() {
     {
       step: "02",
       title: "Let AI Create Your Lessons",
-      desc: "Simply describe your topic, select the key stage and subject—our AI generates comprehensive, differentiated lesson plans aligned to curriculum objectives in seconds, not hours.",
+      desc: "Simply describe your topic, select the key stage and subject. Our AI generates comprehensive, differentiated lesson plans aligned to curriculum objectives in seconds, not hours.",
       icon: <Sparkles className="w-8 h-8" />,
     },
     {
@@ -428,7 +428,7 @@ export default function LandingPage() {
             className={`text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-light px-4 ${featuresAnimation.isInView ? "animate-slide-up animation-delay-200" : "opacity-0"
               }`}
           >
-            From AI-powered lesson creation to comprehensive student management—professional tools
+            From AI-powered lesson creation to comprehensive student management. Professional tools
             designed specifically for UK educators.
           </p>
         </div>
@@ -496,7 +496,7 @@ export default function LandingPage() {
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed font-light">
                 {
-                  "Whether you're a trainee teacher finding your feet, an ECT building your practice, a tutor, or an experienced educator maximising efficiency—our platform grows with you every step of the way."
+                  "Whether you're a trainee teacher finding your feet, an ECT building your practice, a tutor, or an experienced educator maximising efficiency. Our platform grows with you every step of the way."
                 }
               </p>
               <Button
@@ -562,7 +562,7 @@ export default function LandingPage() {
               }`}
           >
             {
-              "From account creation to your first AI-generated lesson—it's incredibly quick and intuitive"
+              "From account creation to your first AI-generated lesson, it's incredibly quick and intuitive"
             }
           </p>
         </div>
