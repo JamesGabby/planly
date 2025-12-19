@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Menu,
   X,
-  Sparkles,
   Home,
   BookOpen,
   Users,
@@ -17,6 +17,7 @@ import { LogoutButton } from "./logout-button";
 import { Poppins } from "next/font/google";
 import { ThemeSwitcher } from "./theme-switcher";
 import { usePathname } from "next/navigation";
+import { Logo } from "./logo";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -96,18 +97,7 @@ export function Navbar() {
 
         <div className="relative mx-auto flex justify-between items-center h-14 sm:h-16 px-4 sm:px-6 lg:px-8 xl:px-12 max-w-7xl">
           {/* Logo with premium styling */}
-          <Link
-            href="/"
-            className={`${poppins.className} group flex items-center gap-2 sm:gap-2.5 text-xl sm:text-2xl font-bold tracking-tight transition-all duration-300 hover:scale-[1.02] flex-shrink-0`}
-          >
-            <div className="p-1 sm:p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-300">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary group-hover:rotate-12 transition-transform duration-300" />
-            </div>
-
-            <span className="bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-accent transition-all duration-500">
-              Lessonly
-            </span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1 text-sm font-medium">

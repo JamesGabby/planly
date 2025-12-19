@@ -5,6 +5,7 @@ import { use } from 'react'
 import { useFormStatus } from 'react-dom'
 import { signIn, signInWithGoogle, signInWithGitHub } from '@/app/actions/auth'
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 
 // Submit button for email/password form
 function SubmitButton() {
@@ -110,10 +111,8 @@ export default function LoginPage({
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-block">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Lessonly</h2>
-          </Link>
+        <div className="mb-8 text-center flex justify-center">
+          <Logo />
         </div>
 
         {/* Card Container */}

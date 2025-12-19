@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -24,6 +25,14 @@ import {
 } from "lucide-react";
 import { TypewriterText } from "@/components/landing/TypewriterText";
 import { HeroAnimation } from "@/components/three-animations/hero-animation";
+import { Poppins } from "next/font/google";
+import { Logo } from "@/components/logo";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 // Custom hook for intersection observer animations
 function useInView(threshold = 0.1) {
@@ -812,12 +821,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8 sm:mb-12">
             <div className="col-span-2 md:col-span-1">
-              <Link href="/" className="flex items-center gap-2 mb-4 group">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <span className="font-bold text-xl">Lessonly</span>
-              </Link>
+              <Logo />
               <p className="text-muted-foreground text-sm leading-relaxed">
                 AI-powered lesson planning designed exclusively for UK educators.
               </p>
