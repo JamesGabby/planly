@@ -161,7 +161,7 @@ export default function LandingPage() {
     {
       step: "02",
       title: "Let AI Create Your Lessons",
-      desc: "Simply describe your topic, select the key stage and subject. Our AI generates comprehensive, differentiated lesson plans aligned to curriculum objectives in seconds, not hours.",
+      desc: "Simply describe your topic, select the year group and subject. Our AI generates comprehensive, differentiated lesson plans aligned to curriculum objectives in seconds, not hours.",
       icon: <Sparkles className="w-8 h-8" />,
     },
     {
