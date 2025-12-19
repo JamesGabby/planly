@@ -139,7 +139,7 @@ export default function LandingPage() {
     { text: "Save 6+ hours weekly on planning", icon: <Clock className="w-5 h-5" /> },
     { text: "Ofsted & ITT framework compliant", icon: <Award className="w-5 h-5" /> },
     { text: "AI trained on outstanding lessons", icon: <Brain className="w-5 h-5" /> },
-    { text: "Perfect for NQTs, ECTs & trainees", icon: <GraduationCap className="w-5 h-5" /> },
+    { text: "Perfect for experienced teachers, tutors, ECTs & trainees", icon: <GraduationCap className="w-5 h-5" /> },
     { text: "GDPR-secure student data", icon: <Shield className="w-5 h-5" /> },
     { text: "UK curriculum-specific content", icon: <FileText className="w-5 h-5" /> },
   ];
@@ -496,7 +496,7 @@ export default function LandingPage() {
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed font-light">
                 {
-                  "Whether you're a trainee teacher finding your feet, an NQT/ECT building your practice, or an experienced educator maximising efficiency—our platform grows with you every step of the way."
+                  "Whether you're a trainee teacher finding your feet, an ECT building your practice, a tutor, or an experienced educator maximising efficiency—our platform grows with you every step of the way."
                 }
               </p>
               <Button

@@ -17,7 +17,7 @@ export function Footer() {
       </p>
       <ThemeSwitcher />
       <div className="flex items-center gap-1">
-        Built by <Link href={'https://jamesgabbitus.dev'}  target="_blank" rel="noopener noreferrer">James Gabbitus</Link>
+        Built by ©<Link href={'https://jamesgabbitus.dev'}  target="_blank" rel="noopener noreferrer"><span className="font-extrabold text-blue-400">James Gabbitus</span></Link>
       </div>
     </footer>
   )
