@@ -17,7 +17,7 @@ export function Logo() {
       {/* Logo Container with Glow */}
       <div className="relative">
         <div className="absolute inset-0 bg-primary/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <div className="relative p-1.5 rounded-xl bg-gradient-to-br from-primary/15 to-transparent border border-primary/10 group-hover:border-primary/30 transition-all duration-300">
+        <div className="relative bg-gradient-to-br from-primary/15 to-transparent border border-primary/10 group-hover:border-primary/30 transition-all duration-300">
           <Image
             src="/logo.png"
             alt="Lessonly Logo"
