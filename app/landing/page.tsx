@@ -139,7 +139,7 @@ export default function LandingPage() {
     { text: "Save 6+ hours weekly on planning", icon: <Clock className="w-5 h-5" /> },
     { text: "Ofsted & ITT framework compliant", icon: <Award className="w-5 h-5" /> },
     { text: "AI trained on outstanding lessons", icon: <Brain className="w-5 h-5" /> },
-    { text: "Perfect for experienced teachers, tutors, ECTs & trainees", icon: <GraduationCap className="w-5 h-5" /> },
+    { text: "Perfect for teachers, tutors, ECTs & trainees", icon: <GraduationCap className="w-5 h-5" /> },
     { text: "GDPR-secure student data", icon: <Shield className="w-5 h-5" /> },
     { text: "UK curriculum-specific content", icon: <FileText className="w-5 h-5" /> },
   ];
