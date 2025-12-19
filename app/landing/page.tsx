@@ -21,6 +21,7 @@ import {
   Shield,
   Play,
   ChevronDown,
+  Globe,
 } from "lucide-react";
 import { TypewriterText } from "@/components/landing/TypewriterText";
 import { HeroAnimation } from "@/components/three-animations/hero-animation";
@@ -142,7 +143,8 @@ export default function LandingPage() {
     { text: "AI trained on outstanding lessons", icon: <Brain className="w-5 h-5" /> },
     { text: "Perfect for teachers, tutors, ECTs & trainees", icon: <GraduationCap className="w-5 h-5" /> },
     { text: "GDPR-secure student data", icon: <Shield className="w-5 h-5" /> },
-    { text: "UK curriculum-specific content", icon: <FileText className="w-5 h-5" /> },
+    { text: "UK curriculum-specific content for teachers", icon: <FileText className="w-5 h-5" /> },
+    { text: "Invaluable tools can be used by tutors globally", icon: <Globe className="w-5 h-5" /> },
   ];
 
   const stats = [
