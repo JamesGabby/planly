@@ -1,5 +1,7 @@
+// middleware.ts
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { ratelimit } from '@/lib/rate-limit'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -29,6 +31,47 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // --- Rate Limiting (only for API routes) ---
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1'
+    const identifier = user?.id ?? ip
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/api/auth')
+
+    // Choose appropriate rate limiter
+    const limiter = isAuthRoute
+      ? ratelimit.auth
+      : user
+        ? ratelimit.authenticated
+        : ratelimit.anonymous
+
+    const { success, limit, remaining, reset } = await limiter.limit(identifier)
+
+    if (!success) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests',
+          message: 'Please try again later',
+          retryAfter: Math.ceil((reset - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': reset.toString(),
+            'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+          },
+        }
+      )
+    }
+
+    // Add rate limit headers to successful API responses
+    supabaseResponse.headers.set('X-RateLimit-Limit', limit.toString())
+    supabaseResponse.headers.set('X-RateLimit-Remaining', remaining.toString())
+    supabaseResponse.headers.set('X-RateLimit-Reset', reset.toString())
+  }
+
+  // --- Auth Redirects ---
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
