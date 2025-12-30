@@ -3,7 +3,7 @@
 
 import { use, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { signIn, signInWithGoogle, signInWithGitHub, type SignInState } from '@/app/actions/auth'
+import { signIn, signInWithGoogle, signInWithGitHub, type AuthState } from '@/app/actions/auth'
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
 
@@ -148,15 +148,15 @@ export default function LoginPage({
   const params = use(searchParams)
 
   // useActionState for form handling (React 19)
-  const [state, formAction] = useActionState<SignInState | null, FormData>(signIn, null)
+  const [state, formAction] = useActionState<AuthState | null, FormData>(signIn, null)
 
   // Determine if there's any error to show
   const hasGeneralError = state?.errors?.general && state.errors.general.length > 0
   const hasOAuthError = params.error
   const errorMessage = hasGeneralError
-    ? state.errors.general![0]
+    ? state.errors?.general![0]
     : hasOAuthError
-      ? decodeURIComponent(params.error)
+      ? decodeURIComponent(params.error || '')
       : null
 
   return (
