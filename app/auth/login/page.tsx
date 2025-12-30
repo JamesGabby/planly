@@ -1,16 +1,16 @@
 // app/login/page.tsx
 'use client'
 
-import { use } from 'react'
+import { use, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { signIn, signInWithGoogle, signInWithGitHub } from '@/app/actions/auth'
+import { signIn, signInWithGoogle, signInWithGitHub, type SignInState } from '@/app/actions/auth'
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
 
 // Submit button for email/password form
 function SubmitButton() {
   const { pending } = useFormStatus()
-  
+
   return (
     <button
       type="submit"
@@ -51,7 +51,7 @@ function SubmitButton() {
 // Reusable OAuth button component
 function OAuthButton({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus()
-  
+
   return (
     <button
       type="submit"
@@ -60,6 +60,46 @@ function OAuthButton({ children }: { children: React.ReactNode }) {
     >
       {children}
     </button>
+  )
+}
+
+// Error Alert Component
+function ErrorAlert({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-800/50">
+      <div className="flex items-start">
+        <svg
+          className="mr-3 h-5 w-5 flex-shrink-0 text-red-400 dark:text-red-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>{message}</span>
+      </div>
+    </div>
+  )
+}
+
+// Field Error Component
+function FieldError({ errors }: { errors?: string[] }) {
+  if (!errors || errors.length === 0) return null
+
+  return (
+    <div className="mt-1.5 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+      <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <path
+          fillRule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+          clipRule="evenodd"
+        />
+      </svg>
+      <span>{errors[0]}</span>
+    </div>
   )
 }
 
@@ -106,12 +146,24 @@ export default function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>
 }) {
   const params = use(searchParams)
-  
+
+  // useActionState for form handling (React 19)
+  const [state, formAction] = useActionState<SignInState | null, FormData>(signIn, null)
+
+  // Determine if there's any error to show
+  const hasGeneralError = state?.errors?.general && state.errors.general.length > 0
+  const hasOAuthError = params.error
+  const errorMessage = hasGeneralError
+    ? state.errors.general![0]
+    : hasOAuthError
+      ? decodeURIComponent(params.error)
+      : null
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
-        <div className="mb-8 text-center flex justify-center">
+        <div className="mb-8 flex justify-center text-center">
           <Logo />
         </div>
 
@@ -127,23 +179,10 @@ export default function LoginPage({
             </p>
           </div>
 
-          {/* Error Message */}
-          {params.error && (
-            <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-800 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-800/50">
-              <div className="flex items-start">
-                <svg
-                  className="mr-3 h-5 w-5 flex-shrink-0 text-red-400 dark:text-red-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>{decodeURIComponent(params.error)}</span>
-              </div>
+          {/* General Error Message */}
+          {errorMessage && (
+            <div className="mb-6">
+              <ErrorAlert message={errorMessage} />
             </div>
           )}
 
@@ -181,10 +220,8 @@ export default function LoginPage({
           </div>
 
           {/* Email/Password Form */}
-          <form action={signIn} className="space-y-6">
-            {params.next && (
-              <input type="hidden" name="next" value={params.next} />
-            )}
+          <form action={formAction} className="space-y-6">
+            {params.next && <input type="hidden" name="next" value={params.next} />}
 
             {/* Email Field */}
             <div>
@@ -202,9 +239,16 @@ export default function LoginPage({
                   autoComplete="email"
                   required
                   placeholder="you@example.com"
-                  className="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+                  defaultValue={state?.values?.email ?? ''}  // 👈 Add this line
+                  aria-describedby={state?.errors?.email ? 'email-error' : undefined}
+                  aria-invalid={!!state?.errors?.email}
+                  className={`block w-full appearance-none rounded-lg border bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 ${state?.errors?.email
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500 dark:focus:border-red-500 dark:focus:ring-red-500/20'
+                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400/20'
+                    }`}
                 />
               </div>
+              <FieldError errors={state?.errors?.email} />
             </div>
 
             {/* Password Field */}
@@ -231,9 +275,15 @@ export default function LoginPage({
                   autoComplete="current-password"
                   required
                   placeholder="••••••••"
-                  className="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+                  aria-describedby={state?.errors?.password ? 'password-error' : undefined}
+                  aria-invalid={!!state?.errors?.password}
+                  className={`block w-full appearance-none rounded-lg border bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 ${state?.errors?.password
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500 dark:focus:border-red-500 dark:focus:ring-red-500/20'
+                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400/20'
+                    }`}
                 />
               </div>
+              <FieldError errors={state?.errors?.password} />
             </div>
 
             {/* Remember Me */}
