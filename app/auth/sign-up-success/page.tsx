@@ -1,3 +1,5 @@
+// app/auth/sign-up-success/page.tsx
+
 import {
   Card,
   CardContent,

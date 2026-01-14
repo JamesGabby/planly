@@ -1,3 +1,5 @@
+// components/sign-up-form.tsx
+
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -82,40 +84,43 @@ export function SignUpForm({
   const [isGitHubLoading, setIsGitHubLoading] = useState(false);
   const router = useRouter();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
+  // components/sign-up-form.tsx
 
-    if (password !== repeatPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
+const handleSignUp = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const supabase = createClient();
+  setIsLoading(true);
+  setError(null);
 
-    const capitalizedName = capitalizeName(name);
+  if (password !== repeatPassword) {
+    setError("Passwords do not match");
+    setIsLoading(false);
+    return;
+  }
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: capitalizedName,
-            display_name: capitalizedName,
-          },
+  const capitalizedName = capitalizeName(name);
+
+  try {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // Route through confirm endpoint
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        data: {
+          full_name: capitalizedName,
+          display_name: capitalizedName,
         },
-      });
-      if (error) throw error;
-      router.push("/auth/sign-up-success");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      },
+    });
+    if (error) throw error;
+    router.push("/auth/sign-up-success");
+  } catch (error: unknown) {
+    setError(error instanceof Error ? error.message : "An error occurred");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleGoogleSignUp = async () => {
     const supabase = createClient();
