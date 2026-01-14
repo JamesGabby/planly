@@ -478,41 +478,90 @@ export default function NewLessonFormTeacher() {
 
   async function insertClass(className: string, userId: string) {
     try {
+      const normalizedClassName = className.toUpperCase();
+
+      console.log("insertClass: Starting...", { normalizedClassName, userId });
+
       // Check if class already exists
-      const { data: existingClass } = await supabase
+      const { data: existingClass, error: selectError } = await supabase
         .from("teacher_classes")
         .select("*")
-        .eq("class_name", className)
+        .eq("class_name", normalizedClassName)
         .eq("user_id", userId)
         .maybeSingle();
 
+      if (selectError) {
+        console.error("insertClass: Select error", JSON.stringify(selectError, null, 2));
+        throw new Error(`Failed to check existing class: ${selectError.message || 'Unknown error'}`);
+      }
+
       if (existingClass) {
+        console.log("insertClass: Class already exists", existingClass);
         return existingClass;
       }
 
-      // Insert new class
-      const { data, error } = await supabase
+      console.log("insertClass: Inserting new class...");
+
+      const insertPayload = {
+        class_name: normalizedClassName,
+        created_by: userId,
+        user_id: userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log("insertClass: Payload", insertPayload);
+
+      const { data, error, status, statusText } = await supabase
         .from("teacher_classes")
-        .insert([
-          {
-            class_name: className,
-            created_by: userId,
-            user_id: userId,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ])
+        .insert([insertPayload])
         .select("*")
         .single();
 
-      if (error) throw error;
+      // Log everything we can about the response
+      console.log("insertClass: Full response", {
+        data,
+        error,
+        status,
+        statusText,
+        errorString: JSON.stringify(error),
+        errorKeys: error ? Object.keys(error) : [],
+      });
 
-      // Refresh classes list
-      await fetchClasses();
+      if (error) {
+        // Try to extract any useful info from the error
+        const errorMessage = error.message
+          || error.details
+          || error.hint
+          || (typeof error === 'string' ? error : null)
+          || `Database error (status: ${status})`;
+
+        console.error("insertClass: Insert failed", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          status,
+        });
+
+        throw new Error(errorMessage);
+      }
+
+      if (!data) {
+        throw new Error("Insert succeeded but no data returned - possible RLS issue");
+      }
+
+      console.log("insertClass: Success!", data);
+
+      try {
+        await fetchClasses();
+      } catch (fetchErr) {
+        console.warn("insertClass: fetchClasses failed (non-critical)", fetchErr);
+      }
 
       return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown class insert error");
+      console.error("insertClass: Caught error", err);
       throw err;
     }
   }
@@ -535,6 +584,11 @@ export default function NewLessonFormTeacher() {
 
       if (!lesson.class) {
         throw new Error("Class name is missing.");
+      }
+
+      const insertClassResult = await insertClass(lesson.class, user.id);
+      if (insertClassResult?.error) {
+        throw new Error(insertClassResult.error.message || "Failed to insert class");
       }
 
       await insertClass(lesson.class, user.id);
