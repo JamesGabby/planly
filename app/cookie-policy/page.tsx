@@ -232,8 +232,8 @@ export default function CookiePolicyPage() {
               <p className="text-gray-700 mb-4">
                 When you first visit {appName}, you will be shown a cookie banner 
                 that allows you to accept or decline non-essential cookies. You 
-                can change your preferences at any time by clicking the "Cookie 
-                Settings" link in the footer of our website.
+                can change your preferences at any time by clicking the &quot;Cookie 
+                Settings&quot; link in the footer of our website.
               </p>
 
               <h3 className="text-xl font-medium text-gray-800 mb-3">

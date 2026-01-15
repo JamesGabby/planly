@@ -66,7 +66,7 @@ export default function AITransparencyPage() {
                   <h3 className="font-semibold text-gray-900 mb-1">Learning Objectives</h3>
                   <p className="text-gray-600 text-sm">
                     Create clear, measurable learning objectives aligned with 
-                    curriculum standards and Bloom's taxonomy.
+                    curriculum standards and Bloom&apos;s taxonomy.
                   </p>
                 </div>
                 <div className="border border-gray-200 rounded-lg p-4">
@@ -127,7 +127,7 @@ export default function AITransparencyPage() {
                   <h3 className="font-semibold text-gray-900 mb-2">We Process Your Request</h3>
                   <p className="text-gray-600 text-sm">
                     Your input is combined with our educational prompts and sent 
-                    to our AI provider. We don't send your personal information.
+                    to our AI provider. We don&apos;t send your personal information.
                   </p>
                 </div>
                 
@@ -151,7 +151,7 @@ export default function AITransparencyPage() {
                 
                 <div className="relative pl-12">
                   <div className="absolute left-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">5</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">You're in Control</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">You&apos;re in Control</h3>
                   <p className="text-gray-600 text-sm">
                     You decide whether to use the content. You maintain full 
                     control and professional judgement over what goes into your 
@@ -234,7 +234,7 @@ export default function AITransparencyPage() {
                     ❌ Factual Accuracy
                   </h4>
                   <p className="text-red-800 text-sm">
-                    AI can make factual errors or "hallucinate" information that 
+                    AI can make factual errors or &quot;hallucinate&quot; information that 
                     sounds plausible but is incorrect. Always verify facts, 
                     especially for subjects requiring precision like science, 
                     history, and mathematics.
@@ -259,7 +259,7 @@ export default function AITransparencyPage() {
                   <p className="text-red-800 text-sm">
                     While we aim to align with UK curricula, AI may not perfectly 
                     match specific curriculum requirements, examination board 
-                    specifications, or your school's schemes of work.
+                    specifications, or your school&apos;s schemes of work.
                   </p>
                 </div>
 
@@ -268,7 +268,7 @@ export default function AITransparencyPage() {
                     ❌ Context About Your Students
                   </h4>
                   <p className="text-red-800 text-sm">
-                    AI doesn't know your students, their needs, abilities, or 
+                    AI doesn&apos;t know your students, their needs, abilities, or 
                     your classroom context. You must adapt content appropriately.
                   </p>
                 </div>
@@ -318,7 +318,7 @@ export default function AITransparencyPage() {
 
                 <div className="bg-red-50 border border-red-200 rounded-lg p-5">
                   <h3 className="font-semibold text-red-900 mb-3">
-                    ❌ What We DON'T Do
+                    ❌ What We DON&apos;T Do
                   </h3>
                   <ul className="text-red-800 text-sm space-y-2">
                     <li>✗ Send your name or email to AI providers</li>
@@ -388,7 +388,7 @@ export default function AITransparencyPage() {
                   <div>
                     <h4 className="font-semibold text-gray-900">Personalise for Your Students</h4>
                     <p className="text-gray-600 text-sm">
-                      Adapt AI-generated content to match your students' needs, 
+                      Adapt AI-generated content to match your students&apos; needs, 
                       abilities, and your classroom context.
                     </p>
                   </div>
@@ -412,7 +412,7 @@ export default function AITransparencyPage() {
                     <span className="text-blue-600 font-bold">5</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Don't Input Sensitive Data</h4>
+                    <h4 className="font-semibold text-gray-900">Don&apos;t Input Sensitive Data</h4>
                     <p className="text-gray-600 text-sm">
                       Never input student names, personal information, or sensitive 
                       data into AI prompts.
@@ -425,10 +425,10 @@ export default function AITransparencyPage() {
                     <span className="text-blue-600 font-bold">6</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Follow Your School's Policy</h4>
+                    <h4 className="font-semibold text-gray-900">Follow Your School&apos;s Policy</h4>
                     <p className="text-gray-600 text-sm">
                       Ensure your use of AI tools complies with your school or 
-                      trust's policies on AI in education.
+                      trust&apos;s policies on AI in education.
                     </p>
                   </div>
                 </div>
@@ -495,7 +495,7 @@ export default function AITransparencyPage() {
                       Our AI has knowledge of UK curricula including the National 
                       Curriculum. However, it may not have the most recent updates, 
                       and you should always verify alignment with current curriculum 
-                      requirements and your school's specific schemes of work.
+                      requirements and your school&apos;s specific schemes of work.
                     </p>
                   </div>
                 </details>
