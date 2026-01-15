@@ -202,7 +202,7 @@ export function FeatureTabs() {
 
       {/* Progress Indicators */}
       <div className="flex justify-center gap-1.5 mb-8">
-        {features.map((feature, index) => (
+        {features.map((feature) => (
           <button
             key={feature.id}
             onClick={() => handleTabClick(feature.id)}
