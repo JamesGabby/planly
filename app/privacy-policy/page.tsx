@@ -508,7 +508,7 @@ export default function PrivacyPolicyPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-1">Right of Access</h4>
                   <p className="text-gray-700 text-sm">
-                    You have the right to request a copy of the personal data we hold about you (known as a "Subject Access Request").
+                    You have the right to request a copy of the personal data we hold about you (known as a &quot;Subject Access Request&quot;).
                   </p>
                 </div>
 
@@ -520,7 +520,7 @@ export default function PrivacyPolicyPage() {
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-1">Right to Erasure ("Right to be Forgotten")</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1">Right to Erasure (&quot;Right to be Forgotten&quot;)</h4>
                   <p className="text-gray-700 text-sm">
                     You have the right to request deletion of your personal data in certain circumstances.
                   </p>
@@ -638,7 +638,7 @@ export default function PrivacyPolicyPage() {
                 <strong>Your choices:</strong>
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                <li>You can opt out of marketing emails at any time by clicking the "unsubscribe" link</li>
+                <li>You can opt out of marketing emails at any time by clicking the &quot;unsubscribe&quot; link</li>
                 <li>You can update your marketing preferences in your account settings</li>
                 <li>You can contact us at{' '}
                   <a
@@ -659,7 +659,7 @@ export default function PrivacyPolicyPage() {
             {/* Section 13 */}
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                13. Children's Privacy
+                13. Children&apos;s Privacy
               </h2>
               <p className="text-gray-700 mb-4">
                 {appName} is designed for teachers and educational professionals,
@@ -702,7 +702,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
                 <li>Posting the new Privacy Policy on this page</li>
-                <li>Updating the "Last updated" date at the top of this page</li>
+                <li>Updating the &quot;Last updated&quot; date at the top of this page</li>
                 <li>Sending you an email notification (for significant changes)</li>
               </ul>
               <p className="text-gray-700 mt-4">
@@ -719,11 +719,11 @@ export default function PrivacyPolicyPage() {
               <p className="text-gray-700 mb-4">
                 If you have any concerns about our use of your personal data, you
                 have the right to make a complaint at any time to the Information
-                Commissioner's Office (ICO), the UK supervisory authority for data
+                Commissioner&apos;s Office (ICO), the UK supervisory authority for data
                 protection issues:
               </p>
               <div className="bg-gray-50 rounded-lg p-6 text-gray-700">
-                <p className="font-semibold text-gray-900">Information Commissioner's Office</p>
+                <p className="font-semibold text-gray-900">Information Commissioner&apos;s Office</p>
                 <p>Website:{' '}
                   <a
                     href="https://ico.org.uk"

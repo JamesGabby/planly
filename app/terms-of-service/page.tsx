@@ -110,7 +110,7 @@ export default function TermsOfServicePage() {
               </h3>
               <p className="text-gray-700 mb-4">
                 We may update and change {appName} from time to time to reflect
-                changes to our users' needs, our business priorities, or for other
+                changes to our users&apos; needs, our business priorities, or for other
                 reasons. We will try to give you reasonable notice of any major
                 changes.
               </p>
@@ -204,7 +204,7 @@ export default function TermsOfServicePage() {
                 </li>
                 <li>
                   Attempt to gain unauthorised access to our systems, servers, or
-                  other users' accounts
+                  other users&apos; accounts
                 </li>
                 <li>
                   Use any automated system (including bots, scrapers, or spiders)
@@ -259,7 +259,7 @@ export default function TermsOfServicePage() {
               </p>
               <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-1">
                 <li>You own or have the necessary rights to Your Content</li>
-                <li>Your Content does not infringe any third party's intellectual property rights</li>
+                <li>Your Content does not infringe any third party&apos;s intellectual property rights</li>
                 <li>Your Content complies with all applicable laws and regulations</li>
                 <li>Your Content does not contain any unlawful, harmful, or objectionable material</li>
               </ul>
@@ -406,7 +406,7 @@ export default function TermsOfServicePage() {
                   <strong>Not rely solely on AI</strong> for critical educational decisions
                 </li>
                 <li>
-                  <strong>Comply with your school's policies</strong> regarding the use of
+                  <strong>Comply with your school&apos;s policies</strong> regarding the use of
                   AI tools in education
                 </li>
               </ul>
@@ -441,7 +441,7 @@ export default function TermsOfServicePage() {
                   educational purposes</li>
                 <li>We do not claim ownership over the AI-generated content you create</li>
                 <li>You are responsible for ensuring your use of AI-generated content
-                  complies with applicable laws and your institution's policies</li>
+                  complies with applicable laws and your institution&apos;s policies</li>
                 <li>AI-generated content may not be eligible for copyright protection in
                   some jurisdictions</li>
               </ul>
@@ -508,7 +508,7 @@ export default function TermsOfServicePage() {
               </h3>
               <p className="text-gray-700 mb-4">
                 We may change our prices at any time. We will give you at least 30
-                days' notice of any price increase. Price changes will take effect
+                days&apos; notice of any price increase. Price changes will take effect
                 at your next billing date.
               </p>
 
@@ -667,7 +667,7 @@ export default function TermsOfServicePage() {
                 To the fullest extent permitted by law:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                <li>We make no warranties or representations about the accuracy or completeness of the Service's content</li>
+                <li>We make no warranties or representations about the accuracy or completeness of the Service&apos;s content</li>
                 <li>We do not guarantee that the Service will be uninterrupted, secure, or error-free</li>
                 <li>We are not responsible for any delays, delivery failures, or other damage resulting from limitations of the Service</li>
                 <li>We do not warrant that the Service will meet your specific requirements</li>
@@ -937,7 +937,7 @@ export default function TermsOfServicePage() {
                 professionals. While the Service may be used to create materials
                 for students, it is not intended for direct use by children.
                 You are responsible for ensuring that any use of {appName} in
-                connection with pupils or students complies with your school's
+                connection with pupils or students complies with your school&apos;s
                 safeguarding policies and applicable laws.
               </p>
 
@@ -949,7 +949,7 @@ export default function TermsOfServicePage() {
               </p>
               <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-1">
                 <li>Ensure you have the necessary permissions and lawful basis to process that data</li>
-                <li>Comply with your school's data protection policies</li>
+                <li>Comply with your school&apos;s data protection policies</li>
                 <li>Only upload the minimum data necessary for your purposes</li>
                 <li>Not upload any sensitive pupil data unless absolutely necessary and permitted</li>
                 <li>Ensure compliance with the UK GDPR and Data Protection Act 2018</li>

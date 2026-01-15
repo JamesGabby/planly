@@ -66,7 +66,7 @@ export default function GDPRPage() {
                 1. Data Controller Information
               </h2>
               <p className="text-gray-700 mb-4">
-                Under GDPR, the "data controller" is the organisation that determines
+                Under GDPR, the &quot;data controller&quot; is the organisation that determines
                 the purposes and means of processing personal data. For {appName},
                 the data controller is:
               </p>
@@ -142,7 +142,7 @@ export default function GDPRPage() {
                       </h4>
                       <p className="text-gray-700 mt-1">
                         Processing necessary for our legitimate interests or those
-                        of a third party, provided your rights don't override those
+                        of a third party, provided your rights don&apos;t override those
                         interests.
                       </p>
                       <p className="text-gray-600 text-sm mt-2">
@@ -430,7 +430,7 @@ export default function GDPRPage() {
                 <p className="text-gray-700 mb-3">
                   You have the right to obtain confirmation as to whether we process
                   your personal data and, if so, to request access to that data. This
-                  is commonly known as a "Subject Access Request" (SAR).
+                  is commonly known as a &quot;Subject Access Request&quot; (SAR).
                 </p>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-700 text-sm mb-2">
@@ -473,7 +473,7 @@ export default function GDPRPage() {
               {/* Right 3: Erasure */}
               <div className="mb-6 border-l-4 border-red-500 pl-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  🗑️ Right to Erasure / "Right to be Forgotten" (Article 17)
+                  🗑️ Right to Erasure / &quot;Right to be Forgotten&quot; (Article 17)
                 </h3>
                 <p className="text-gray-700 mb-3">
                   You have the right to request deletion of your personal data in
@@ -522,7 +522,7 @@ export default function GDPRPage() {
                   <p className="text-gray-600 text-sm mt-3">
                     When processing is restricted, we will only store your data and
                     not process it further without your consent (unless for legal claims,
-                    protecting others' rights, or important public interest).
+                    protecting others&apos; rights, or important public interest).
                   </p>
                 </div>
               </div>
@@ -640,7 +640,7 @@ export default function GDPRPage() {
                   </p>
                   <ul className="list-disc pl-5 text-gray-600 text-sm space-y-1">
                     <li>Update your preferences in account settings</li>
-                    <li>Click "unsubscribe" in marketing emails</li>
+                    <li>Click &quot;unsubscribe&quot; in marketing emails</li>
                     <li>Update cookie preferences via our cookie banner</li>
                     <li>Contact us at{' '}
                       <a
@@ -1099,7 +1099,7 @@ export default function GDPRPage() {
                     🇬🇧 UK Users
                   </h3>
                   <p className="font-medium text-gray-900">
-                    Information Commissioner's Office (ICO)
+                    Information Commissioner&apos;s Office (ICO)
                   </p>
                   <div className="text-gray-600 text-sm mt-2 space-y-1">
                     <p>Website:{' '}
@@ -1190,7 +1190,7 @@ export default function GDPRPage() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
                 <li>Posting the updated information on this page</li>
-                <li>Updating the "Last updated" date</li>
+                <li>Updating the &quot;Last updated&quot; date</li>
                 <li>Sending an email notification for significant changes</li>
                 <li>Displaying a notice when you log in to {appName}</li>
               </ul>
@@ -1341,7 +1341,7 @@ export default function GDPRPage() {
                 </div>
                 <div className="bg-gray-50 rounded p-3">
                   <span className="font-semibold text-gray-900">Art. 44-49</span>
-                  <p className="text-gray-600">Int'l Transfers</p>
+                  <p className="text-gray-600">Int&apos;l Transfers</p>
                 </div>
                 <div className="bg-gray-50 rounded p-3">
                   <span className="font-semibold text-gray-900">Art. 77</span>
