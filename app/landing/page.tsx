@@ -731,10 +731,10 @@ export default function LandingPage() {
                 {
                   title: "Legal",
                   links: [
-                    { label: "Privacy Policy", href: "#" },
-                    { label: "Terms of Service", href: "#" },
-                    { label: "GDPR", href: "#" },
-                    { label: "Cookies", href: "#" },
+                    { label: "Privacy Policy", href: "/privacy-policy" },
+                    { label: "Terms of Service", href: "/terms-of-service" },
+                    { label: "GDPR", href: "/gdpr" },
+                    { label: "Cookies", href: "/cookie-policy" },
                   ],
                 },
               ].map((section) => (
