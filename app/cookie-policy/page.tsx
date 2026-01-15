@@ -34,7 +34,7 @@ export default function CookiePolicyPage() {
                 the owners of the site.
               </p>
               <p className="text-gray-700">
-                This Cookie Policy explains how {companyName} ("we", "us", or "our") 
+                This Cookie Policy explains how {companyName} (&quot;we, &quot;us&quot;, or &quot;our&quot;) 
                 uses cookies and similar technologies on the {appName} website and 
                 application.
               </p>
@@ -241,8 +241,8 @@ export default function CookiePolicyPage() {
               </h3>
               <p className="text-gray-700 mb-4">
                 Most web browsers allow you to control cookies through their 
-                settings. You can usually find these settings in the "Options" 
-                or "Preferences" menu of your browser. The following links may 
+                settings. You can usually find these settings in the &quot;Options&quot; 
+                or &quot;Preferences&quot; menu of your browser. The following links may 
                 be helpful:
               </p>
               <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-1">
@@ -343,7 +343,7 @@ export default function CookiePolicyPage() {
               <p className="text-gray-700">
                 We may update this Cookie Policy from time to time. We will notify 
                 you of any changes by posting the new Cookie Policy on this page 
-                and updating the "Last updated" date. We encourage you to review 
+                and updating the &quot;Last updated&quot; date. We encourage you to review 
                 this Cookie Policy periodically.
               </p>
             </section>
