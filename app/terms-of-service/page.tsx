@@ -236,7 +236,7 @@ export default function TermsOfServicePage() {
               </h3>
               <p className="text-gray-700 mb-4">
                 You retain all ownership rights in the content you create or upload
-                to {appName} ("Your Content"), including lesson plans, resources,
+                to {appName} (&quot;Your Content&quot;), including lesson plans, resources,
                 documents, and other materials.
               </p>
 
@@ -663,7 +663,7 @@ export default function TermsOfServicePage() {
                 12. Disclaimer
               </h2>
               <p className="text-gray-700 mb-4">
-                The Service is provided on an "as is" and "as available" basis.
+                The Service is provided on an &quot;as is&quot; and &quot;as available&quot; basis.
                 To the fullest extent permitted by law:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
@@ -682,7 +682,7 @@ export default function TermsOfServicePage() {
                 </p>
                 <p className="mb-4">
                   THE SERVICE, INCLUDING ALL AI-GENERATED CONTENT, IS PROVIDED ON AN
-                  "AS IS" AND "AS AVAILABLE" BASIS, WITHOUT ANY WARRANTIES OF ANY KIND,
+                  &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; BASIS, WITHOUT ANY WARRANTIES OF ANY KIND,
                   EITHER EXPRESS OR IMPLIED.
                 </p>
                 <p className="mb-4">

@@ -255,8 +255,8 @@ export default function GDPRPage() {
                 </p>
                 <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-1">
                   <li>Your prompts and inputs are processed by AI systems to generate content</li>
-                  <li>This processing is automated but does not constitute "automated
-                    decision-making" under Article 22 of the GDPR</li>
+                  <li>This processing is automated but does not constitute &quot;automated
+                    decision-making&quot; under Article 22 of the GDPR</li>
                   <li>AI outputs are suggestions and tools – no decisions with legal or
                     similarly significant effects are made solely by AI</li>
                   <li>You maintain full control over whether to use, modify, or discard
