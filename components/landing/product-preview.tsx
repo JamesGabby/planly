@@ -3,9 +3,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Play, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function ProductPreview() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);

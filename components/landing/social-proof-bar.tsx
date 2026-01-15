@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 const schools = [
   { name: "Manchester Academy", logo: "/logos/school1.svg" },

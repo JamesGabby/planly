@@ -22,16 +22,12 @@ import {
   ChevronDown,
   Globe,
   Star,
-  Mail,
 } from "lucide-react";
 import { TypewriterText } from "@/components/landing/TypewriterText";
 import { HeroAnimation } from "@/components/three-animations/hero-animation";
 import { Logo } from "@/components/logo";
-import { Navigation } from "@/components/landing/navigation";
-import { ProductPreview } from "@/components/landing/product-preview";
 import { SocialProofBar } from "@/components/landing/social-proof-bar";
 import { FeatureTabs } from "@/components/landing/feature-tabs";
-import { NewsletterSignup } from "@/components/landing/newsletter-signup";
 import { cn } from "@/lib/utils";
 
 // Custom hook for intersection observer animations
