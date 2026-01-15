@@ -1,6 +1,8 @@
-// app/auth/error/page.tsx
+// app/auth/error/auth-error-content.tsx
 
-import { Suspense } from "react";
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -10,10 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { AuthErrorContent } from "./auth-error-content";
 
-// Loading fallback component
-function AuthErrorFallback() {
+export function AuthErrorContent() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error") || "An authentication error occurred";
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
@@ -27,7 +30,7 @@ function AuthErrorFallback() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+            <p className="text-sm text-muted-foreground">{error}</p>
             <div className="flex flex-col gap-2">
               <Button asChild>
                 <Link href="/auth/login">Back to Login</Link>
@@ -40,13 +43,5 @@ function AuthErrorFallback() {
         </Card>
       </div>
     </div>
-  );
-}
-
-export default function AuthErrorPage() {
-  return (
-    <Suspense fallback={<AuthErrorFallback />}>
-      <AuthErrorContent />
-    </Suspense>
   );
 }
