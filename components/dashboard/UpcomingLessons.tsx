@@ -87,7 +87,7 @@ export default function UpcomingLessons({ lessons }: UpcomingLessonsProps) {
   const getLessonLink = (lesson: DashboardLesson) => {
     const baseUrl = lesson.type === 'teacher' 
       ? '/dashboard/lesson-plans/lesson/teacher'
-      : '/tutor-dashboard/lesson-plans/lesson';
+      : '/dashboard/lesson-plans/lesson/tutor';
     return `${baseUrl}/${lesson.id}`;
   };
 
