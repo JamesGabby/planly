@@ -757,7 +757,7 @@ export default function LandingPage() {
             </div>
 
             <div className="pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-              <p>© {currentYear} Planly. Built for UK educators with ❤️</p>
+              <p>© {currentYear} Lessonly. Built for UK educators with ❤️</p>
               <p>Made in London, UK 🇬🇧</p>
             </div>
           </div>
