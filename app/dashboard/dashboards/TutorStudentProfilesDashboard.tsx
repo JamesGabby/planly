@@ -5,16 +5,16 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { TutorStudentProfileFiltersCard } from "../../filters/student-tutor";
-import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
+import { TutorStudentProfileFiltersCard } from "../filters/student-tutor";
+import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { StudentCardTutor } from "../components/cards/student-cards/StudentCardTutor";
+import { StudentCardTutor } from "../lesson-plans/components/cards/student-cards/StudentCardTutor";
 import Link from "next/link";
-import { StudentProfileTutor } from "../types/student_profile_tutor";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
-import { MobileResponsiveModalStudent } from "../components/MobileResponsiveModalStudent";
+import { StudentProfileTutor } from "../lesson-plans/types/student_profile_tutor";
+import { DeleteConfirmModal } from "../lesson-plans/components/DeleteConfirmModal";
+import { MobileResponsiveModalStudent } from "../lesson-plans/components/MobileResponsiveModalStudent";
 
 const supabase = createClient();
 

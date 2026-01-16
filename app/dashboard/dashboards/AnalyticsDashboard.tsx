@@ -26,7 +26,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { AnalyticsData, LessonData } from '../types/analytics';
+import { AnalyticsData, LessonData } from '../lesson-plans/types/analytics';
 import clsx from 'clsx';
 import { StudentsClassesCharts } from '@/components/analytics/StudentsByYearGroupLevel';
 import { SubjectBadge } from '@/components/ui/subject-badge';

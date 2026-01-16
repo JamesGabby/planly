@@ -5,50 +5,45 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { LessonPlanTeacher } from "../types/lesson_teacher";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
-import { MobileResponsiveModal } from "../components/MobileResponsiveModal";
-import { LessonTeacherFiltersCard } from "../../filters/lesson-teacher";
-import { LessonCardSkeleton } from "../skeletons/LessonCardSkeleton";
-import { useUserMode } from "@/components/UserModeContext";
+import { DeleteConfirmModal } from "../lesson-plans/components/DeleteConfirmModal";
+import { MobileResponsiveModal } from "../lesson-plans/components/MobileResponsiveModal";
+import { LessonTutorFiltersCard } from "../filters/lesson-tutor";
+import { LessonCardSkeleton } from "../lesson-plans/skeletons/LessonCardSkeleton";
 import { Pagination } from "@/components/pagination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LessonCardTeacher } from "../components/cards/lesson-cards/LessonCardTeacher";
-import { LessonCardTutor } from "../components/cards/lesson-cards/LessonCardTutor";
-import { LessonPlanTutor } from "../types/lesson_tutor";
-import { TeacherCalendarView } from "../components/calendars/TeacherCalendarView";
+import { LessonCardTutor } from "../lesson-plans/components/cards/lesson-cards/LessonCardTutor";
+import { LessonPlanTutor } from "../lesson-plans/types/lesson_tutor";
+import { TutorCalendarView } from "../lesson-plans/components/calendars/TutorCalendarView";
+import Link from "next/link";
 
 const supabase = createClient();
 
 const ITEMS_PER_PAGE = 6;
 
-export default function TeacherLessonPlansDashboard() {
-  const [lessons, setLessons] = useState<LessonPlanTeacher[]>([]);
+export default function TutorLessonPlansDashboard() {
+  const [lessons, setLessons] = useState<LessonPlanTutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [userId, setUserId] = useState("");
-  const [selectedClass, setSelectedClass] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
-  const [selectedYearGroup, setSelectedYearGroup] = useState<string>("");
   const [selectedExamBoard, setSelectedExamBoard] = useState<string>("");
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined;
     to: Date | undefined;
   }>({ from: undefined, to: undefined });
   const [error, setError] = useState<string | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<LessonPlanTeacher | LessonPlanTutor | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<LessonPlanTeacher | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<LessonPlanTutor | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<LessonPlanTutor | null>(null);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [previousPage, setPreviousPage] = useState(1);
   const [viewType, setViewType] = useState<"grid" | "calendar">("grid");
 
-  const { mode } = useUserMode();
-
   // Memoize date calculations to prevent hydration issues
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
-
+  
   const tomorrowStr = useMemo(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -70,9 +65,9 @@ export default function TeacherLessonPlansDashboard() {
           setLoading(false);
           return;
         }
-
+        
         setUserId(user.id);
-        await fetchLessonPlans(user.id);
+        await fetchTutorLessonPlans(user.id);
       } catch (err) {
         console.error("Authentication error:", err);
         setError(err instanceof Error ? err.message : "Failed to authenticate");
@@ -83,7 +78,7 @@ export default function TeacherLessonPlansDashboard() {
     load();
   }, []);
 
-  async function fetchLessonPlans(userId: string) {
+  async function fetchTutorLessonPlans(userId: string) {
     if (!userId) {
       setError("User ID is required");
       setLoading(false);
@@ -95,8 +90,14 @@ export default function TeacherLessonPlansDashboard() {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from("teacher_lesson_plans")
-        .select("*")
+        .from("tutor_lesson_plans")
+        .select(`
+          *,
+          tutor_student_profiles!fk_student (
+            first_name,
+            last_name
+          )
+        `)
         .eq("user_id", userId)
         .order("date_of_lesson", { ascending: true });
 
@@ -113,11 +114,12 @@ export default function TeacherLessonPlansDashboard() {
     }
   }
 
-  // Filter options
-  const classes = useMemo(() => {
+  // Extract unique students
+  const students = useMemo(() => {
     const set = new Set<string>();
-    lessons.forEach((l) => {
-      if (l.class) set.add(l.class);
+    lessons.forEach((l: LessonPlanTutor) => {
+      const name = `${l.first_name ?? ""} ${l.last_name ?? ""}`.trim();
+      if (name) set.add(name);
     });
     return Array.from(set).sort();
   }, [lessons]);
@@ -130,19 +132,10 @@ export default function TeacherLessonPlansDashboard() {
     return Array.from(set).sort();
   }, [lessons]);
 
-  const yearGroups = useMemo(() => {
-    const set = new Set<string>();
-    lessons.forEach((l) => {
-      if (l.year_group) set.add(l.year_group);
-    });
-    return Array.from(set).sort();
-  }, [lessons]);
-
   const examBoards = useMemo(() => {
     const set = new Set<string>();
     lessons.forEach((l) => {
       if (l.exam_board) set.add(l.exam_board);
-      if (l.custom_exam_board) set.add(l.custom_exam_board);
     });
     return Array.from(set).sort();
   }, [lessons]);
@@ -150,20 +143,16 @@ export default function TeacherLessonPlansDashboard() {
   // Filtered lessons with proper null/undefined handling
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
-      // Class filter
-      if (selectedClass && l.class !== selectedClass) return false;
+      const studentName = `${l.first_name ?? ""} ${l.last_name ?? ""}`.trim();
+
+      // Student filter
+      if (selectedStudent && studentName !== selectedStudent) return false;
 
       // Subject filter
       if (selectedSubject && l.subject !== selectedSubject) return false;
 
-      // Year group filter
-      if (selectedYearGroup && l.year_group !== selectedYearGroup) return false;
-
       // Exam board filter
-      if (selectedExamBoard) {
-        const lessonBoard = l.exam_board || l.custom_exam_board || "";
-        if (lessonBoard !== selectedExamBoard) return false;
-      }
+      if (selectedExamBoard && l.exam_board !== selectedExamBoard) return false;
 
       // Specific date filter (takes precedence over date range)
       if (dateFilter) {
@@ -175,9 +164,9 @@ export default function TeacherLessonPlansDashboard() {
         const lessonDate = new Date(l.date_of_lesson);
         const fromDate = new Date(dateRange.from);
         fromDate.setHours(0, 0, 0, 0);
-
+        
         if (lessonDate < fromDate) return false;
-
+        
         if (dateRange.to) {
           const toDate = new Date(dateRange.to);
           toDate.setHours(23, 59, 59, 999);
@@ -191,12 +180,9 @@ export default function TeacherLessonPlansDashboard() {
         const searchableFields = [
           l.topic,
           l.objectives,
-          l.class,
+          studentName,
           l.subject,
-          l.year_group,
           l.exam_board,
-          l.custom_exam_board,
-          l.student,
         ];
 
         return searchableFields.some((field) =>
@@ -209,9 +195,8 @@ export default function TeacherLessonPlansDashboard() {
   }, [
     lessons,
     search,
-    selectedClass,
+    selectedStudent,
     selectedSubject,
-    selectedYearGroup,
     selectedExamBoard,
     dateFilter,
     dateRange,
@@ -248,14 +233,14 @@ export default function TeacherLessonPlansDashboard() {
   useEffect(() => {
     setUpcomingPage(1);
     setPreviousPage(1);
-  }, [search, selectedClass, selectedSubject, selectedYearGroup, selectedExamBoard, dateFilter, dateRange]);
+  }, [search, selectedStudent, selectedSubject, selectedExamBoard, dateFilter, dateRange]);
 
   async function handleDeleteConfirm() {
     if (!confirmDelete) return;
 
     try {
       const { error: deleteError } = await supabase
-        .from("teacher_lesson_plans")
+        .from("tutor_lesson_plans")
         .delete()
         .eq("id", confirmDelete.id);
 
@@ -272,7 +257,7 @@ export default function TeacherLessonPlansDashboard() {
     }
   }
 
-  async function handleDuplicateLesson(lesson: LessonPlanTeacher) {
+  async function handleDuplicateLesson(lesson: LessonPlanTutor) {
     try {
       // Destructure and exclude auto-generated fields
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -284,7 +269,7 @@ export default function TeacherLessonPlansDashboard() {
       };
 
       const { data, error: duplicateError } = await supabase
-        .from("teacher_lesson_plans")
+        .from("tutor_lesson_plans")
         .insert([copy])
         .select()
         .single();
@@ -297,8 +282,8 @@ export default function TeacherLessonPlansDashboard() {
       }
     } catch (err) {
       console.error("Duplicate error:", err);
-      const errorMessage = err instanceof Error
-        ? `Failed to duplicate: ${err.message}`
+      const errorMessage = err instanceof Error 
+        ? `Failed to duplicate: ${err.message}` 
         : "Failed to duplicate lesson";
       toast.error(errorMessage);
     }
@@ -308,71 +293,61 @@ export default function TeacherLessonPlansDashboard() {
     ? "scale-[0.987] blur-sm transition-all duration-300"
     : "transition-all duration-300";
 
-  const renderLessonCard = (lp: LessonPlanTeacher | LessonPlanTutor) => {
-    const commonProps = {
-      onDelete: () => setConfirmDelete(lp as LessonPlanTeacher),
-      onDuplicate: () => handleDuplicateLesson(lp as LessonPlanTeacher),
-    };
-
-    if (mode === "tutor") {
-      return <LessonCardTutor lesson={lp as LessonPlanTutor} {...commonProps} />;
-    }
-
-    if (mode === "teacher") {
-      return <LessonCardTeacher lesson={lp as LessonPlanTeacher} {...commonProps} />;
-    }
-
-    return null;
+  const renderLessonCard = (lp: LessonPlanTutor) => {
+    return (
+      <LessonCardTutor
+        lesson={lp}
+        onDelete={() => setConfirmDelete(lp)}
+        onDuplicate={() => handleDuplicateLesson(lp)}
+      />
+    );
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 transition-colors">
       <div className="max-w-7xl mx-auto relative">
         <div className={backgroundClass}>
-
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Lesson Plans</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutoring Sessions</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage and browse your lesson plans
+                Manage and browse your tutoring sessions
               </p>
             </div>
 
-            <div className="flex gap-2 shrink-0">
-              <Button
-                variant="outline"
-                onClick={() => userId && fetchLessonPlans(userId)}
+            <div className="flex gap-2 shrink-0 flex-wrap">
+              <Button 
+                variant="outline" 
+                onClick={() => userId && fetchTutorLessonPlans(userId)}
                 disabled={loading || !userId}
               >
                 Refresh
               </Button>
               <Button asChild>
-                <a href="/dashboard/lesson-plans/new">New Plan</a>
+                <Link href="/dashboard/lesson-plans/new">New Plan</Link>
               </Button>
             </div>
           </div>
 
           <Separator className="my-6" />
 
-          <LessonTeacherFiltersCard
+          {/* Filters */}
+          <LessonTutorFiltersCard
             search={search}
             setSearch={setSearch}
-            selectedClass={selectedClass}
-            setSelectedClass={setSelectedClass}
+            selectedStudent={selectedStudent}
+            setSelectedStudent={setSelectedStudent}
             dateFilter={dateFilter}
             setDateFilter={setDateFilter}
             selectedSubject={selectedSubject}
             setSelectedSubject={setSelectedSubject}
-            selectedYearGroup={selectedYearGroup}
-            setSelectedYearGroup={setSelectedYearGroup}
             selectedExamBoard={selectedExamBoard}
             setSelectedExamBoard={setSelectedExamBoard}
             dateRange={dateRange}
             setDateRange={setDateRange}
-            classes={classes}
+            students={students}
             subjects={subjects}
-            yearGroups={yearGroups}
             examBoards={examBoards}
             viewType={viewType}
             setViewType={setViewType}
@@ -380,16 +355,14 @@ export default function TeacherLessonPlansDashboard() {
 
           <Separator className="my-6" />
 
-          {/* Lessons */}
-
           {/* Conditional View Rendering */}
           {error ? (
             <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
               <p className="text-destructive font-semibold mb-2">Error Loading Lessons</p>
               <p className="text-sm text-muted-foreground mb-4">{error}</p>
-              <Button
-                variant="outline"
-                onClick={() => userId && fetchLessonPlans(userId)}
+              <Button 
+                variant="outline" 
+                onClick={() => userId && fetchTutorLessonPlans(userId)}
                 disabled={loading}
               >
                 Try Again
@@ -411,18 +384,18 @@ export default function TeacherLessonPlansDashboard() {
                 Try adjusting your filters or create a new lesson plan
               </p>
               <Button asChild>
-                <a href="/dashboard/lesson-plans/new">Create Lesson Plan</a>
+                <Link href="/dashboard/lesson-plans/new">Create Lesson Plan</Link>
               </Button>
             </div>
           ) : viewType === "calendar" ? (
             /* Calendar View */
-            <TeacherCalendarView
+            <TutorCalendarView
               lessons={filtered}
               onLessonClick={setSelectedLesson}
               loading={loading}
             />
           ) : (
-            /* Grid View (existing layout) */
+            /* Grid View */
             <>
               {/* Today's Lessons */}
               {todayLessons.length > 0 && (
