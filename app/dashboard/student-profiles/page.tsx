@@ -1,8 +1,8 @@
 'use client'
 
 import { useUserMode } from "@/components/UserModeContext";
-import TutorStudentProfilesDashboard from "../lesson-plans/dashboards/TutorStudentProfilesDashboard";
-import TeacherStudentProfilesDashboard from "../lesson-plans/dashboards/TeacherStudentProfilesDashboard";
+import TutorStudentProfilesDashboard from "../dashboards/TutorStudentProfilesDashboard";
+import TeacherStudentProfilesDashboard from "../dashboards/TeacherStudentProfilesDashboard";
 
 export default function LessonPlansPage() {
   const { mode } = useUserMode();

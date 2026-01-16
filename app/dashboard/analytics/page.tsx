@@ -1,7 +1,7 @@
 // app/analytics/page.tsx
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { AnalyticsDashboard } from '../lesson-plans/dashboards/AnalyticsDashboard';
+import { AnalyticsDashboard } from '../dashboards/AnalyticsDashboard';
 import {
   AnalyticsData,
   ClassDistributionData,
