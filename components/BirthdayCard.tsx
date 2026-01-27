@@ -277,7 +277,7 @@ export default function BirthdayCard() {
             className="text-center text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6"
             variants={itemVariants}
           >
-            <span className="block bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-transparent bg-clip-text">
+            <span className="h-20 block bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-transparent bg-clip-text">
               <AnimatedText text="Happy Birthday," />
             </span>
             <span className="block bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text mt-2">
